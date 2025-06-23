@@ -1,0 +1,38 @@
+name: Build and Release iOS App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_release:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+      
+      - name: Set up Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '2.7'
+          bundler-cache: true
+          working-directory: 'ios'
+
+      - name: Create Firebase Service Account file
+        run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CRITCHAT_906B4 }}' > firebase_credentials.json
+
+      - name: Build and distribute
+        run: |
+          cd ios
+          bundle exec fastlane distribute
+        env:
+          FASTLANE_USER: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          FIREBASE_SERVICE_CREDENTIALS_FILE_PATH: "${{ github.workspace }}/firebase_credentials.json" 
