@@ -1,1 +1,55 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"critchat-906b4","appId":"1:926775609416:android:79eaa6efee5fc403f3b07d","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"critchat-906b4","appId":"1:926775609416:ios:27c934f311335739f3b07d","uploadDebugSymbols":false,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"macos":{"default":{"projectId":"critchat-906b4","appId":"1:926775609416:ios:27c934f311335739f3b07d","uploadDebugSymbols":false,"fileOutput":"macos/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"critchat-906b4","configurations":{"android":"1:926775609416:android:79eaa6efee5fc403f3b07d","ios":"1:926775609416:ios:27c934f311335739f3b07d","macos":"1:926775609416:ios:27c934f311335739f3b07d","web":"1:926775609416:web:c1696677c78c3e00f3b07d","windows":"1:926775609416:web:89532cab109ba66af3b07d"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "critchat-906b4",
+          "appId": "1:926775609416:android:79eaa6efee5fc403f3b07d",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "critchat-906b4",
+          "appId": "1:926775609416:ios:27c934f311335739f3b07d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "macos": {
+        "default": {
+          "projectId": "critchat-906b4",
+          "appId": "1:926775609416:ios:27c934f311335739f3b07d",
+          "uploadDebugSymbols": false,
+          "fileOutput": "macos/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "critchat-906b4",
+          "configurations": {
+            "android": "1:926775609416:android:79eaa6efee5fc403f3b07d",
+            "ios": "1:926775609416:ios:27c934f311335739f3b07d",
+            "macos": "1:926775609416:ios:27c934f311335739f3b07d",
+            "web": "1:926775609416:web:c1696677c78c3e00f3b07d",
+            "windows": "1:926775609416:web:89532cab109ba66af3b07d"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "public": "web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  }
+}
