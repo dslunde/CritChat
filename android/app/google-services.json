@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "926775609416",
+    "firebase_url": "https://critchat-906b4-default-rtdb.firebaseio.com",
+    "project_id": "critchat-906b4",
+    "storage_bucket": "critchat-906b4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:926775609416:android:79eaa6efee5fc403f3b07d",
+        "android_client_info": {
+          "package_name": "com.example.critchat"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "926775609416-ham2pep7848l730mu37e9qce8o9a6092.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCExrzsBnJNQpEqZjpw942S60PnEjz46ng"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "926775609416-ham2pep7848l730mu37e9qce8o9a6092.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "926775609416-udr4h2091shdbcaqr6j5nceg4aunft4s.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.critchat"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
