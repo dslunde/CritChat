@@ -15,7 +15,12 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our app shows Hello Gauntlet.
-    expect(find.text('Hello Gauntlet!'), findsOneWidget);
+    // Verify that our app shows Hello Gauntlet in the body.
+    final bodyTextFinder = find.descendant(
+      of: find.byType(Center),
+      matching: find.text('Hello Gauntlet!'),
+    );
+
+    expect(bodyTextFinder, findsOneWidget);
   });
 }
