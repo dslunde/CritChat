@@ -42,4 +42,4 @@ jobs:
           appId: 1:926775609416:android:79eaa6efee5fc403f3b07d
           serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_CRITCHAT_906B4 }}
           file: build/app/outputs/bundle/release/app-release.aab
-          groups: testers 
+          groups: family-and-friends 

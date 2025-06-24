@@ -11,7 +11,7 @@ platform :ios do
     )
     firebase_app_distribution(
       app: "1:926775609416:ios:27c934f311335739f3b07d",
-      testers: "testers",
+      testers: "family-and-friends",
       service_credentials_file: ENV["FIREBASE_SERVICE_CREDENTIALS_FILE_PATH"]
     )
   end
