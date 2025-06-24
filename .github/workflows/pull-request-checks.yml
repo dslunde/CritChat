@@ -10,7 +10,7 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: macos-latest # Using macos-latest to build for both Android and iOS
+    runs-on: ubuntu-latest # Using ubuntu-latest as iOS build is not required for PR checks
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,6 +34,3 @@ jobs:
 
       - name: Build Android APK (Debug)
         run: flutter build apk --debug
-
-      - name: Build iOS (no codesign)
-        run: flutter build ios --no-codesign
