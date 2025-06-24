@@ -39,6 +39,12 @@ jobs:
           echo "MATCH_GIT_URL=${{ secrets.MATCH_GIT_URL }}" >> ios/fastlane/fastlane.env.default
           echo "FIREBASE_SERVICE_CREDENTIALS_FILE_PATH=${{ github.workspace }}/firebase_credentials.json" >> ios/fastlane/fastlane.env.default
 
+      - name: Install Flutter Dependencies
+        run: flutter pub get
+
+      - name: Install Pods
+        run: cd ios && pod install --repo-update
+
       - name: Build and distribute
         run: |
           cd ios
