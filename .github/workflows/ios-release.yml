@@ -32,6 +32,7 @@ jobs:
           cd ios
           bundle exec fastlane distribute
         env:
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           FASTLANE_USER: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
           FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
           FASTLANE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}

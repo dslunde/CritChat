@@ -3,7 +3,11 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to Firebase App Distribution"
   lane :distribute do
-    match(type: "appstore", readonly: true)
+    match(
+      type: "appstore",
+      readonly: true,
+      git_url: ENV["MATCH_GIT_URL"]
+    )
     build_app(
       workspace: "Runner.xcworkspace",
       scheme: "Runner",
