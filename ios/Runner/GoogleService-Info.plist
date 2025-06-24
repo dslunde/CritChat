@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>926775609416-udr4h2091shdbcaqr6j5nceg4aunft4s.apps.googleusercontent.com</string>
+	<string>926775609416-o7v1pbn8snjbs0bmhs07cndadq3ec300.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.926775609416-udr4h2091shdbcaqr6j5nceg4aunft4s</string>
+	<string>com.googleusercontent.apps.926775609416-o7v1pbn8snjbs0bmhs07cndadq3ec300</string>
 	<key>API_KEY</key>
 	<string>AIzaSyA2Z-oGidW7zkICI_NDUqOJurKSmyX6uUI</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.example.critchat</string>
+	<string>net.lundandco.critchat</string>
 	<key>PROJECT_ID</key>
 	<string>critchat-906b4</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,7 +29,7 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:926775609416:ios:27c934f311335739f3b07d</string>
+	<string>1:926775609416:ios:4b9a41d4f3424f1bf3b07d</string>
 	<key>DATABASE_URL</key>
 	<string>https://critchat-906b4-default-rtdb.firebaseio.com</string>
 </dict>
