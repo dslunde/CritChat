@@ -1,4 +1,4 @@
-package com.example.critchat
+package net.lundandco.critchat
 
 import io.flutter.embedding.android.FlutterActivity
 
