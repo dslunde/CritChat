@@ -24,6 +24,9 @@ jobs:
           bundler-cache: true
           working-directory: 'ios'
 
+      - name: Configure Git for private repo access
+        run: git config --global url."https://x-access-token:${{ secrets.CERT_REPO_PAT }}@github.com/".insteadOf "https://github.com/"
+
       - name: Create Firebase Service Account file
         run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CRITCHAT_906B4 }}' > firebase_credentials.json
 
