@@ -26,6 +26,9 @@ jobs:
       - name: Decode Keystore
         run: echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/critchat-keystore.jks
 
+      - name: Verify Keystore Checksum
+        run: shasum -a 256 android/critchat-keystore.jks
+
       - name: Create key.properties file
         run: |
           echo "storeFile=critchat-keystore.jks" > android/key.properties
