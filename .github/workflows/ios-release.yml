@@ -44,8 +44,3 @@ jobs:
 
       - name: Install Pods
         run: cd ios && pod install --repo-update
-
-      - name: Build and distribute
-        run: |
-          cd ios
-          bundle exec fastlane distribute 
