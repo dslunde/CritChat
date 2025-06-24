@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Hello Gauntlet',
       theme: ThemeData(
         // This is the theme of your application.
-        //
+        // Adding comment for meaningless merge
         // TRY THIS: Try running your application with "flutter run". You'll see
         // the application has a purple toolbar. Then, without quitting the app,
         // try changing the seedColor in the colorScheme below to Colors.green
