@@ -30,11 +30,21 @@ jobs:
       - name: Create Firebase Service Account file
         run: echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT_CRITCHAT_906B4 }}' > firebase_credentials.json
 
+      - name: Verify MATCH_PASSWORD secret
+        run: |
+          if [ -z "${{ secrets.MATCH_PASSWORD }}" ]; then
+            echo "::error::MATCH_PASSWORD secret is NOT set or is empty."
+            exit 1
+          else
+            echo "MATCH_PASSWORD secret is set and has a non-zero length."
+          fi
+
       - name: Build and distribute
         run: |
           cd ios
           bundle exec fastlane distribute
         env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
           MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           FASTLANE_USER: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
           FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
