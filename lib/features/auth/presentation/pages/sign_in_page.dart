@@ -173,10 +173,11 @@ class _SignInPageState extends State<SignInPage> {
                       ),
                       TextButton(
                         onPressed: () {
+                          final authBloc = context.read<AuthBloc>();
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (context) => BlocProvider.value(
-                                value: context.read<AuthBloc>(),
+                                value: authBloc,
                                 child: const SignUpPage(),
                               ),
                             ),
