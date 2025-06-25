@@ -30,6 +30,10 @@ class AuthUnauthenticated extends AuthState {
   const AuthUnauthenticated();
 }
 
+class AuthSigningOut extends AuthState {
+  const AuthSigningOut();
+}
+
 class AuthError extends AuthState {
   const AuthError({required this.message});
 

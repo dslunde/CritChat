@@ -4,9 +4,20 @@ This document outlines the specific technologies, frameworks, and services used 
 
 ## Frontend
 
--   **Framework**: Flutter
--   **State Management**: Zustand
-    -   *Note: Zustand is primarily a JavaScript library. For Flutter, a similar light-weight, hook-based state management solution inspired by Zustand will be used (e.g., a custom implementation or a library with a similar philosophy).*
+-   **Framework**: Flutter 3.x with Material 3 design
+-   **State Management**: BLoC Pattern with flutter_bloc
+    -   *Note: Originally considered Zustand-inspired solution, but BLoC pattern was chosen for its excellent Flutter integration, comprehensive tooling, and robust testing capabilities.*
+-   **Navigation**: Native Flutter navigation with planned migration to go_router
+-   **Form Validation**: Formz for type-safe form field validation
+-   **Dependency Injection**: GetIt for clean service location and testing
+
+## Testing & Quality Assurance
+
+-   **Widget Testing**: flutter_test for UI component testing
+-   **BLoC Testing**: bloc_test for comprehensive state management testing
+-   **Mocking**: mocktail for clean, type-safe mocking in tests
+-   **Code Quality**: flutter_lints for consistent code standards
+-   **Analyzer**: Zero-tolerance policy for linting issues and warnings
 
 ## Backend & Services
 
@@ -27,6 +38,19 @@ This document outlines the specific technologies, frameworks, and services used 
 
 ## Key Dependencies & Integrations
 
--   The project will rely on the official Flutter and Firebase SDKs.
--   An HTTP client will be needed to communicate with the Weaviate API from Cloud Functions.
--   Specific Flutter packages for handling state management, routing, and UI components will be added as development progresses. 
+-   **Core Flutter Dependencies**:
+    -   `flutter_bloc: ^8.1.3` - State management
+    -   `equatable: ^2.0.5` - Value equality for state objects
+    -   `formz: ^0.7.0` - Form validation
+    -   `get_it: ^8.0.0` - Dependency injection
+-   **Firebase Dependencies**:
+    -   `firebase_core: ^2.24.2` - Firebase core functionality
+    -   `firebase_auth: ^4.16.0` - Authentication services
+    -   `cloud_firestore: ^4.14.0` - Firestore database
+-   **Testing Dependencies**:
+    -   `bloc_test: ^9.1.7` - BLoC testing utilities
+    -   `mocktail: ^1.0.4` - Mocking framework
+-   **Development Standards**:
+    -   Modern Flutter APIs (avoiding deprecated methods)
+    -   Proper logging with `debugPrint()` for development
+    -   Clean architecture principles with proper separation of concerns 
