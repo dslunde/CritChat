@@ -79,7 +79,25 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final data = userDoc.data();
       if (data == null) return null;
 
-      return UserModel.fromJson(data, firebaseUser.uid);
+      try {
+        return UserModel.fromJson(data, firebaseUser.uid);
+      } catch (parseError) {
+        debugPrint('Failed to parse user data, retrying: $parseError');
+        // Wait a bit and retry the document fetch
+        await Future.delayed(const Duration(milliseconds: 200));
+        final retryDoc = await _firestore
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .get();
+
+        if (retryDoc.exists && retryDoc.data() != null) {
+          return UserModel.fromJson(retryDoc.data()!, firebaseUser.uid);
+        }
+
+        // If retry fails, return null instead of throwing
+        debugPrint('Retry failed, returning null');
+        return null;
+      }
     } catch (e) {
       debugPrint('Error in getCurrentUser: $e');
       return null;
@@ -174,11 +192,79 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign in failed: ${e.message}');
     } catch (e) {
-      // Check for specific pigeon type casting errors
+      // Check for specific pigeon type casting errors - these are often false positives
       if (e.toString().contains('PigeonUserDetails')) {
-        throw Exception(
-          'Sign in failed: Authentication timing error. Please try again.',
+        debugPrint(
+          'PigeonUserDetails error detected, checking if user is actually signed in...',
         );
+
+        // Wait a moment and check if the user is actually signed in
+        await Future.delayed(const Duration(milliseconds: 300));
+        final currentUser = _firebaseAuth.currentUser;
+
+        if (currentUser != null) {
+          debugPrint(
+            'User is actually signed in despite PigeonUserDetails error, proceeding...',
+          );
+
+          // Try to get/create user document
+          try {
+            final userDoc = await _firestore
+                .collection('users')
+                .doc(currentUser.uid)
+                .get();
+
+            if (userDoc.exists && userDoc.data() != null) {
+              return UserModel.fromJson(userDoc.data()!, currentUser.uid);
+            } else {
+              // Create user document
+              final now = DateTime.now();
+              final userData = UserModel(
+                id: currentUser.uid,
+                email: email,
+                displayName: currentUser.displayName,
+                photoUrl: currentUser.photoURL,
+                bio: null,
+                preferredSystems: const [],
+                experienceLevel: null,
+                totalXp: 0,
+                joinedGroups: const [],
+                createdAt: now,
+                lastLogin: now,
+              );
+
+              await _firestore
+                  .collection('users')
+                  .doc(currentUser.uid)
+                  .set(userData.toJson(), SetOptions(merge: true));
+
+              return userData;
+            }
+          } catch (firestoreError) {
+            debugPrint(
+              'Firestore error after PigeonUserDetails issue: $firestoreError',
+            );
+            // Still return basic user data if Firestore fails
+            final now = DateTime.now();
+            return UserModel(
+              id: currentUser.uid,
+              email: email,
+              displayName: currentUser.displayName,
+              photoUrl: currentUser.photoURL,
+              bio: null,
+              preferredSystems: const [],
+              experienceLevel: null,
+              totalXp: 0,
+              joinedGroups: const [],
+              createdAt: now,
+              lastLogin: now,
+            );
+          }
+        } else {
+          throw Exception(
+            'Sign in failed: Authentication timing error. Please try again.',
+          );
+        }
       }
       throw Exception('Sign in failed: ${e.toString()}');
     }
