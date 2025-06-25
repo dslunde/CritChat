@@ -62,12 +62,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           lastLogin: now,
         );
 
-        await _firestore
-            .collection('users')
-            .doc(firebaseUser.uid)
-            .set(userData.toJson());
+        try {
+          await _firestore
+              .collection('users')
+              .doc(firebaseUser.uid)
+              .set(userData.toJson(), SetOptions(merge: true));
 
-        return userData;
+          return userData;
+        } catch (e) {
+          print('Failed to create user document in getCurrentUser: $e');
+          return userData;
+        }
       }
 
       final data = userDoc.data();
@@ -91,22 +96,36 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         password: password,
       );
 
+      // Add a small delay to let Firebase Auth fully process
+      await Future.delayed(const Duration(milliseconds: 200));
+
       final user = credential.user;
       if (user == null) {
         throw Exception('Sign in failed: User is null');
       }
 
+      // Wait for user to be fully loaded
+      await user.reload();
+      final refreshedUser = _firebaseAuth.currentUser;
+
+      if (refreshedUser == null) {
+        throw Exception('Sign in failed: Unable to get user after sign in');
+      }
+
       // Check if user document exists in Firestore
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(refreshedUser.uid)
+          .get();
 
       if (!userDoc.exists) {
         // Create user document if it doesn't exist
         final now = DateTime.now();
         final userData = UserModel(
-          id: user.uid,
+          id: refreshedUser.uid,
           email: email,
-          displayName: user.displayName,
-          photoUrl: user.photoURL,
+          displayName: refreshedUser.displayName,
+          photoUrl: refreshedUser.photoURL,
           bio: null,
           preferredSystems: const [],
           experienceLevel: null,
@@ -116,28 +135,50 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           lastLogin: now,
         );
 
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .set(userData.toJson());
+        try {
+          await _firestore
+              .collection('users')
+              .doc(refreshedUser.uid)
+              .set(userData.toJson(), SetOptions(merge: true));
 
-        return userData;
+          return userData;
+        } catch (e) {
+          // If document creation fails, try to get existing document
+          print('Failed to create user document in signIn: $e');
+          final retryDoc = await _firestore
+              .collection('users')
+              .doc(refreshedUser.uid)
+              .get();
+
+          if (retryDoc.exists && retryDoc.data() != null) {
+            return UserModel.fromJson(retryDoc.data()!, refreshedUser.uid);
+          }
+
+          // If all else fails, return the userData we tried to create
+          return userData;
+        }
       } else {
         // Update last login for existing user
-        await _firestore.collection('users').doc(user.uid).update({
+        await _firestore.collection('users').doc(refreshedUser.uid).update({
           'lastLogin': FieldValue.serverTimestamp(),
         });
 
         final updatedDoc = await _firestore
             .collection('users')
-            .doc(user.uid)
+            .doc(refreshedUser.uid)
             .get();
 
-        return UserModel.fromJson(updatedDoc.data()!, user.uid);
+        return UserModel.fromJson(updatedDoc.data()!, refreshedUser.uid);
       }
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign in failed: ${e.message}');
     } catch (e) {
+      // Check for specific pigeon type casting errors
+      if (e.toString().contains('PigeonUserDetails')) {
+        throw Exception(
+          'Sign in failed: Authentication timing error. Please try again.',
+        );
+      }
       throw Exception('Sign in failed: ${e.toString()}');
     }
   }
@@ -153,18 +194,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         password: password,
       );
 
+      // Add a small delay to let Firebase Auth fully process
+      await Future.delayed(const Duration(milliseconds: 200));
+
       final user = credential.user;
       if (user == null) {
         throw Exception('Sign up failed: User is null');
       }
 
+      // Wait for user to be fully loaded
+      await user.reload();
+      final refreshedUser = _firebaseAuth.currentUser;
+
+      if (refreshedUser == null) {
+        throw Exception('Sign up failed: Unable to get user after creation');
+      }
+
       // Create initial user document in Firestore
       final now = DateTime.now();
       final userData = UserModel(
-        id: user.uid,
+        id: refreshedUser.uid,
         email: email,
-        displayName: null,
-        photoUrl: null,
+        displayName: refreshedUser.displayName,
+        photoUrl: refreshedUser.photoURL,
         bio: null,
         preferredSystems: const [],
         experienceLevel: null,
@@ -174,12 +226,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         lastLogin: now,
       );
 
-      await _firestore.collection('users').doc(user.uid).set(userData.toJson());
+      try {
+        await _firestore
+            .collection('users')
+            .doc(refreshedUser.uid)
+            .set(userData.toJson(), SetOptions(merge: true));
 
-      return userData;
+        return userData;
+      } catch (firestoreError) {
+        // If Firestore fails but Firebase Auth succeeded, still return user data
+        print(
+          'Firestore document creation failed during signup: $firestoreError',
+        );
+        return userData;
+      }
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign up failed: ${e.message}');
     } catch (e) {
+      // Check for specific pigeon type casting errors
+      if (e.toString().contains('PigeonUserDetails')) {
+        throw Exception(
+          'Sign up failed: Authentication timing error. Please try again.',
+        );
+      }
       throw Exception('Sign up failed: ${e.toString()}');
     }
   }
@@ -263,12 +332,28 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             lastLogin: now,
           );
 
-          await _firestore
-              .collection('users')
-              .doc(firebaseUser.uid)
-              .set(userData.toJson());
+          try {
+            await _firestore
+                .collection('users')
+                .doc(firebaseUser.uid)
+                .set(userData.toJson(), SetOptions(merge: true));
 
-          return userData;
+            return userData;
+          } catch (e) {
+            // If document creation fails, try to get existing document
+            print('Failed to create user document: $e');
+            final retryDoc = await _firestore
+                .collection('users')
+                .doc(firebaseUser.uid)
+                .get();
+
+            if (retryDoc.exists && retryDoc.data() != null) {
+              return UserModel.fromJson(retryDoc.data()!, firebaseUser.uid);
+            }
+
+            // If all else fails, return the userData we tried to create
+            return userData;
+          }
         }
 
         final data = userDoc.data();

@@ -28,18 +28,24 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthOnboardingCompleted>(_onOnboardingCompleted);
 
     // Listen to auth state changes
-    _authStateSubscription = _authRepository.authStateChanges.listen((user) {
-      if (user != null) {
-        final needsOnboarding =
-            user.displayName == null ||
-            user.experienceLevel == null ||
-            user.preferredSystems.isEmpty;
+    _authStateSubscription = _authRepository.authStateChanges.listen(
+      (user) {
+        if (user != null) {
+          final needsOnboarding =
+              user.displayName == null ||
+              user.experienceLevel == null ||
+              user.preferredSystems.isEmpty;
 
-        emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    });
+          emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
+        } else {
+          emit(const AuthUnauthenticated());
+        }
+      },
+      onError: (error) {
+        print('Auth stream error: $error');
+        emit(AuthError(message: error.toString()));
+      },
+    );
   }
 
   final GetCurrentUserUseCase _getCurrentUser;
@@ -83,14 +89,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      final user = await _signIn(email: event.email, password: event.password);
-
-      final needsOnboarding =
-          user.displayName == null ||
-          user.experienceLevel == null ||
-          user.preferredSystems.isEmpty;
-
-      emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
+      await _signIn(email: event.email, password: event.password);
+      // Longer delay to let Firebase Auth state settle and prevent flashing
+      await Future.delayed(const Duration(milliseconds: 500));
+      // Auth stream will handle the emission
     } catch (e) {
       emit(AuthError(message: e.toString()));
     }
@@ -102,10 +104,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(const AuthLoading());
     try {
-      final user = await _signUp(email: event.email, password: event.password);
-
-      // New users always need onboarding
-      emit(AuthAuthenticated(user: user, needsOnboarding: true));
+      await _signUp(email: event.email, password: event.password);
+      // Longer delay to let Firebase Auth state settle and prevent flashing
+      await Future.delayed(const Duration(milliseconds: 500));
+      // Auth stream will handle the emission
     } catch (e) {
       emit(AuthError(message: e.toString()));
     }
