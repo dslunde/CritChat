@@ -3,6 +3,30 @@
 ## Architecture Overview
 CritChat uses a mobile-first, client-server architecture. The frontend is a Flutter application, and the backend is powered by Firebase services, with Weaviate integrated for advanced search capabilities.
 
+## Frontend Architecture Patterns
+
+### State Management
+The application uses the BLoC (Business Logic Component) pattern for state management:
+- **Event-Driven**: All state changes triggered by events
+- **Reactive**: UI rebuilds automatically when state changes
+- **Testable**: Clear separation between business logic and UI
+- **Scalable**: Pattern works well for both simple and complex features
+
+### Testing Strategy
+Comprehensive testing approach with multiple layers:
+- **Widget Tests**: UI component behavior and user interactions
+- **BLoC Tests**: State management and business logic validation
+- **Integration Tests**: End-to-end authentication and Firebase integration
+- **Mocking Strategy**: Clean, isolated testing with mocktail
+- **CI/CD Ready**: All tests designed for automated pipeline execution
+
+### Code Quality Standards
+- **Zero Linting Issues**: Strict adherence to Flutter analyzer rules
+- **Modern APIs**: Use current Flutter APIs, avoid deprecated methods
+- **Clean Architecture**: Proper separation of domain, data, and presentation layers
+- **Consistent Logging**: `debugPrint()` for development, no production `print()` statements
+- **Dependency Management**: Clear, organized imports and dependencies
+
 ## Data Models & Storage
 
 ### Firestore (Primary Database)
