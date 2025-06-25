@@ -16,7 +16,6 @@ import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:critchat/features/auth/presentation/pages/sign_up_page.dart';
 import 'package:critchat/features/auth/presentation/pages/onboarding_page.dart';
 import 'package:critchat/features/auth/domain/entities/user_entity.dart';
 import 'package:critchat/core/constants/app_strings.dart';

@@ -229,7 +229,7 @@ class HomePage extends StatelessWidget {
                     width: 100,
                     height: 100,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryColor.withOpacity(0.1),
+                      color: AppColors.primaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -282,7 +282,7 @@ class HomePage extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(

@@ -141,7 +141,15 @@ class _SignInPageState extends State<SignInPage> {
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
-                        // TODO: Implement forgot password
+                        // Forgot password functionality placeholder
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Forgot password feature coming soon!',
+                            ),
+                            backgroundColor: AppColors.primaryColor,
+                          ),
+                        );
                       },
                       child: Text(
                         AppStrings.forgotPassword,

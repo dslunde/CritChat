@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
@@ -70,7 +71,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
           return userData;
         } catch (e) {
-          print('Failed to create user document in getCurrentUser: $e');
+          debugPrint('Failed to create user document in getCurrentUser: $e');
           return userData;
         }
       }
@@ -80,7 +81,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       return UserModel.fromJson(data, firebaseUser.uid);
     } catch (e) {
-      print('Error in getCurrentUser: $e');
+      debugPrint('Error in getCurrentUser: $e');
       return null;
     }
   }
@@ -144,7 +145,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           return userData;
         } catch (e) {
           // If document creation fails, try to get existing document
-          print('Failed to create user document in signIn: $e');
+          debugPrint('Failed to create user document in signIn: $e');
           final retryDoc = await _firestore
               .collection('users')
               .doc(refreshedUser.uid)
@@ -235,7 +236,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         return userData;
       } catch (firestoreError) {
         // If Firestore fails but Firebase Auth succeeded, still return user data
-        print(
+        debugPrint(
           'Firestore document creation failed during signup: $firestoreError',
         );
         return userData;
@@ -341,7 +342,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             return userData;
           } catch (e) {
             // If document creation fails, try to get existing document
-            print('Failed to create user document: $e');
+            debugPrint('Failed to create user document: $e');
             final retryDoc = await _firestore
                 .collection('users')
                 .doc(firebaseUser.uid)
@@ -361,7 +362,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
         return UserModel.fromJson(data, firebaseUser.uid);
       } catch (e) {
-        print('Error in authStateChanges: $e');
+        debugPrint('Error in authStateChanges: $e');
         return null;
       }
     });

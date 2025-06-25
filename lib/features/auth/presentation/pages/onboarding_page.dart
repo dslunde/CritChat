@@ -138,8 +138,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               });
                             }
                           },
-                          selectedColor: AppColors.primaryColor.withOpacity(
-                            0.2,
+                          selectedColor: AppColors.primaryColor.withValues(
+                            alpha: 0.2,
                           ),
                           labelStyle: TextStyle(
                             color: _selectedExperienceLevel == level
@@ -177,7 +177,9 @@ class _OnboardingPageState extends State<OnboardingPage> {
                           }
                         });
                       },
-                      selectedColor: AppColors.primaryColor.withOpacity(0.2),
+                      selectedColor: AppColors.primaryColor.withValues(
+                        alpha: 0.2,
+                      ),
                       labelStyle: TextStyle(
                         color: isSelected
                             ? AppColors.primaryColor

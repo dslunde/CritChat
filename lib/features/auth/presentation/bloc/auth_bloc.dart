@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/sign_in_usecase.dart';
@@ -30,20 +31,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     // Listen to auth state changes
     _authStateSubscription = _authRepository.authStateChanges.listen(
       (user) {
+        // Let the event handlers manage state emissions
+        // This stream is just for listening to Firebase auth changes
         if (user != null) {
-          final needsOnboarding =
-              user.displayName == null ||
-              user.experienceLevel == null ||
-              user.preferredSystems.isEmpty;
-
-          emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
+          add(const AuthStarted());
         } else {
-          emit(const AuthUnauthenticated());
+          add(const AuthStarted());
         }
       },
       onError: (error) {
-        print('Auth stream error: $error');
-        emit(AuthError(message: error.toString()));
+        // Use debugPrint for development logging
+        debugPrint('Auth stream error: $error');
+        add(const AuthStarted());
       },
     );
   }
