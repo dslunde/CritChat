@@ -4,7 +4,7 @@ import '../lfg/lfg_page.dart';
 import '../friends/friends_page.dart';
 import '../home/home_page.dart';
 import '../campaigns/campaigns_page.dart';
-import '../profile/profile_page.dart';
+import '../profile/for_me_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -21,7 +21,7 @@ class _MainNavigationState extends State<MainNavigation> {
     const FriendsPage(),
     const HomePage(), // Camera page
     const CampaignsPage(),
-    const ProfilePage(), // Old home content goes here
+    const ForMePage(), // Simple For Me page
   ];
 
   @override

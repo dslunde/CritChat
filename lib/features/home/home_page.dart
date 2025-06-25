@@ -4,16 +4,19 @@ import '../../core/constants/app_colors.dart';
 import '../auth/presentation/bloc/auth_bloc.dart';
 import '../auth/presentation/bloc/auth_state.dart';
 import '../notifications/notifications_page.dart';
+import '../profile/profile_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   void _navigateToProfile(BuildContext context) {
-    // For now, just show a message - will implement proper navigation later
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Profile navigation coming soon!'),
-        backgroundColor: AppColors.primaryColor,
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: context.read<AuthBloc>(),
+          child: const ProfilePage(),
+        ),
       ),
     );
   }

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 
-class LfgPage extends StatelessWidget {
-  const LfgPage({super.key});
+class ForMePage extends StatelessWidget {
+  const ForMePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundColor,
       appBar: AppBar(
-        title: const Text('Looking for Group'),
+        title: const Text('For Me'),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
         automaticallyImplyLeading: false,
@@ -20,10 +20,10 @@ class LfgPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.group_add, size: 80, color: AppColors.primaryColor),
+              Icon(Icons.person, size: 80, color: AppColors.primaryColor),
               SizedBox(height: 24),
               Text(
-                'Looking for Group',
+                'For Me',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -33,7 +33,7 @@ class LfgPage extends StatelessWidget {
               ),
               SizedBox(height: 16),
               Text(
-                'Find new campaigns and players to join your TTRPG adventures.',
+                'Your personal space for TTRPG content and settings.',
                 style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
