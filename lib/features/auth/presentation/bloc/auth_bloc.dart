@@ -123,13 +123,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthSignUpRequested event,
     Emitter<AuthState> emit,
   ) async {
+    debugPrint('🔍 SignUp: Starting sign-up process');
     emit(const AuthLoading());
     try {
+      debugPrint('🔍 SignUp: Calling _signUp...');
       await _signUp(email: event.email, password: event.password);
+      debugPrint('🔍 SignUp: _signUp completed, waiting 500ms...');
       // Wait for Firebase to settle
       await Future.delayed(const Duration(milliseconds: 500));
+      debugPrint('🔍 SignUp: Adding AuthStarted event');
       add(const AuthStarted());
     } catch (e) {
+      debugPrint('🚨 SignUp: ERROR - ${e.toString()}');
       emit(AuthError(message: e.toString()));
     }
   }
