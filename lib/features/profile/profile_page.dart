@@ -46,6 +46,7 @@ class ProfilePage extends StatelessWidget {
         title: const Text('Profile'),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),

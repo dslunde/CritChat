@@ -12,6 +12,7 @@ class NotificationsPage extends StatelessWidget {
         title: const Text('Notifications'),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: const Center(
         child: Padding(
