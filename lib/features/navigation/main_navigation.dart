@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../core/constants/app_colors.dart';
+import '../auth/presentation/bloc/auth_bloc.dart';
 import '../lfg/lfg_page.dart';
 import '../friends/friends_page.dart';
 import '../home/home_page.dart';
@@ -16,18 +18,21 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 2; // Start with Camera (home) page
 
-  final List<Widget> _pages = [
-    const LfgPage(),
-    const FriendsPage(),
-    const HomePage(), // Camera page
-    const CampaignsPage(),
-    const ForMePage(), // Simple For Me page
-  ];
-
   @override
   Widget build(BuildContext context) {
+    // Get the AuthBloc from the context to pass it down
+    final authBloc = context.read<AuthBloc>();
+
+    final List<Widget> pages = [
+      BlocProvider.value(value: authBloc, child: const LfgPage()),
+      BlocProvider.value(value: authBloc, child: const FriendsPage()),
+      BlocProvider.value(value: authBloc, child: const HomePage()),
+      BlocProvider.value(value: authBloc, child: const CampaignsPage()),
+      BlocProvider.value(value: authBloc, child: const ForMePage()),
+    ];
+
     return Scaffold(
-      body: _pages[_currentIndex],
+      body: pages[_currentIndex],
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: AppColors.backgroundColor,
