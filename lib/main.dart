@@ -321,22 +321,23 @@ class HomePage extends StatelessWidget {
                   const SizedBox(height: 32),
 
                   // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Column(
                     children: [
-                      Expanded(
+                      SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            // TODO: Navigate to groups
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Groups feature coming soon!'),
+                                content: Text(
+                                  'Find Friends feature coming soon!',
+                                ),
                                 backgroundColor: AppColors.primaryColor,
                               ),
                             );
                           },
-                          icon: const Icon(Icons.group),
-                          label: const Text('My Groups'),
+                          icon: const Icon(Icons.person_search),
+                          label: const Text('Find Friends'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
                             foregroundColor: Colors.white,
@@ -344,8 +345,76 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Join a Campaign feature coming soon!',
+                                ),
+                                backgroundColor: AppColors.primaryColor,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.castle),
+                          label: const Text('Join a Campaign'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Looking For Group feature coming soon!',
+                                ),
+                                backgroundColor: AppColors.primaryColor,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.group_add),
+                          label: const Text('Looking For Group'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Earn XP feature coming soon!'),
+                                backgroundColor: AppColors.primaryColor,
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.star),
+                          label: const Text('Earn XP'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
                         child: OutlinedButton.icon(
                           onPressed: () => _showLogoutDialog(context),
                           icon: const Icon(Icons.logout),
