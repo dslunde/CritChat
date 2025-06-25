@@ -13,7 +13,7 @@ import 'package:critchat/main.dart';
 void main() {
   testWidgets('Hello Gauntlet smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+    await tester.pumpWidget(const CritChatApp());
 
     // Verify that our app shows Hello Gauntlet in the body.
     final bodyTextFinder = find.descendant(
