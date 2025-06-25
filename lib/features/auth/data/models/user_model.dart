@@ -17,23 +17,49 @@ class UserModel extends UserEntity {
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json, String id) {
-    return UserModel(
-      id: id,
-      email: json['email'] as String,
-      displayName: json['displayName'] as String?,
-      photoUrl: json['photoUrl'] as String?,
-      bio: json['bio'] as String?,
-      preferredSystems: List<String>.from(json['preferredSystems'] ?? []),
-      experienceLevel: json['experienceLevel'] as String?,
-      totalXp: json['totalXp'] as int? ?? 0,
-      joinedGroups: List<String>.from(json['joinedGroups'] ?? []),
-      createdAt: json['createdAt'] != null
-          ? (json['createdAt'] as Timestamp).toDate()
-          : null,
-      lastLogin: json['lastLogin'] != null
-          ? (json['lastLogin'] as Timestamp).toDate()
-          : null,
-    );
+    try {
+      return UserModel(
+        id: id,
+        email: json['email'] as String? ?? '',
+        displayName: json['displayName'] as String?,
+        photoUrl: json['photoUrl'] as String?,
+        bio: json['bio'] as String?,
+        preferredSystems: _safeStringList(json['preferredSystems']),
+        experienceLevel: json['experienceLevel'] as String?,
+        totalXp: _safeInt(json['totalXp']),
+        joinedGroups: _safeStringList(json['joinedGroups']),
+        createdAt: _safeDateTime(json['createdAt']),
+        lastLogin: _safeDateTime(json['lastLogin']),
+      );
+    } catch (e) {
+      throw Exception('Failed to parse user data: $e');
+    }
+  }
+
+  static List<String> _safeStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return [];
+  }
+
+  static int _safeInt(dynamic value) {
+    if (value == null) return 0;
+    if (value is int) return value;
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  static DateTime? _safeDateTime(dynamic value) {
+    try {
+      if (value == null) return null;
+      if (value is Timestamp) return value.toDate();
+      if (value is String) return DateTime.tryParse(value);
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
   factory UserModel.fromEntity(UserEntity entity) {
@@ -67,6 +93,7 @@ class UserModel extends UserEntity {
     };
   }
 
+  @override
   UserModel copyWith({
     String? id,
     String? email,

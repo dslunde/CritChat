@@ -36,17 +36,48 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserModel?> getCurrentUser() async {
-    final firebaseUser = _firebaseAuth.currentUser;
-    if (firebaseUser == null) return null;
+    try {
+      final firebaseUser = _firebaseAuth.currentUser;
+      if (firebaseUser == null) return null;
 
-    final userDoc = await _firestore
-        .collection('users')
-        .doc(firebaseUser.uid)
-        .get();
+      final userDoc = await _firestore
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
 
-    if (!userDoc.exists) return null;
+      if (!userDoc.exists) {
+        // Create user document if it doesn't exist
+        final now = DateTime.now();
+        final userData = UserModel(
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName: firebaseUser.displayName,
+          photoUrl: firebaseUser.photoURL,
+          bio: null,
+          preferredSystems: const [],
+          experienceLevel: null,
+          totalXp: 0,
+          joinedGroups: const [],
+          createdAt: now,
+          lastLogin: now,
+        );
 
-    return UserModel.fromJson(userDoc.data()!, firebaseUser.uid);
+        await _firestore
+            .collection('users')
+            .doc(firebaseUser.uid)
+            .set(userData.toJson());
+
+        return userData;
+      }
+
+      final data = userDoc.data();
+      if (data == null) return null;
+
+      return UserModel.fromJson(data, firebaseUser.uid);
+    } catch (e) {
+      print('Error in getCurrentUser: $e');
+      return null;
+    }
   }
 
   @override
@@ -65,16 +96,49 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception('Sign in failed: User is null');
       }
 
-      // Update last login
-      await _firestore.collection('users').doc(user.uid).update({
-        'lastLogin': FieldValue.serverTimestamp(),
-      });
-
+      // Check if user document exists in Firestore
       final userDoc = await _firestore.collection('users').doc(user.uid).get();
 
-      return UserModel.fromJson(userDoc.data()!, user.uid);
+      if (!userDoc.exists) {
+        // Create user document if it doesn't exist
+        final now = DateTime.now();
+        final userData = UserModel(
+          id: user.uid,
+          email: email,
+          displayName: user.displayName,
+          photoUrl: user.photoURL,
+          bio: null,
+          preferredSystems: const [],
+          experienceLevel: null,
+          totalXp: 0,
+          joinedGroups: const [],
+          createdAt: now,
+          lastLogin: now,
+        );
+
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(userData.toJson());
+
+        return userData;
+      } else {
+        // Update last login for existing user
+        await _firestore.collection('users').doc(user.uid).update({
+          'lastLogin': FieldValue.serverTimestamp(),
+        });
+
+        final updatedDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+
+        return UserModel.fromJson(updatedDoc.data()!, user.uid);
+      }
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign in failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Sign in failed: ${e.toString()}');
     }
   }
 
@@ -115,6 +179,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       return userData;
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign up failed: ${e.message}');
+    } catch (e) {
+      throw Exception('Sign up failed: ${e.toString()}');
     }
   }
 
@@ -180,10 +246,37 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
             .doc(firebaseUser.uid)
             .get();
 
-        if (!userDoc.exists) return null;
+        if (!userDoc.exists) {
+          // Create user document if it doesn't exist
+          final now = DateTime.now();
+          final userData = UserModel(
+            id: firebaseUser.uid,
+            email: firebaseUser.email ?? '',
+            displayName: firebaseUser.displayName,
+            photoUrl: firebaseUser.photoURL,
+            bio: null,
+            preferredSystems: const [],
+            experienceLevel: null,
+            totalXp: 0,
+            joinedGroups: const [],
+            createdAt: now,
+            lastLogin: now,
+          );
 
-        return UserModel.fromJson(userDoc.data()!, firebaseUser.uid);
+          await _firestore
+              .collection('users')
+              .doc(firebaseUser.uid)
+              .set(userData.toJson());
+
+          return userData;
+        }
+
+        final data = userDoc.data();
+        if (data == null) return null;
+
+        return UserModel.fromJson(data, firebaseUser.uid);
       } catch (e) {
+        print('Error in authStateChanges: $e');
         return null;
       }
     });
