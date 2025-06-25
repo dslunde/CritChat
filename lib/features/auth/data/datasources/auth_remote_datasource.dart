@@ -330,11 +330,69 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     } on FirebaseAuthException catch (e) {
       throw Exception('Sign up failed: ${e.message}');
     } catch (e) {
-      // Check for specific pigeon type casting errors
+      // Check for specific pigeon type casting errors - these are often false positives
       if (e.toString().contains('PigeonUserDetails')) {
-        throw Exception(
-          'Sign up failed: Authentication timing error. Please try again.',
+        debugPrint(
+          'PigeonUserDetails error detected during sign-up, checking if user was actually created...',
         );
+
+        // Wait a moment and check if the user was actually created
+        await Future.delayed(const Duration(milliseconds: 300));
+        final currentUser = _firebaseAuth.currentUser;
+
+        if (currentUser != null) {
+          debugPrint(
+            'User was actually created despite PigeonUserDetails error, proceeding...',
+          );
+
+          // Try to create user document
+          try {
+            final now = DateTime.now();
+            final userData = UserModel(
+              id: currentUser.uid,
+              email: email,
+              displayName: currentUser.displayName,
+              photoUrl: currentUser.photoURL,
+              bio: null,
+              preferredSystems: const [],
+              experienceLevel: null,
+              totalXp: 0,
+              joinedGroups: const [],
+              createdAt: now,
+              lastLogin: now,
+            );
+
+            await _firestore
+                .collection('users')
+                .doc(currentUser.uid)
+                .set(userData.toJson(), SetOptions(merge: true));
+
+            return userData;
+          } catch (firestoreError) {
+            debugPrint(
+              'Firestore error after PigeonUserDetails issue during sign-up: $firestoreError',
+            );
+            // Still return basic user data if Firestore fails
+            final now = DateTime.now();
+            return UserModel(
+              id: currentUser.uid,
+              email: email,
+              displayName: currentUser.displayName,
+              photoUrl: currentUser.photoURL,
+              bio: null,
+              preferredSystems: const [],
+              experienceLevel: null,
+              totalXp: 0,
+              joinedGroups: const [],
+              createdAt: now,
+              lastLogin: now,
+            );
+          }
+        } else {
+          throw Exception(
+            'Sign up failed: Authentication timing error. Please try again.',
+          );
+        }
       }
       throw Exception('Sign up failed: ${e.toString()}');
     }
