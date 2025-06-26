@@ -30,6 +30,7 @@ class FellowshipRepositoryImpl implements FellowshipRepository {
     required String gameSystem,
     required bool isPublic,
     required String creatorId,
+    String? joinCode,
   }) async {
     final now = DateTime.now();
     final fellowship = FellowshipModel(
@@ -40,6 +41,7 @@ class FellowshipRepositoryImpl implements FellowshipRepository {
       memberIds: [creatorId], // Creator is automatically a member
       gameSystem: gameSystem,
       isPublic: isPublic,
+      joinCode: joinCode,
       createdAt: now,
       updatedAt: now,
     );
@@ -172,5 +174,46 @@ class FellowshipRepositoryImpl implements FellowshipRepository {
     if (user == null) return [];
 
     return await _fellowshipDataSource.getFellowships(user.fellowships);
+  }
+
+  @override
+  Future<FellowshipEntity?> getFellowshipByNameAndJoinCode(
+    String name,
+    String joinCode,
+  ) async {
+    final fellowship = await _fellowshipDataSource
+        .getFellowshipByNameAndJoinCode(name, joinCode);
+    return fellowship;
+  }
+
+  @override
+  Future<bool> joinFellowshipByCode(
+    String name,
+    String joinCode,
+    String userId,
+  ) async {
+    try {
+      // First, find the fellowship
+      final fellowship = await _fellowshipDataSource
+          .getFellowshipByNameAndJoinCode(name, joinCode);
+      if (fellowship == null) {
+        return false; // Fellowship not found or join code incorrect
+      }
+
+      // Check if user is already a member
+      if (fellowship.memberIds.contains(userId)) {
+        return false; // User is already a member
+      }
+
+      // Add user to fellowship
+      await _fellowshipDataSource.addMember(fellowship.id, userId);
+
+      // Add fellowship to user's fellowships list
+      await _authDataSource.addFellowship(userId, fellowship.id);
+
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }

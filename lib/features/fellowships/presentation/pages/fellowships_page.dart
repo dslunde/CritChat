@@ -4,11 +4,13 @@ import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/widgets/app_top_bar.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 import 'package:critchat/features/fellowships/presentation/widgets/fellowship_card.dart';
 import 'create_fellowship_page.dart';
+import 'join_fellowship_selection_page.dart';
 
 class FellowshipsPage extends StatelessWidget {
   const FellowshipsPage({super.key});
@@ -53,6 +55,13 @@ class FellowshipsPage extends StatelessWidget {
                             backgroundColor: AppColors.primaryColor,
                           ),
                         );
+                      } else if (state is MemberRemoved) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Left fellowship successfully!'),
+                            backgroundColor: AppColors.primaryColor,
+                          ),
+                        );
                       }
                     },
                     builder: (context, state) {
@@ -91,11 +100,27 @@ class FellowshipsPage extends StatelessWidget {
                                     ),
                                   ),
                                   const Spacer(),
-                                  Text(
-                                    '${state.fellowships.length} fellowship${state.fellowships.length == 1 ? '' : 's'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.textSecondary,
+                                  OutlinedButton.icon(
+                                    onPressed: () =>
+                                        _navigateToJoinFellowships(context),
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      size: 16,
+                                    ),
+                                    label: const Text('Join'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.primaryColor,
+                                      side: const BorderSide(
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      minimumSize: Size.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -235,13 +260,53 @@ class FellowshipsPage extends StatelessWidget {
     }
   }
 
-  void _navigateToFindFellowships(BuildContext context) {
-    // TODO: Implement Find Open Fellowships page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Find Open Fellowships feature coming soon!'),
-        backgroundColor: AppColors.primaryColor,
-      ),
-    );
+  void _navigateToFindFellowships(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              JoinFellowshipSelectionPage(userId: authState.user.id),
+        ),
+      );
+
+      // If fellowship was joined successfully, reload the list
+      if (result == true && context.mounted) {
+        context.read<FellowshipBloc>().add(GetFellowships());
+      }
+    } else {
+      // Show error if not authenticated
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to join fellowships.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _navigateToJoinFellowships(BuildContext context) async {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              JoinFellowshipSelectionPage(userId: authState.user.id),
+        ),
+      );
+
+      // If fellowship was joined successfully, reload the list
+      if (result == true && context.mounted) {
+        context.read<FellowshipBloc>().add(GetFellowships());
+      }
+    } else {
+      // Show error if not authenticated
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to join fellowships.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }

@@ -12,6 +12,7 @@ class CreateFellowshipUseCase {
     required String gameSystem,
     required bool isPublic,
     required String creatorId,
+    String? joinCode,
   }) {
     return repository.createFellowship(
       name: name,
@@ -19,6 +20,7 @@ class CreateFellowshipUseCase {
       gameSystem: gameSystem,
       isPublic: isPublic,
       creatorId: creatorId,
+      joinCode: joinCode,
     );
   }
 }

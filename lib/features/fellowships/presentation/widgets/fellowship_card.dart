@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/pages/fellowship_chat_page.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 
 class FellowshipCard extends StatelessWidget {
   final FellowshipEntity fellowship;
@@ -193,11 +196,16 @@ class FellowshipCard extends StatelessWidget {
     }
   }
 
-  void _openFellowshipChat(BuildContext context) {
-    Navigator.of(context).push(
+  void _openFellowshipChat(BuildContext context) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FellowshipChatPage(fellowship: fellowship),
       ),
     );
+
+    // If user left the fellowship, refresh the fellowships list
+    if (result == true && context.mounted) {
+      context.read<FellowshipBloc>().add(GetFellowships());
+    }
   }
 }

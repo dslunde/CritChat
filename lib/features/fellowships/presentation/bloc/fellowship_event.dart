@@ -15,6 +15,7 @@ class CreateFellowship extends FellowshipEvent {
   final String gameSystem;
   final bool isPublic;
   final String creatorId;
+  final String? joinCode;
 
   const CreateFellowship({
     required this.name,
@@ -22,6 +23,7 @@ class CreateFellowship extends FellowshipEvent {
     required this.gameSystem,
     required this.isPublic,
     required this.creatorId,
+    this.joinCode,
   });
 
   @override
@@ -31,6 +33,7 @@ class CreateFellowship extends FellowshipEvent {
     gameSystem,
     isPublic,
     creatorId,
+    joinCode,
   ];
 }
 
@@ -72,4 +75,32 @@ class GetUserFellowships extends FellowshipEvent {
 
   @override
   List<Object?> get props => [userId];
+}
+
+class JoinFellowshipByCode extends FellowshipEvent {
+  final String name;
+  final String joinCode;
+  final String userId;
+
+  const JoinFellowshipByCode({
+    required this.name,
+    required this.joinCode,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [name, joinCode, userId];
+}
+
+class JoinPublicFellowship extends FellowshipEvent {
+  final String fellowshipId;
+  final String userId;
+
+  const JoinPublicFellowship({
+    required this.fellowshipId,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [fellowshipId, userId];
 }
