@@ -8,6 +8,7 @@ import 'package:critchat/features/polls/presentation/bloc/poll_event.dart';
 import 'package:critchat/features/polls/presentation/bloc/poll_state.dart';
 import 'package:critchat/features/polls/presentation/widgets/poll_card.dart';
 import 'package:critchat/features/polls/presentation/widgets/create_poll_dialog.dart';
+import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
 
 class FellowshipPollsPage extends StatefulWidget {
   final String fellowshipId;
@@ -101,9 +102,17 @@ class _FellowshipPollsPageState extends State<FellowshipPollsPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
+            // Get polls from either PollsLoaded or PollStateWithData
+            List<PollEntity>? polls;
             if (state is PollsLoaded) {
-              final polls = state.polls;
+              polls = state.polls;
+            } else if (state is PollStateWithData) {
+              polls = state.polls;
+            } else if (state is PollError && state.polls != null) {
+              polls = state.polls;
+            }
 
+            if (polls != null) {
               if (polls.isEmpty) {
                 return _buildEmptyState();
               }

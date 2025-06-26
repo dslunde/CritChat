@@ -111,9 +111,15 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         initialOptions: event.initialOptions,
       );
 
-      emit(PollCreated(poll: poll));
+      // Emit success with current polls list
+      emit(PollCreated(poll: poll, polls: _lastPolls));
     } catch (e) {
-      emit(PollError(message: 'Failed to create poll: ${e.toString()}'));
+      emit(
+        PollError(
+          message: 'Failed to create poll: ${e.toString()}',
+          polls: _lastPolls,
+        ),
+      );
     }
   }
 
@@ -126,12 +132,19 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         fellowshipId: event.fellowshipId,
       );
 
-      emit(PollVoteSuccess(pollId: event.pollId, optionIds: event.optionIds));
+      emit(
+        PollVoteSuccess(
+          pollId: event.pollId,
+          optionIds: event.optionIds,
+          polls: _lastPolls,
+        ),
+      );
     } catch (e) {
       emit(
         PollError(
           message: 'Failed to vote: ${e.toString()}',
           pollId: event.pollId,
+          polls: _lastPolls,
         ),
       );
     }
@@ -147,12 +160,19 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         optionText: event.optionText,
       );
 
-      emit(PollOptionAdded(pollId: event.pollId, option: option));
+      emit(
+        PollOptionAdded(
+          pollId: event.pollId,
+          option: option,
+          polls: _lastPolls,
+        ),
+      );
     } catch (e) {
       emit(
         PollError(
           message: 'Failed to add option: ${e.toString()}',
           pollId: event.pollId,
+          polls: _lastPolls,
         ),
       );
     }
@@ -161,12 +181,13 @@ class PollBloc extends Bloc<PollEvent, PollState> {
   Future<void> _onClosePoll(ClosePoll event, Emitter<PollState> emit) async {
     try {
       await pollRepository.closePoll(event.pollId);
-      emit(PollClosed(pollId: event.pollId));
+      emit(PollClosed(pollId: event.pollId, polls: _lastPolls));
     } catch (e) {
       emit(
         PollError(
           message: 'Failed to close poll: ${e.toString()}',
           pollId: event.pollId,
+          polls: _lastPolls,
         ),
       );
     }
@@ -175,12 +196,13 @@ class PollBloc extends Bloc<PollEvent, PollState> {
   Future<void> _onDeletePoll(DeletePoll event, Emitter<PollState> emit) async {
     try {
       await pollRepository.deletePoll(event.pollId);
-      emit(PollDeleted(pollId: event.pollId));
+      emit(PollDeleted(pollId: event.pollId, polls: _lastPolls));
     } catch (e) {
       emit(
         PollError(
           message: 'Failed to delete poll: ${e.toString()}',
           pollId: event.pollId,
+          polls: _lastPolls,
         ),
       );
     }
@@ -193,12 +215,19 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         optionId: event.optionId,
       );
 
-      emit(PollVoteRemoved(pollId: event.pollId, optionId: event.optionId));
+      emit(
+        PollVoteRemoved(
+          pollId: event.pollId,
+          optionId: event.optionId,
+          polls: _lastPolls,
+        ),
+      );
     } catch (e) {
       emit(
         PollError(
           message: 'Failed to remove vote: ${e.toString()}',
           pollId: event.pollId,
+          polls: _lastPolls,
         ),
       );
     }

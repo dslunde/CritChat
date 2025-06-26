@@ -21,69 +21,92 @@ class PollsLoaded extends PollState {
   List<Object> get props => [polls];
 }
 
-class PollCreated extends PollState {
-  final PollEntity poll;
+// Base class for states that include current polls
+abstract class PollStateWithData extends PollState {
+  final List<PollEntity> polls;
 
-  const PollCreated({required this.poll});
+  const PollStateWithData({required this.polls});
 
   @override
-  List<Object> get props => [poll];
+  List<Object?> get props => [polls];
 }
 
-class PollVoteSuccess extends PollState {
+class PollCreated extends PollStateWithData {
+  final PollEntity poll;
+
+  const PollCreated({required this.poll, required super.polls});
+
+  @override
+  List<Object> get props => [poll, polls];
+}
+
+class PollVoteSuccess extends PollStateWithData {
   final String pollId;
   final List<String> optionIds;
 
-  const PollVoteSuccess({required this.pollId, required this.optionIds});
+  const PollVoteSuccess({
+    required this.pollId,
+    required this.optionIds,
+    required super.polls,
+  });
 
   @override
-  List<Object> get props => [pollId, optionIds];
+  List<Object> get props => [pollId, optionIds, polls];
 }
 
-class PollOptionAdded extends PollState {
+class PollOptionAdded extends PollStateWithData {
   final String pollId;
   final PollOptionEntity option;
 
-  const PollOptionAdded({required this.pollId, required this.option});
+  const PollOptionAdded({
+    required this.pollId,
+    required this.option,
+    required super.polls,
+  });
 
   @override
-  List<Object> get props => [pollId, option];
+  List<Object> get props => [pollId, option, polls];
 }
 
-class PollClosed extends PollState {
+class PollClosed extends PollStateWithData {
   final String pollId;
 
-  const PollClosed({required this.pollId});
+  const PollClosed({required this.pollId, required super.polls});
 
   @override
-  List<Object> get props => [pollId];
+  List<Object> get props => [pollId, polls];
 }
 
-class PollDeleted extends PollState {
+class PollDeleted extends PollStateWithData {
   final String pollId;
 
-  const PollDeleted({required this.pollId});
+  const PollDeleted({required this.pollId, required super.polls});
 
   @override
-  List<Object> get props => [pollId];
+  List<Object> get props => [pollId, polls];
 }
 
-class PollVoteRemoved extends PollState {
+class PollVoteRemoved extends PollStateWithData {
   final String pollId;
   final String? optionId;
 
-  const PollVoteRemoved({required this.pollId, this.optionId});
+  const PollVoteRemoved({
+    required this.pollId,
+    this.optionId,
+    required super.polls,
+  });
 
   @override
-  List<Object?> get props => [pollId, optionId];
+  List<Object?> get props => [pollId, optionId, polls];
 }
 
 class PollError extends PollState {
   final String message;
   final String? pollId;
+  final List<PollEntity>? polls; // Optional polls to maintain UI
 
-  const PollError({required this.message, this.pollId});
+  const PollError({required this.message, this.pollId, this.polls});
 
   @override
-  List<Object?> get props => [message, pollId];
+  List<Object?> get props => [message, pollId, polls];
 }
