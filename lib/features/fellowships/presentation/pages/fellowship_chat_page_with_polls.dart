@@ -10,16 +10,18 @@ import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/polls/presentation/pages/fellowship_polls_page.dart';
 import 'fellowship_info_page.dart';
 
-class FellowshipChatPage extends StatefulWidget {
+class FellowshipChatPageWithPolls extends StatefulWidget {
   final FellowshipEntity fellowship;
 
-  const FellowshipChatPage({super.key, required this.fellowship});
+  const FellowshipChatPageWithPolls({super.key, required this.fellowship});
 
   @override
-  State<FellowshipChatPage> createState() => _FellowshipChatPageState();
+  State<FellowshipChatPageWithPolls> createState() =>
+      _FellowshipChatPageWithPollsState();
 }
 
-class _FellowshipChatPageState extends State<FellowshipChatPage>
+class _FellowshipChatPageWithPollsState
+    extends State<FellowshipChatPageWithPolls>
     with SingleTickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ChatRealtimeDataSource _chatDataSource = sl<ChatRealtimeDataSource>();
@@ -34,8 +36,15 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
     _initializeChat();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _initializeChat() {
@@ -43,10 +52,6 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
       widget.fellowship.id,
     );
     _messagesStream = _chatDataSource.getMessages(_chatId);
-  }
-
-  void _onTabChanged() {
-    // Tab changed - could be used for future functionality
   }
 
   void _sendMessage() async {
@@ -130,39 +135,27 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
             tooltip: 'Fellowship Info',
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(icon: Icon(Icons.chat), text: 'Chat'),
+            Tab(icon: Icon(Icons.poll), text: 'Polls'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Tab Bar
-          Container(
-            color: AppColors.cardBackground,
-            child: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primaryColor,
-              indicatorWeight: 3,
-              tabs: const [
-                Tab(icon: Icon(Icons.chat), text: 'Chat'),
-                Tab(icon: Icon(Icons.poll), text: 'Polls'),
-              ],
-            ),
-          ),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Chat Tab
-                _buildChatTab(),
-                // Polls Tab
-                FellowshipPollsPage(
-                  fellowshipId: widget.fellowship.id,
-                  fellowshipName: widget.fellowship.name,
-                ),
-              ],
-            ),
+          // Chat Tab
+          _buildChatTab(),
+          // Polls Tab
+          FellowshipPollsPage(
+            fellowshipId: widget.fellowship.id,
+            fellowshipName: widget.fellowship.name,
           ),
         ],
       ),
@@ -488,13 +481,5 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
     } else {
       return 'Just now';
     }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    _tabController.dispose();
-    super.dispose();
   }
 }

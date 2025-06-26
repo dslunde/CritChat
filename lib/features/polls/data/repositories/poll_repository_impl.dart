@@ -1,7 +1,6 @@
 import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
 import 'package:critchat/features/polls/domain/repositories/poll_repository.dart';
 import 'package:critchat/features/polls/data/datasources/poll_realtime_datasource.dart';
-import 'package:critchat/features/polls/data/models/poll_model.dart';
 
 class PollRepositoryImpl implements PollRepository {
   final PollRealtimeDataSource dataSource;
