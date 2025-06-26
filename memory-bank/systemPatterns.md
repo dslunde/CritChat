@@ -189,3 +189,144 @@ Consistent use case patterns across all features:
 - **Consistent Import Order**: Flutter imports, package imports, relative imports (when necessary)
 - **Clear Dependency Relationships**: Absolute imports make dependency relationships explicit
 - **IDE Support**: Better IDE support with absolute imports for refactoring and navigation 
+
+## Poll System Architecture
+
+### Domain Layer
+- **PollEntity**: Core business entity with voting logic, expiration checks, vote counting
+- **PollOptionEntity**: Individual poll options with metadata
+- **PollRepository**: Interface defining all poll operations
+- **Use Cases**: CreatePollUseCase, VoteOnPollUseCase, GetFellowshipPollsUseCase, AddCustomOptionUseCase
+
+### Data Layer
+- **PollModel**: Firebase-compatible model with JSON serialization
+- **PollRealtimeDataSource**: Firebase Realtime Database integration with Firestore for user names
+- **Database Structure**: `polls/fellowship_{fellowshipId}/{pollId}` with options and votes
+- **User Display Names**: Helper method `_getUserDisplayName()` fetches from Firestore with email fallback
+
+### Presentation Layer
+- **PollBloc**: State management with StreamController pattern for stream reuse
+- **Poll States**: PollStateWithData base class ensures data persistence across UI operations
+- **PollCard**: Auto-collapse for expired polls with winning results display
+- **Stream Caching**: `_lastPolls` cache for immediate data replay to new listeners
+
+## Stream Management Pattern
+
+### Problem Solved
+- "Stream has already been listened to" errors when switching tabs
+- Data persistence across UI interactions
+- Efficient resource management
+
+### Solution Architecture
+```dart
+class DataBloc {
+  StreamController<List<Entity>> _streamController = StreamController.broadcast();
+  List<Entity> _lastData = [];
+  StreamSubscription? _subscription;
+
+  Stream<List<Entity>> get stream => _streamController.stream;
+
+  void _initializeStream() {
+    _subscription = _dataSource.getStream().listen((data) {
+      _lastData = data;
+      if (!_streamController.isClosed) {
+        _streamController.add(data);
+      }
+    });
+    
+    // Replay last data to new listeners
+    _streamController.onListen = () {
+      if (_lastData.isNotEmpty && !_streamController.isClosed) {
+        _streamController.add(_lastData);
+      }
+    };
+  }
+}
+```
+
+### Benefits
+- Multiple UI components can listen to same stream
+- Immediate data availability for new listeners
+- Proper resource cleanup and memory management
+- Seamless tab switching without data loss
+
+## Display Name Resolution Pattern
+
+### Architecture
+```dart
+Future<String> _getUserDisplayName(String userId) async {
+  try {
+    final userDoc = await _firestore.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+      final displayName = userDoc.data()?['displayName'] as String?;
+      if (displayName != null && displayName.isNotEmpty) {
+        return displayName;
+      }
+    }
+    // Fallback to email prefix
+    final currentUser = _auth.currentUser;
+    if (currentUser?.email != null) {
+      return currentUser!.email!.split('@')[0];
+    }
+    return 'User';
+  } catch (e) {
+    debugPrint('Failed to get user display name: $e');
+    return 'User';
+  }
+}
+```
+
+### Implementation Points
+- Used in both ChatRealtimeDataSourceImpl and PollRealtimeDataSourceImpl
+- Firestore lookup for display names with smart fallback
+- Error handling prevents crashes on network issues
+- Consistent user experience across chat and polls
+
+## UI State Persistence Pattern
+
+### Problem
+- UI components losing data during state transitions
+- Loading states causing visual flicker
+- Inconsistent user experience during operations
+
+### Solution: PollStateWithData Pattern
+```dart
+abstract class PollState extends Equatable {}
+
+abstract class PollStateWithData extends PollState {
+  final List<PollEntity> polls;
+  const PollStateWithData(this.polls);
+}
+
+class PollsLoaded extends PollStateWithData {
+  const PollsLoaded(super.polls);
+}
+
+class PollVoteSuccess extends PollStateWithData {
+  const PollVoteSuccess(super.polls);
+}
+
+class PollCreated extends PollStateWithData {
+  const PollCreated(super.polls);
+}
+```
+
+### UI Handling
+```dart
+Widget build(BuildContext context) {
+  return BlocBuilder<PollBloc, PollState>(
+    builder: (context, state) {
+      if (state is PollStateWithData) {
+        return _buildPollsList(state.polls);
+      }
+      // Handle other states...
+    },
+  );
+}
+```
+
+### Benefits
+- Polls remain visible during all operations
+- No loading flicker during user interactions
+- Consistent data availability across state transitions
+- Better user experience with persistent UI 

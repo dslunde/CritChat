@@ -70,7 +70,7 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
                 _buildOptionCard(
                   context: context,
                   icon: Icons.search,
-                  title: 'Search Open Groups',
+                  title: 'Search Open Fellowships',
                   subtitle:
                       'Browse and join public fellowships that welcome new members',
                   color: const Color(0xFF4CAF50),

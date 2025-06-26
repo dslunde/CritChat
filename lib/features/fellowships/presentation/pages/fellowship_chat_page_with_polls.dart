@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,16 +10,18 @@ import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/polls/presentation/pages/fellowship_polls_page.dart';
 import 'fellowship_info_page.dart';
 
-class FellowshipChatPage extends StatefulWidget {
+class FellowshipChatPageWithPolls extends StatefulWidget {
   final FellowshipEntity fellowship;
 
-  const FellowshipChatPage({super.key, required this.fellowship});
+  const FellowshipChatPageWithPolls({super.key, required this.fellowship});
 
   @override
-  State<FellowshipChatPage> createState() => _FellowshipChatPageState();
+  State<FellowshipChatPageWithPolls> createState() =>
+      _FellowshipChatPageWithPollsState();
 }
 
-class _FellowshipChatPageState extends State<FellowshipChatPage>
+class _FellowshipChatPageWithPollsState
+    extends State<FellowshipChatPageWithPolls>
     with SingleTickerProviderStateMixin {
   final TextEditingController _messageController = TextEditingController();
   final ChatRealtimeDataSource _chatDataSource = sl<ChatRealtimeDataSource>();
@@ -29,55 +30,28 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
 
   late String _chatId;
   Stream<List<Message>>? _messagesStream;
-  StreamSubscription<List<Message>>? _messagesSubscription;
-  StreamController<List<Message>>? _messagesController;
-  List<Message> _lastMessages = [];
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _tabController.addListener(_onTabChanged);
     _initializeChat();
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    _scrollController.dispose();
+    _tabController.dispose();
+    super.dispose();
   }
 
   void _initializeChat() {
     _chatId = ChatRealtimeDataSourceImpl.createFellowshipChatId(
       widget.fellowship.id,
     );
-
-    // Create a broadcast StreamController that caches the last value
-    _messagesController = StreamController<List<Message>>.broadcast(
-      onListen: () {
-        // When a new listener subscribes, immediately send the last known messages
-        if (_lastMessages.isNotEmpty && !_messagesController!.isClosed) {
-          _messagesController!.add(_lastMessages);
-        }
-      },
-    );
-    _messagesStream = _messagesController!.stream;
-
-    // Listen to the Firebase stream and forward data to our controller
-    _messagesSubscription = _chatDataSource
-        .getMessages(_chatId)
-        .listen(
-          (messages) {
-            _lastMessages = messages; // Cache the messages
-            if (!_messagesController!.isClosed) {
-              _messagesController!.add(messages);
-            }
-          },
-          onError: (error) {
-            if (!_messagesController!.isClosed) {
-              _messagesController!.addError(error);
-            }
-          },
-        );
-  }
-
-  void _onTabChanged() {
-    // Tab changed - could be used for future functionality
+    _messagesStream = _chatDataSource.getMessages(_chatId);
   }
 
   void _sendMessage() async {
@@ -161,39 +135,27 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
             tooltip: 'Fellowship Info',
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(icon: Icon(Icons.chat), text: 'Chat'),
+            Tab(icon: Icon(Icons.poll), text: 'Polls'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Tab Bar
-          Container(
-            color: AppColors.cardBackground,
-            child: TabBar(
-              controller: _tabController,
-              labelColor: AppColors.primaryColor,
-              unselectedLabelColor: AppColors.textSecondary,
-              indicatorColor: AppColors.primaryColor,
-              indicatorWeight: 3,
-              tabs: const [
-                Tab(icon: Icon(Icons.chat), text: 'Chat'),
-                Tab(icon: Icon(Icons.poll), text: 'Polls'),
-              ],
-            ),
-          ),
-
-          // Tab Content
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // Chat Tab
-                _buildChatTab(),
-                // Polls Tab
-                FellowshipPollsPage(
-                  fellowshipId: widget.fellowship.id,
-                  fellowshipName: widget.fellowship.name,
-                ),
-              ],
-            ),
+          // Chat Tab
+          _buildChatTab(),
+          // Polls Tab
+          FellowshipPollsPage(
+            fellowshipId: widget.fellowship.id,
+            fellowshipName: widget.fellowship.name,
           ),
         ],
       ),
@@ -519,15 +481,5 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
     } else {
       return 'Just now';
     }
-  }
-
-  @override
-  void dispose() {
-    _messageController.dispose();
-    _scrollController.dispose();
-    _tabController.dispose();
-    _messagesSubscription?.cancel();
-    _messagesController?.close();
-    super.dispose();
   }
 }

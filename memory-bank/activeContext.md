@@ -1,48 +1,108 @@
 # Active Context: CritChat
 
-## Current Goal: Join Fellowship Feature Implementation - COMPLETE ✅
+## Current Goal: Fellowship Polls Feature Complete - Production Ready ✅
 
-Following our comprehensive code quality improvements and import standardization, we have successfully implemented the complete "Join Fellowship" feature, providing users with the ability to discover and join both public and private fellowships through multiple pathways.
+Following the successful implementation of the join fellowship feature, we have completed the comprehensive Fellowship Polls feature, providing users with full polling functionality within fellowship chats. Additionally, we've enhanced the chat and poll systems to display proper user names instead of "Unknown" and implemented intelligent auto-collapse for expired polls.
 
 ## Recent Work Completed
 
-### ✅ Join Fellowship Feature Implementation (COMPLETE)
-- **Join Code System**: Complete implementation of fellowship join codes with CCC-CCC format
-  - Auto-generation of unique join codes for private fellowships
-  - Manual join code setting option for fellowship creators
-  - Join code validation and normalization in JoinCodeGenerator utility
-  - Display of join codes only to fellowship creators on Fellowship Info page
-  - Copy-to-clipboard functionality for easy sharing
+### ✅ Fellowship Polls Feature Implementation (COMPLETE)
+- **Complete Poll System**: Comprehensive polling functionality within fellowship chats
+  - Poll creation with title, description, and customizable options (2-10 options)
+  - Single choice and multiple choice voting modes
+  - Time-based poll expiration (1 hour to 1 month)
+  - Custom option addition controlled by poll creator
+  - Real-time vote counting and percentage display
+  - Poll status indicators (Active, Voted, Expired)
+  - Administrative controls (close poll, delete poll, remove vote)
+  - **Auto-collapse functionality for expired polls showing winning results**
 
-- **Join Fellowship UI Flow**: Complete user interface for joining fellowships
-  - "Join Fellowship" button added to main Fellowships page header
-  - JoinFellowshipSelectionPage: Choice between "Search Open Groups" or "Enter Join Code"
-  - SearchOpenFellowshipsPage: Browse public fellowships with beautiful cards and join buttons
-  - JoinFellowshipPage: Form for entering fellowship name and join code with validation
-  - Responsive design with proper scrolling and layout handling
+- **Domain Layer Architecture**: Complete clean architecture implementation
+  - PollEntity with comprehensive business logic (voting, expiration, vote counting)
+  - PollOptionEntity for individual poll options with metadata
+  - PollRepository interface defining all poll operations
+  - Use Cases: CreatePollUseCase, VoteOnPollUseCase, GetFellowshipPollsUseCase, AddCustomOptionUseCase
+  - Comprehensive validation for titles, descriptions, options, and time limits
+  - Business rule enforcement (one vote per user, creator permissions, etc.)
 
-- **Domain Layer Enhancements**: Extended fellowship domain with join functionality
-  - Updated FellowshipEntity to include optional joinCode field
-  - Created JoinFellowshipByCodeUseCase for private fellowship joining
-  - Created GetPublicFellowshipsUseCase for public fellowship discovery
-  - Updated FellowshipRepository interface with new join methods
+- **Data Layer Implementation**: Firebase Realtime Database integration
+  - PollModel with complete JSON serialization/deserialization
+  - PollRealtimeDataSource with real-time streaming capabilities
+  - Atomic vote updates to prevent race conditions
+  - Poll structure: `polls/fellowship_{fellowshipId}/{pollId}` with options and votes
+  - Real-time listeners for live poll updates
+  - Proper error handling and connection management
+  - **Enhanced with Firestore integration for proper user display names**
 
-- **Data Layer Implementation**: Firebase integration for join functionality
-  - Enhanced FellowshipFirestoreDataSource with getFellowshipByNameAndJoinCode method
-  - Updated FellowshipRepositoryImpl with join functionality
-  - Proper Firebase queries for join code validation and public fellowship discovery
-  - User-fellowship relationship management with batch operations
+- **BLoC State Management**: Comprehensive state management with real-time updates
+  - Poll Events: GetFellowshipPolls, CreatePoll, VoteOnPoll, AddCustomOption, ClosePoll, DeletePoll, RemoveVote
+  - Poll States: PollLoading, PollsLoaded, PollError with proper data handling
+  - Real-time stream subscriptions for live poll updates using StreamController pattern
+  - **Fixed "Stream has already been listened to" errors with broadcast streams and caching**
+  - Proper error handling and user feedback
+  - Integration with existing fellowship BLoC architecture
 
-- **BLoC Pattern Extension**: Extended FellowshipBloc with join events and states
-  - New events: JoinFellowshipByCode, JoinPublicFellowship, GetPublicFellowships
-  - New states: PublicFellowshipsLoaded, FellowshipJoined
-  - Comprehensive error handling with user-friendly messages
-  - Proper state management for join success/failure scenarios
+- **Beautiful UI Components**: Material 3 design with advanced interactions
+  - PollCard with swipe-to-vote gestures and pulse animations
+  - Different visual states (Active Unvoted, Active Voted, Expired)
+  - Progress bars showing vote percentages in real-time
+  - **Auto-collapse for expired polls with tap-to-expand functionality**
+  - **Winning results display with trophy icons and vote counts**
+  - CreatePollDialog with comprehensive form validation
+  - Duration selection chips and settings toggles
+  - FellowshipPollsPage with RefreshIndicator and empty states
+  - **Integrated with fellowship chat via tabbed interface (Chat/Polls)**
 
-- **Fellowship Creation Enhancement**: Updated create fellowship flow
-  - Join code options for private fellowships (auto-generate or manual entry)
-  - Form validation and user feedback
-  - Integration with existing fellowship creation workflow
+- **Database Security**: Updated Firebase Realtime Database rules
+  - Poll access restricted to fellowship members only
+  - Fellowship membership validation via `fellowshipMembers/{fellowshipId}/{userId}`
+  - Creator-only administrative actions (close, delete)
+  - Proper read/write permissions for poll operations
+  - **Simplified rules for debugging and functionality**
+
+### ✅ Display Name Enhancement (COMPLETE)
+- **Proper User Names**: Fixed "Unknown" display names in both chat and polls
+  - Added `_getUserDisplayName()` helper method to both ChatRealtimeDataSourceImpl and PollRealtimeDataSourceImpl
+  - **Firestore integration**: Fetches user's `displayName` from Firestore user documents
+  - **Smart fallback system**: Uses email prefix (before @) if no display name exists
+  - **Updated dependency injection**: Added Firestore to both chat and poll data sources
+  - **Comprehensive coverage**: Both chat messages and poll creators now show proper names
+
+### ✅ Stream Management Fixes (COMPLETE)
+- **Chat Tab Switching**: Fixed "Stream has already been listened to" errors
+  - Implemented StreamController pattern with broadcast streams
+  - Added message caching with `_lastMessages` for immediate replay to new listeners
+  - Proper subscription management and cleanup
+  - **Efficient TabBarView**: Maintains performance while allowing smooth tab switching
+
+- **Poll Stream Management**: Applied same pattern to poll system
+  - StreamController<List<PollEntity>>.broadcast() with poll caching
+  - `_lastPolls` caching for immediate data replay
+  - Proper subscription cleanup and error handling
+  - **Seamless poll updates**: Polls persist across tab switches and UI interactions
+
+### ✅ Database Operations Optimization (COMPLETE)
+- **Poll Voting Efficiency**: Fixed inefficient database operations
+  - **Added fellowshipId parameter**: Entire voting chain now uses direct paths
+  - **Direct path access**: `polls/fellowship_${fellowshipId}/${pollId}` instead of full scan
+  - **Removed limitToFirst(1)**: Fixed poll lookup bug that prevented voting
+  - **Fallback compatibility**: Maintains backwards compatibility for existing polls
+  - **Performance improvement**: Significantly faster poll operations
+
+### ✅ UI State Management Enhancement (COMPLETE)
+- **Persistent Poll Display**: Fixed polls disappearing after actions
+  - **PollStateWithData base class**: Ensures all action states include current polls
+  - **State inheritance**: All action states (PollVoteSuccess, PollCreated, etc.) extend PollStateWithData
+  - **UI handling**: Updated to recognize both PollsLoaded and PollStateWithData states
+  - **Consistent display**: Polls remain visible during all operations
+  - **Removed loading states**: Eliminated unnecessary loading during vote/create operations
+
+### ✅ Debugging and Code Quality (COMPLETE)
+- **Professional Debugging**: Replaced all print statements with debugPrint
+  - Added `import 'package:flutter/foundation.dart'` where needed
+  - **Flutter best practices**: debugPrint automatically handles debug vs release modes
+  - **Comprehensive debugging**: Added throughout vote flow for troubleshooting
+  - **Clean codebase**: Removed all print statements and unnecessary imports
 
 ### ✅ Test Suite Fixes (COMPLETE)
 - **Fellowship Test Updates**: Fixed compilation errors in fellowship_test.dart
