@@ -12,6 +12,8 @@ import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
+import '../../features/auth/domain/usecases/get_auth_state_changes_usecase.dart';
+import '../../features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 // Features - Friends
@@ -43,11 +45,24 @@ final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
   // External dependencies
+  _initExternalDependencies();
+
+  // Feature modules
+  _initAuth();
+  _initFriends();
+  _initFellowships();
+  _initNotifications();
+  _initChat();
+}
+
+void _initExternalDependencies() {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
   sl.registerLazySingleton(() => FirebaseDatabase.instance);
+}
 
-  // Auth Data sources
+void _initAuth() {
+  // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
   );
@@ -56,37 +71,57 @@ Future<void> init() async {
     () => AuthFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
   );
 
-  // Friends Data sources
-  sl.registerLazySingleton<FriendsFirestoreDataSource>(
-    () => FriendsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
-  );
-
-  // Fellowship Data sources
-  sl.registerLazySingleton<FellowshipFirestoreDataSource>(
-    () => FellowshipFirestoreDataSourceImpl(firestore: sl()),
-  );
-
-  // Notifications Data sources
-  sl.registerLazySingleton<NotificationsFirestoreDataSource>(
-    () => NotificationsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
-  );
-
-  // Chat Data sources
-  sl.registerLazySingleton<ChatRealtimeDataSource>(
-    () => ChatRealtimeDataSourceImpl(database: sl(), auth: sl()),
-  );
-
-  // Auth Repositories
+  // Repositories
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Friends Repositories
+  // Use cases
+  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+  sl.registerLazySingleton(() => SignInUseCase(sl()));
+  sl.registerLazySingleton(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton(() => SignOutUseCase(sl()));
+  sl.registerLazySingleton(() => GetAuthStateChangesUseCase(sl()));
+  sl.registerLazySingleton(() => CompleteOnboardingUseCase(sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => AuthBloc(
+      getCurrentUser: sl(),
+      signIn: sl(),
+      signUp: sl(),
+      signOut: sl(),
+      getAuthStateChanges: sl(),
+      completeOnboarding: sl(),
+    ),
+  );
+}
+
+void _initFriends() {
+  // Data sources
+  sl.registerLazySingleton<FriendsFirestoreDataSource>(
+    () => FriendsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  );
+
+  // Repositories
   sl.registerLazySingleton<FriendsRepository>(
     () => FriendsRepositoryImpl(sl()),
   );
 
-  // Fellowship Repositories
+  // Use cases
+  sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
+
+  // BLoC
+  sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
+}
+
+void _initFellowships() {
+  // Data sources
+  sl.registerLazySingleton<FellowshipFirestoreDataSource>(
+    () => FellowshipFirestoreDataSourceImpl(firestore: sl()),
+  );
+
+  // Repositories
   sl.registerLazySingleton<FellowshipRepository>(
     () => FellowshipRepositoryImpl(
       fellowshipDataSource: sl(),
@@ -94,40 +129,12 @@ Future<void> init() async {
     ),
   );
 
-  // Notifications Repositories
-  sl.registerLazySingleton<NotificationsRepository>(
-    () => NotificationsRepositoryImpl(sl()),
-  );
-
-  // Auth Use cases
-  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
-  sl.registerLazySingleton(() => SignInUseCase(sl()));
-  sl.registerLazySingleton(() => SignUpUseCase(sl()));
-  sl.registerLazySingleton(() => SignOutUseCase(sl()));
-
-  // Friends Use cases
-  sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
-
-  // Fellowship Use cases
+  // Use cases
   sl.registerLazySingleton(() => GetFellowshipsUseCase(repository: sl()));
   sl.registerLazySingleton(() => CreateFellowshipUseCase(repository: sl()));
   sl.registerLazySingleton(() => InviteFriendUseCase(repository: sl()));
 
-  // Auth BLoC
-  sl.registerFactory(
-    () => AuthBloc(
-      getCurrentUser: sl(),
-      signIn: sl(),
-      signUp: sl(),
-      signOut: sl(),
-      authRepository: sl(),
-    ),
-  );
-
-  // Friends BLoC
-  sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
-
-  // Fellowship BLoC
+  // BLoC
   sl.registerFactory(
     () => FellowshipBloc(
       getFellowshipsUseCase: sl(),
@@ -135,7 +142,26 @@ Future<void> init() async {
       inviteFriendUseCase: sl(),
     ),
   );
+}
 
-  // Notifications BLoC
+void _initNotifications() {
+  // Data sources
+  sl.registerLazySingleton<NotificationsFirestoreDataSource>(
+    () => NotificationsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsRepositoryImpl(sl()),
+  );
+
+  // BLoC
   sl.registerFactory(() => NotificationsBloc(repository: sl()));
+}
+
+void _initChat() {
+  // Data sources
+  sl.registerLazySingleton<ChatRealtimeDataSource>(
+    () => ChatRealtimeDataSourceImpl(database: sl(), auth: sl()),
+  );
 }

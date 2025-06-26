@@ -5,7 +5,8 @@ import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/sign_in_usecase.dart';
 import '../../domain/usecases/sign_up_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
-import '../../domain/repositories/auth_repository.dart';
+import '../../domain/usecases/get_auth_state_changes_usecase.dart';
+import '../../domain/usecases/complete_onboarding_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -15,39 +16,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required SignInUseCase signIn,
     required SignUpUseCase signUp,
     required SignOutUseCase signOut,
-    required AuthRepository authRepository,
+    required GetAuthStateChangesUseCase getAuthStateChanges,
+    required CompleteOnboardingUseCase completeOnboarding,
   }) : _getCurrentUser = getCurrentUser,
        _signIn = signIn,
        _signUp = signUp,
        _signOut = signOut,
-       _authRepository = authRepository,
+       _getAuthStateChanges = getAuthStateChanges,
+       _completeOnboarding = completeOnboarding,
        super(const AuthInitial()) {
     on<AuthStarted>(_onAuthStarted);
     on<AuthSignInRequested>(_onSignInRequested);
     on<AuthSignUpRequested>(_onSignUpRequested);
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthOnboardingCompleted>(_onOnboardingCompleted);
+    on<AuthStateChanged>(_onAuthStateChanged);
 
-    // Listen to auth state changes
-    _authStateSubscription = _authRepository.authStateChanges.listen(
+    // Listen to auth state changes - this is now the single source of truth
+    _authStateSubscription = _getAuthStateChanges().listen(
       (user) {
         debugPrint(
           '🔍 Firebase Stream: User changed - ${user != null ? 'User exists' : 'No user'} (Current state: ${state.runtimeType})',
         );
-        // Let the event handlers manage state emissions
-        // This stream is just for listening to Firebase auth changes
-        if (user != null) {
-          debugPrint('🔍 Firebase Stream: Adding AuthStarted (user exists)');
-          add(const AuthStarted());
-        } else {
-          debugPrint('🔍 Firebase Stream: Adding AuthStarted (no user)');
-          add(const AuthStarted());
-        }
+        // Use the dedicated event for auth state changes
+        add(AuthStateChanged(user));
       },
       onError: (error) {
-        // Use debugPrint for development logging
         debugPrint('🚨 Firebase Stream: Error - $error');
-        add(const AuthStarted());
+        add(AuthStateChanged(null));
       },
     );
   }
@@ -56,7 +52,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignInUseCase _signIn;
   final SignUpUseCase _signUp;
   final SignOutUseCase _signOut;
-  final AuthRepository _authRepository;
+  final GetAuthStateChangesUseCase _getAuthStateChanges;
+  final CompleteOnboardingUseCase _completeOnboarding;
   StreamSubscription? _authStateSubscription;
 
   @override
@@ -99,6 +96,27 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     }
   }
 
+  Future<void> _onAuthStateChanged(
+    AuthStateChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    // This is now the single source of truth for auth state changes
+    final user = event.user;
+
+    if (user != null) {
+      final needsOnboarding =
+          user.displayName == null ||
+          user.experienceLevel == null ||
+          user.preferredSystems.isEmpty;
+
+      debugPrint('🔍 AuthStateChanged: Emitting AuthAuthenticated');
+      emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
+    } else {
+      debugPrint('🔍 AuthStateChanged: Emitting AuthUnauthenticated');
+      emit(const AuthUnauthenticated());
+    }
+  }
+
   Future<void> _onSignInRequested(
     AuthSignInRequested event,
     Emitter<AuthState> emit,
@@ -108,11 +126,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       debugPrint('🔍 SignIn: Calling _signIn...');
       await _signIn(email: event.email, password: event.password);
-      debugPrint('🔍 SignIn: _signIn completed, waiting 500ms...');
-      // Wait for Firebase to settle
-      await Future.delayed(const Duration(milliseconds: 500));
-      debugPrint('🔍 SignIn: Adding AuthStarted event');
-      add(const AuthStarted());
+      debugPrint('🔍 SignIn: _signIn completed successfully');
+      // The auth state stream will handle the state change automatically
     } catch (e) {
       debugPrint('🚨 SignIn: ERROR - ${e.toString()}');
       emit(AuthError(message: e.toString()));
@@ -128,11 +143,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       debugPrint('🔍 SignUp: Calling _signUp...');
       await _signUp(email: event.email, password: event.password);
-      debugPrint('🔍 SignUp: _signUp completed, waiting 500ms...');
-      // Wait for Firebase to settle
-      await Future.delayed(const Duration(milliseconds: 500));
-      debugPrint('🔍 SignUp: Adding AuthStarted event');
-      add(const AuthStarted());
+      debugPrint('🔍 SignUp: _signUp completed successfully');
+      // The auth state stream will handle the state change automatically
     } catch (e) {
       debugPrint('🚨 SignUp: ERROR - ${e.toString()}');
       emit(AuthError(message: e.toString()));
@@ -162,7 +174,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(const AuthLoading());
 
     try {
-      final updatedUser = await _authRepository.completeOnboarding(
+      final updatedUser = await _completeOnboarding(
         userId: currentState.user.id,
         displayName: event.displayName,
         bio: event.bio,
