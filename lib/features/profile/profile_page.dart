@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../auth/presentation/bloc/auth_bloc.dart';
 import '../auth/presentation/bloc/auth_event.dart';
 import '../auth/presentation/bloc/auth_state.dart';
+import '../friends/presentation/pages/search_friends_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -170,16 +171,7 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Find Friends feature coming soon!',
-                                ),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
+                          onPressed: () => _navigateToSearchFriends(context),
                           icon: const Icon(Icons.person_search),
                           label: const Text('Find Friends'),
                           style: ElevatedButton.styleFrom(
@@ -280,5 +272,11 @@ class ProfilePage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _navigateToSearchFriends(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const SearchFriendsPage()));
   }
 }

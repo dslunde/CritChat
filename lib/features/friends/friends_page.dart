@@ -7,6 +7,7 @@ import 'presentation/bloc/friends_bloc.dart';
 import 'presentation/bloc/friends_event.dart';
 import 'presentation/bloc/friends_state.dart';
 import 'presentation/widgets/friend_list_item.dart';
+import 'presentation/pages/search_friends_page.dart';
 
 class FriendsPage extends StatelessWidget {
   const FriendsPage({super.key});
@@ -231,7 +232,18 @@ class FriendsPage extends StatelessWidget {
             ],
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () => _navigateToSearchFriends(context),
+          backgroundColor: AppColors.primaryColor,
+          child: const Icon(Icons.person_add, color: Colors.white),
+        ),
       ),
     );
+  }
+
+  void _navigateToSearchFriends(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const SearchFriendsPage()));
   }
 }

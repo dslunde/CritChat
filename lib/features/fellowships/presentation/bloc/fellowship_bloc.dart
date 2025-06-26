@@ -56,12 +56,9 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       emit(FellowshipCreated(fellowship));
-
-      // Reload fellowships to show the new one
-      add(GetFellowships());
     } catch (e) {
       debugPrint('Error creating fellowship: $e');
-      emit(FellowshipError('Failed to create fellowship'));
+      emit(FellowshipError('Failed to create fellowship: ${e.toString()}'));
     }
   }
 

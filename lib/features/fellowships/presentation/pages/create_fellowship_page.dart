@@ -63,7 +63,9 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
             setState(() => _isLoading = false);
 
             if (state is FellowshipCreated) {
-              Navigator.of(context).pop();
+              Navigator.of(
+                context,
+              ).pop(true); // Return true to indicate success
             } else if (state is FellowshipError) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(

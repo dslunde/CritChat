@@ -196,8 +196,8 @@ class FellowshipsPage extends StatelessWidget {
     );
   }
 
-  void _navigateToCreateFellowship(BuildContext context) {
-    Navigator.of(context).push(
+  void _navigateToCreateFellowship(BuildContext context) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (newContext) => MultiBlocProvider(
           providers: [
@@ -208,5 +208,10 @@ class FellowshipsPage extends StatelessWidget {
         ),
       ),
     );
+
+    // If fellowship was created successfully, reload the list
+    if (result == true && context.mounted) {
+      context.read<FellowshipBloc>().add(GetFellowships());
+    }
   }
 }

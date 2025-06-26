@@ -99,15 +99,44 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final currentUser = _auth.currentUser;
       if (currentUser == null) throw Exception('User not authenticated');
 
-      // For now, we'll directly add as friends (simplified)
-      // In a real app, you'd have a friend_requests collection
-      await _firestore.collection('users').doc(currentUser.uid).update({
+      // Get current user's display name for the notification
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      final currentUserData = currentUserDoc.data();
+      final currentUserName = currentUserData?['displayName'] ?? 'Someone';
+
+      // Create friend request notification
+      final notificationId = _firestore.collection('notifications').doc().id;
+
+      // For simplified implementation, we'll directly add as friends
+      // and create a friend request accepted notification
+      final batch = _firestore.batch();
+
+      // Add as friends
+      batch.update(_firestore.collection('users').doc(currentUser.uid), {
         'friends': FieldValue.arrayUnion([friendId]),
       });
 
-      await _firestore.collection('users').doc(friendId).update({
+      batch.update(_firestore.collection('users').doc(friendId), {
         'friends': FieldValue.arrayUnion([currentUser.uid]),
       });
+
+      // Create notification for the friend
+      batch.set(_firestore.collection('notifications').doc(notificationId), {
+        'userId': friendId,
+        'senderId': currentUser.uid,
+        'type': 'friendRequestAccepted', // Since we're auto-accepting
+        'title': 'New Friend',
+        'message': '$currentUserName is now your friend!',
+        'data': {'friendId': currentUser.uid},
+        'isRead': false,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+
+      await batch.commit();
     } catch (e) {
       throw Exception('Failed to send friend request: $e');
     }
