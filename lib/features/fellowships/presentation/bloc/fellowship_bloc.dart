@@ -6,6 +6,7 @@ import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_
 import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/get_public_fellowships_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/join_fellowship_by_code_usecase.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 
@@ -189,34 +190,68 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   ) async {
     try {
       emit(FellowshipLoading());
-      // For public fellowships, we can directly add the user to the fellowship
-      // This should be implemented in the repository to handle public fellowship joins
-      final success = await getFellowshipsUseCase().then((fellowships) async {
-        final fellowship = fellowships.firstWhere(
+
+      // Get all public fellowships to find the specific one
+      final publicFellowships = await getPublicFellowshipsUseCase();
+
+      // Find the fellowship by ID safely
+      FellowshipEntity? fellowship;
+      try {
+        fellowship = publicFellowships.firstWhere(
           (f) => f.id == event.fellowshipId,
         );
-        if (fellowship.isPublic &&
-            !fellowship.memberIds.contains(event.userId)) {
-          // Add user to public fellowship
-          return await joinFellowshipByCodeUseCase(
-            name: fellowship.name,
-            joinCode: '', // Empty join code for public fellowships
-            userId: event.userId,
-          );
-        }
-        return false;
-      });
+      } catch (e) {
+        // Fellowship not found in public fellowships
+        fellowship = null;
+      }
+
+      if (fellowship == null) {
+        emit(const FellowshipError('Fellowship not found'));
+        return;
+      }
+
+      // Check if user isn't already a member
+      if (fellowship.memberIds.contains(event.userId)) {
+        emit(
+          const FellowshipError('You are already a member of this fellowship'),
+        );
+        return;
+      }
+
+      // For public fellowships, we can join directly without join code validation
+      // Since we already confirmed it's public and user isn't a member
+      final success = await _joinPublicFellowshipDirectly(
+        fellowship.id,
+        event.userId,
+      );
 
       if (success) {
         emit(const FellowshipJoined('Successfully joined fellowship!'));
-        // Reload fellowships to show the newly joined fellowship
-        add(GetFellowships());
       } else {
         emit(const FellowshipError('Failed to join fellowship'));
       }
     } catch (e) {
       debugPrint('Error joining public fellowship: $e');
       emit(FellowshipError('Failed to join fellowship'));
+    }
+  }
+
+  /// Directly join a public fellowship by adding the user as a member
+  Future<bool> _joinPublicFellowshipDirectly(
+    String fellowshipId,
+    String userId,
+  ) async {
+    try {
+      // For public fellowships, we can use the acceptFellowshipInvite method
+      // since it adds the user to the fellowship and updates their fellowship list
+      // This bypasses the join code requirement
+      return await inviteFriendUseCase.repository.acceptFellowshipInvite(
+        fellowshipId,
+        userId,
+      );
+    } catch (e) {
+      debugPrint('Error joining public fellowship directly: $e');
+      return false;
     }
   }
 }

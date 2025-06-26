@@ -1,6 +1,7 @@
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
 // Auth
 import 'package:critchat/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -59,6 +60,7 @@ Future<void> init() async {
 void _initExternalDependencies() {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  sl.registerLazySingleton(() => FirebaseDatabase.instance);
 }
 
 void _initAuth() {
