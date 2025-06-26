@@ -14,6 +14,7 @@ class FriendProfilePage extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(friend.displayName),
         elevation: 0,
       ),
