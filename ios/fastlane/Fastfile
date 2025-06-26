@@ -6,7 +6,8 @@ platform :ios do
     match(
       type: "appstore",
       readonly: true,
-      git_url: ENV["MATCH_GIT_URL"]
+      git_url: ENV["MATCH_GIT_URL"],
+      app_identifier: "net.lundandco.critchat"
     )
     build_app(
       workspace: "Runner.xcworkspace",
