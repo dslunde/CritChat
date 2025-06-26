@@ -277,9 +277,9 @@ class _FellowshipPollsPageState extends State<FellowshipPollsPage> {
   }
 
   void _handleVote(String pollId, List<String> optionIds) {
-    print('🎯 UI: Handling vote for poll: $pollId');
-    print('🎯 UI: Fellowship ID: ${widget.fellowshipId}');
-    print('🎯 UI: Option IDs: $optionIds');
+    debugPrint('🎯 UI: Handling vote for poll: $pollId');
+    debugPrint('🎯 UI: Fellowship ID: ${widget.fellowshipId}');
+    debugPrint('🎯 UI: Option IDs: $optionIds');
 
     _pollBloc.add(
       VoteOnPoll(

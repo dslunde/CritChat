@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
 import 'package:critchat/features/polls/domain/usecases/create_poll_usecase.dart';
@@ -125,10 +126,10 @@ class PollBloc extends Bloc<PollEvent, PollState> {
 
   Future<void> _onVoteOnPoll(VoteOnPoll event, Emitter<PollState> emit) async {
     try {
-      print('🏛️ BLoC: Received vote event');
-      print('🏛️ BLoC: Poll ID: ${event.pollId}');
-      print('🏛️ BLoC: Fellowship ID: ${event.fellowshipId}');
-      print('🏛️ BLoC: Option IDs: ${event.optionIds}');
+      debugPrint('🏛️ BLoC: Received vote event');
+      debugPrint('🏛️ BLoC: Poll ID: ${event.pollId}');
+      debugPrint('🏛️ BLoC: Fellowship ID: ${event.fellowshipId}');
+      debugPrint('🏛️ BLoC: Option IDs: ${event.optionIds}');
 
       // Don't emit loading - let the stream update handle the vote changes
       await voteOnPollUseCase(
@@ -137,7 +138,7 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         fellowshipId: event.fellowshipId,
       );
 
-      print('✅ BLoC: Vote use case completed successfully');
+      debugPrint('✅ BLoC: Vote use case completed successfully');
       emit(
         PollVoteSuccess(
           pollId: event.pollId,
@@ -146,7 +147,7 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         ),
       );
     } catch (e) {
-      print('🚨 BLoC: Vote failed: $e');
+      debugPrint('🚨 BLoC: Vote failed: $e');
       emit(
         PollError(
           message: 'Failed to vote: ${e.toString()}',

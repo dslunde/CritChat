@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:critchat/features/polls/data/models/poll_model.dart';
 import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
 
@@ -146,25 +147,27 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
       final currentUser = _auth.currentUser;
       if (currentUser == null) throw Exception('User not authenticated');
 
-      print('🗳️ Attempting to vote on poll: $pollId');
-      print('🗳️ Fellowship ID: $fellowshipId');
-      print('🗳️ Option IDs: $optionIds');
-      print('🗳️ User ID: ${currentUser.uid}');
+      debugPrint('🗳️ Attempting to vote on poll: $pollId');
+      debugPrint('🗳️ Fellowship ID: $fellowshipId');
+      debugPrint('🗳️ Option IDs: $optionIds');
+      debugPrint('🗳️ User ID: ${currentUser.uid}');
 
       // If fellowshipId is provided, use it directly
       if (fellowshipId != null) {
         final pollRef = _database.ref('polls/fellowship_$fellowshipId/$pollId');
-        print('🗳️ Using direct path: polls/fellowship_$fellowshipId/$pollId');
+        debugPrint(
+          '🗳️ Using direct path: polls/fellowship_$fellowshipId/$pollId',
+        );
 
         // Verify poll exists first
         final pollSnapshot = await pollRef.get();
-        print('🗳️ Poll exists: ${pollSnapshot.exists}');
+        debugPrint('🗳️ Poll exists: ${pollSnapshot.exists}');
         if (!pollSnapshot.exists) {
-          print('🚨 Poll not found at direct path');
+          debugPrint('🚨 Poll not found at direct path');
           throw Exception('Poll not found');
         }
 
-        print('🗳️ Poll data: ${pollSnapshot.value}');
+        debugPrint('🗳️ Poll data: ${pollSnapshot.value}');
 
         // Update votes and voters atomically
         final updates = <String, dynamic>{};
@@ -172,38 +175,38 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
         updates['voters/${currentUser.uid}'] =
             DateTime.now().millisecondsSinceEpoch;
 
-        print('🗳️ Applying updates: $updates');
+        debugPrint('🗳️ Applying updates: $updates');
         await pollRef.update(updates);
-        print('✅ Vote successfully recorded');
+        debugPrint('✅ Vote successfully recorded');
         return;
       }
 
       // Fallback: Find the poll in fellowship collections (less efficient)
-      print('🗳️ Using fallback lookup method');
+      debugPrint('🗳️ Using fallback lookup method');
       final snapshot = await _database.ref('polls').get();
       final data = snapshot.value as Map<dynamic, dynamic>?;
 
       if (data == null) {
-        print('🚨 No polls data found in database');
+        debugPrint('🚨 No polls data found in database');
         throw Exception('Poll not found');
       }
 
-      print('🗳️ Available fellowship keys: ${data.keys.toList()}');
+      debugPrint('🗳️ Available fellowship keys: ${data.keys.toList()}');
 
       String? foundFellowshipId;
       for (final fellowshipEntry in data.entries) {
         final fellowshipKey = fellowshipEntry.key as String;
         final fellowshipPolls = fellowshipEntry.value as Map<dynamic, dynamic>?;
-        print('🗳️ Checking fellowship: $fellowshipKey');
+        debugPrint('🗳️ Checking fellowship: $fellowshipKey');
         if (fellowshipPolls != null && fellowshipPolls.containsKey(pollId)) {
           foundFellowshipId = fellowshipKey;
-          print('✅ Found poll in fellowship: $fellowshipKey');
+          debugPrint('✅ Found poll in fellowship: $fellowshipKey');
           break;
         }
       }
 
       if (foundFellowshipId == null) {
-        print('🚨 Poll not found in any fellowship');
+        debugPrint('🚨 Poll not found in any fellowship');
         throw Exception('Poll not found');
       }
 
@@ -216,9 +219,9 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
           DateTime.now().millisecondsSinceEpoch;
 
       await pollRef.update(updates);
-      print('✅ Vote successfully recorded via fallback');
+      debugPrint('✅ Vote successfully recorded via fallback');
     } catch (e) {
-      print('🚨 Vote failed: $e');
+      debugPrint('🚨 Vote failed: $e');
       throw Exception('Failed to vote on poll: $e');
     }
   }

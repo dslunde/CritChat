@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:critchat/features/polls/domain/repositories/poll_repository.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -12,26 +13,26 @@ class VoteOnPollUseCase {
     required List<String> optionIds,
     String? fellowshipId,
   }) async {
-    print('🎯 UseCase: Starting vote process');
-    print('🎯 UseCase: Poll ID: $pollId');
-    print('🎯 UseCase: Fellowship ID: $fellowshipId');
-    print('🎯 UseCase: Option IDs: $optionIds');
+    debugPrint('🎯 UseCase: Starting vote process');
+    debugPrint('🎯 UseCase: Poll ID: $pollId');
+    debugPrint('🎯 UseCase: Fellowship ID: $fellowshipId');
+    debugPrint('🎯 UseCase: Option IDs: $optionIds');
 
     final currentUser = auth.currentUser;
     if (currentUser == null) {
       throw Exception('User must be authenticated to vote');
     }
 
-    print('🎯 UseCase: User authenticated: ${currentUser.uid}');
+    debugPrint('🎯 UseCase: User authenticated: ${currentUser.uid}');
 
     // Get the poll to validate
     final poll = await repository.getPollById(pollId);
     if (poll == null) {
-      print('🚨 UseCase: Poll not found during validation');
+      debugPrint('🚨 UseCase: Poll not found during validation');
       throw Exception('Poll not found');
     }
 
-    print('🎯 UseCase: Poll found for validation: ${poll.title}');
+    debugPrint('🎯 UseCase: Poll found for validation: ${poll.title}');
 
     // Check if poll is still active
     if (!poll.canVote) {
@@ -64,12 +65,12 @@ class VoteOnPollUseCase {
       throw Exception('Cannot vote for the same option multiple times');
     }
 
-    print('🎯 UseCase: All validations passed, calling repository');
+    debugPrint('🎯 UseCase: All validations passed, calling repository');
     await repository.voteOnPoll(
       pollId: pollId,
       optionIds: optionIds,
       fellowshipId: fellowshipId,
     );
-    print('✅ UseCase: Repository call completed');
+    debugPrint('✅ UseCase: Repository call completed');
   }
 }
