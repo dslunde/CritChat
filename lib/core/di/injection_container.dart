@@ -55,6 +55,17 @@ import 'package:critchat/features/polls/domain/usecases/get_fellowship_polls_use
 import 'package:critchat/features/polls/domain/usecases/add_custom_option_usecase.dart';
 import 'package:critchat/features/polls/presentation/bloc/poll_bloc.dart';
 
+// Gamification
+import 'package:critchat/features/gamification/data/datasources/gamification_firestore_datasource.dart';
+import 'package:critchat/features/gamification/data/repositories/gamification_repository_impl.dart';
+import 'package:critchat/features/gamification/domain/repositories/gamification_repository.dart';
+import 'package:critchat/features/gamification/domain/usecases/get_user_xp_usecase.dart';
+import 'package:critchat/features/gamification/domain/usecases/award_xp_usecase.dart';
+import 'package:critchat/features/gamification/domain/usecases/get_user_xp_stream_usecase.dart';
+import 'package:critchat/features/gamification/domain/usecases/initialize_user_xp_usecase.dart';
+import 'package:critchat/features/gamification/presentation/bloc/gamification_bloc.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -68,6 +79,7 @@ Future<void> init() async {
   _initNotifications();
   _initChat();
   _initPolls();
+  _initGamification();
 
   // Initialize fellowship memberships for Realtime Database security rules
   await _initializeFellowshipMemberships();
@@ -233,4 +245,36 @@ void _initPolls() {
       pollRepository: sl(),
     ),
   );
+}
+
+void _initGamification() {
+  // Data sources
+  sl.registerLazySingleton<GamificationFirestoreDataSource>(
+    () => GamificationFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<GamificationRepository>(
+    () => GamificationRepositoryImpl(dataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => GetUserXpUseCase(repository: sl()));
+  sl.registerLazySingleton(() => AwardXpUseCase(repository: sl()));
+  sl.registerLazySingleton(() => GetUserXpStreamUseCase(repository: sl()));
+  sl.registerLazySingleton(() => InitializeUserXpUseCase(repository: sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => GamificationBloc(
+      getUserXpUseCase: sl(),
+      awardXpUseCase: sl(),
+      getUserXpStreamUseCase: sl(),
+      initializeUserXpUseCase: sl(),
+      repository: sl(),
+    ),
+  );
+
+  // Service
+  sl.registerLazySingleton(() => GamificationService()..initialize());
 }
