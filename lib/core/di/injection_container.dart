@@ -2,7 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-// Features
+// Features - Auth
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -12,6 +12,13 @@ import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
+// Features - Friends
+import '../../features/friends/data/datasources/friends_mock_datasource.dart';
+import '../../features/friends/data/repositories/friends_repository_impl.dart';
+import '../../features/friends/domain/repositories/friends_repository.dart';
+import '../../features/friends/domain/usecases/get_friends_usecase.dart';
+import '../../features/friends/presentation/bloc/friends_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -19,23 +26,36 @@ Future<void> init() async {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
 
-  // Data sources
+  // Auth Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
   );
 
-  // Repositories
+  // Friends Data sources
+  sl.registerLazySingleton<FriendsMockDataSource>(
+    () => FriendsMockDataSource(),
+  );
+
+  // Auth Repositories
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: sl()),
   );
 
-  // Use cases
+  // Friends Repositories
+  sl.registerLazySingleton<FriendsRepository>(
+    () => FriendsRepositoryImpl(sl()),
+  );
+
+  // Auth Use cases
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => SignInUseCase(sl()));
   sl.registerLazySingleton(() => SignUpUseCase(sl()));
   sl.registerLazySingleton(() => SignOutUseCase(sl()));
 
-  // BLoC
+  // Friends Use cases
+  sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
+
+  // Auth BLoC
   sl.registerFactory(
     () => AuthBloc(
       getCurrentUser: sl(),
@@ -45,4 +65,7 @@ Future<void> init() async {
       authRepository: sl(),
     ),
   );
+
+  // Friends BLoC
+  sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
 }
