@@ -180,7 +180,11 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       }
     } catch (e) {
       debugPrint('Error joining fellowship by code: $e');
-      emit(FellowshipError('Failed to join fellowship'));
+      // Use the specific error message from the use case
+      final errorMessage = e.toString().contains('Could not join fellowship')
+          ? e.toString().replaceAll('Exception: ', '')
+          : 'Could not join fellowship. Double check the name and join code match *exactly* what your GM gave you.';
+      emit(FellowshipError(errorMessage));
     }
   }
 

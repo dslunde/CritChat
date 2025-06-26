@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/pages/search_open_fellowships_page.dart';
 import 'package:critchat/features/fellowships/presentation/pages/join_fellowship_page.dart';
 
@@ -227,7 +230,10 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
   void _navigateToJoinByCode(BuildContext context) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => JoinFellowshipPage(userId: userId),
+        builder: (context) => BlocProvider(
+          create: (context) => sl<FellowshipBloc>(),
+          child: JoinFellowshipPage(userId: userId),
+        ),
       ),
     );
 
