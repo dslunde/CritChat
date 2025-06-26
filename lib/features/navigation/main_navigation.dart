@@ -5,7 +5,7 @@ import '../auth/presentation/bloc/auth_bloc.dart';
 import '../lfg/lfg_page.dart';
 import '../friends/friends_page.dart';
 import '../home/home_page.dart';
-import '../campaigns/campaigns_page.dart';
+import '../fellowships/presentation/pages/fellowships_page.dart';
 import '../profile/for_me_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -27,7 +27,7 @@ class _MainNavigationState extends State<MainNavigation> {
       BlocProvider.value(value: authBloc, child: const LfgPage()),
       BlocProvider.value(value: authBloc, child: const FriendsPage()),
       BlocProvider.value(value: authBloc, child: const HomePage()),
-      BlocProvider.value(value: authBloc, child: const CampaignsPage()),
+      BlocProvider.value(value: authBloc, child: const FellowshipsPage()),
       BlocProvider.value(value: authBloc, child: const ForMePage()),
     ];
 
@@ -75,9 +75,9 @@ class _MainNavigationState extends State<MainNavigation> {
               label: 'Camera',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.campaign_outlined),
-              activeIcon: Icon(Icons.campaign),
-              label: 'Campaigns',
+              icon: Icon(Icons.groups_outlined),
+              activeIcon: Icon(Icons.groups),
+              label: 'Fellowships',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),

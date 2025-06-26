@@ -19,6 +19,15 @@ import '../../features/friends/domain/repositories/friends_repository.dart';
 import '../../features/friends/domain/usecases/get_friends_usecase.dart';
 import '../../features/friends/presentation/bloc/friends_bloc.dart';
 
+// Features - Fellowships
+import '../../features/fellowships/data/datasources/fellowship_mock_datasource.dart';
+import '../../features/fellowships/data/repositories/fellowship_repository_impl.dart';
+import '../../features/fellowships/domain/repositories/fellowship_repository.dart';
+import '../../features/fellowships/domain/usecases/get_fellowships_usecase.dart';
+import '../../features/fellowships/domain/usecases/create_fellowship_usecase.dart';
+import '../../features/fellowships/domain/usecases/invite_friend_usecase.dart';
+import '../../features/fellowships/presentation/bloc/fellowship_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -36,6 +45,11 @@ Future<void> init() async {
     () => FriendsMockDataSource(),
   );
 
+  // Fellowship Data sources
+  sl.registerLazySingleton<FellowshipMockDataSource>(
+    () => FellowshipMockDataSource(),
+  );
+
   // Auth Repositories
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(remoteDataSource: sl()),
@@ -46,6 +60,11 @@ Future<void> init() async {
     () => FriendsRepositoryImpl(sl()),
   );
 
+  // Fellowship Repositories
+  sl.registerLazySingleton<FellowshipRepository>(
+    () => FellowshipRepositoryImpl(dataSource: sl()),
+  );
+
   // Auth Use cases
   sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton(() => SignInUseCase(sl()));
@@ -54,6 +73,11 @@ Future<void> init() async {
 
   // Friends Use cases
   sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
+
+  // Fellowship Use cases
+  sl.registerLazySingleton(() => GetFellowshipsUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CreateFellowshipUseCase(repository: sl()));
+  sl.registerLazySingleton(() => InviteFriendUseCase(repository: sl()));
 
   // Auth BLoC
   sl.registerFactory(
@@ -68,4 +92,13 @@ Future<void> init() async {
 
   // Friends BLoC
   sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
+
+  // Fellowship BLoC
+  sl.registerFactory(
+    () => FellowshipBloc(
+      getFellowshipsUseCase: sl(),
+      createFellowshipUseCase: sl(),
+      inviteFriendUseCase: sl(),
+    ),
+  );
 }
