@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/utils/join_code_generator.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
@@ -18,9 +19,11 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _joinCodeController = TextEditingController();
 
   String _selectedGameSystem = 'D&D 5e';
   bool _isPublic = true;
+  bool _useCustomJoinCode = false;
   bool _isLoading = false;
 
   final List<String> _gameSystems = [
@@ -40,6 +43,7 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
   void dispose() {
     _nameController.dispose();
     _descriptionController.dispose();
+    _joinCodeController.dispose();
     super.dispose();
   }
 
@@ -222,6 +226,79 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
                           vertical: 8,
                         ),
                       ),
+                      if (!_isPublic) ...[
+                        const Divider(height: 1),
+                        SwitchListTile(
+                          title: const Text(
+                            'Custom Join Code',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                          subtitle: Text(
+                            _useCustomJoinCode
+                                ? 'Set your own join code'
+                                : 'Auto-generate a random join code',
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 14,
+                            ),
+                          ),
+                          value: _useCustomJoinCode,
+                          onChanged: (value) {
+                            setState(() {
+                              _useCustomJoinCode = value;
+                              if (!value) {
+                                _joinCodeController.clear();
+                              }
+                            });
+                          },
+                          activeColor: AppColors.primaryColor,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                        ),
+                        if (_useCustomJoinCode)
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: TextFormField(
+                              controller: _joinCodeController,
+                              decoration: _buildInputDecoration(
+                                hintText: 'ABC-123',
+                                prefixIcon: Icons.vpn_key,
+                              ),
+                              textCapitalization: TextCapitalization.characters,
+                              onChanged: (value) {
+                                final normalized = JoinCodeGenerator.normalize(
+                                  value,
+                                );
+                                if (normalized != value) {
+                                  _joinCodeController.value = TextEditingValue(
+                                    text: normalized,
+                                    selection: TextSelection.collapsed(
+                                      offset: normalized.length,
+                                    ),
+                                  );
+                                }
+                              },
+                              validator: (value) {
+                                if (!_isPublic && _useCustomJoinCode) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return 'Join code is required for private fellowships';
+                                  }
+                                  if (!JoinCodeGenerator.isValidFormat(
+                                    value.trim(),
+                                  )) {
+                                    return 'Join code must be in format ABC-123';
+                                  }
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                      ],
                     ],
                   ),
                 ),
@@ -340,6 +417,15 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
     if (_formKey.currentState!.validate()) {
       final authState = context.read<AuthBloc>().state;
       if (authState is AuthAuthenticated) {
+        String? joinCode;
+        if (!_isPublic) {
+          if (_useCustomJoinCode) {
+            joinCode = _joinCodeController.text.trim();
+          } else {
+            joinCode = JoinCodeGenerator.generate();
+          }
+        }
+
         context.read<FellowshipBloc>().add(
           CreateFellowship(
             name: _nameController.text.trim(),
@@ -347,6 +433,7 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
             gameSystem: _selectedGameSystem,
             isPublic: _isPublic,
             creatorId: authState.user.id,
+            joinCode: joinCode,
           ),
         );
       }

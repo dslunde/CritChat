@@ -8,6 +8,7 @@ abstract class FellowshipRepository {
     required String gameSystem,
     required bool isPublic,
     required String creatorId,
+    String? joinCode,
   });
   Future<FellowshipEntity> getFellowshipById(String id);
   Future<bool> inviteFriendToFellowship(String fellowshipId, String friendId);
@@ -17,4 +18,13 @@ abstract class FellowshipRepository {
   Future<bool> deleteFellowship(String fellowshipId);
   Future<List<FellowshipEntity>> getPublicFellowships();
   Future<List<FellowshipEntity>> getUserFellowships(String userId);
+  Future<FellowshipEntity?> getFellowshipByNameAndJoinCode(
+    String name,
+    String joinCode,
+  );
+  Future<bool> joinFellowshipByCode(
+    String name,
+    String joinCode,
+    String userId,
+  );
 }

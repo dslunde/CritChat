@@ -9,6 +9,7 @@ import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 import 'package:critchat/features/fellowships/presentation/widgets/fellowship_card.dart';
 import 'create_fellowship_page.dart';
+import 'join_fellowship_selection_page.dart';
 
 class FellowshipsPage extends StatelessWidget {
   const FellowshipsPage({super.key});
@@ -91,11 +92,27 @@ class FellowshipsPage extends StatelessWidget {
                                     ),
                                   ),
                                   const Spacer(),
-                                  Text(
-                                    '${state.fellowships.length} fellowship${state.fellowships.length == 1 ? '' : 's'}',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: AppColors.textSecondary,
+                                  OutlinedButton.icon(
+                                    onPressed: () =>
+                                        _navigateToJoinFellowships(context),
+                                    icon: const Icon(
+                                      Icons.add_circle_outline,
+                                      size: 16,
+                                    ),
+                                    label: const Text('Join'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.primaryColor,
+                                      side: const BorderSide(
+                                        color: AppColors.primaryColor,
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 6,
+                                      ),
+                                      minimumSize: Size.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -235,13 +252,29 @@ class FellowshipsPage extends StatelessWidget {
     }
   }
 
-  void _navigateToFindFellowships(BuildContext context) {
-    // TODO: Implement Find Open Fellowships page
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Find Open Fellowships feature coming soon!'),
-        backgroundColor: AppColors.primaryColor,
+  void _navigateToFindFellowships(BuildContext context) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const JoinFellowshipSelectionPage(),
       ),
     );
+
+    // If fellowship was joined successfully, reload the list
+    if (result == true && context.mounted) {
+      context.read<FellowshipBloc>().add(GetFellowships());
+    }
+  }
+
+  void _navigateToJoinFellowships(BuildContext context) async {
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const JoinFellowshipSelectionPage(),
+      ),
+    );
+
+    // If fellowship was joined successfully, reload the list
+    if (result == true && context.mounted) {
+      context.read<FellowshipBloc>().add(GetFellowships());
+    }
   }
 }

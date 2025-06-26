@@ -9,6 +9,7 @@ class FellowshipModel extends FellowshipEntity {
     required super.memberIds,
     required super.gameSystem,
     required super.isPublic,
+    super.joinCode,
     required super.createdAt,
     required super.updatedAt,
   });
@@ -22,6 +23,7 @@ class FellowshipModel extends FellowshipEntity {
       memberIds: entity.memberIds,
       gameSystem: entity.gameSystem,
       isPublic: entity.isPublic,
+      joinCode: entity.joinCode,
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     );
@@ -36,6 +38,7 @@ class FellowshipModel extends FellowshipEntity {
       memberIds: List<String>.from(json['memberIds'] as List),
       gameSystem: json['gameSystem'] as String,
       isPublic: json['isPublic'] as bool,
+      joinCode: json['joinCode'] as String?,
       createdAt: DateTime.parse(json['createdAt'] as String),
       updatedAt: DateTime.parse(json['updatedAt'] as String),
     );
@@ -50,6 +53,7 @@ class FellowshipModel extends FellowshipEntity {
       'memberIds': memberIds,
       'gameSystem': gameSystem,
       'isPublic': isPublic,
+      'joinCode': joinCode,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
     };
@@ -64,6 +68,7 @@ class FellowshipModel extends FellowshipEntity {
     List<String>? memberIds,
     String? gameSystem,
     bool? isPublic,
+    String? joinCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -75,6 +80,7 @@ class FellowshipModel extends FellowshipEntity {
       memberIds: memberIds ?? this.memberIds,
       gameSystem: gameSystem ?? this.gameSystem,
       isPublic: isPublic ?? this.isPublic,
+      joinCode: joinCode ?? this.joinCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

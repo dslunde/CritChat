@@ -17,6 +17,10 @@ abstract class FellowshipFirestoreDataSource {
     String fellowshipName,
   );
   Future<void> acceptFellowshipInvite(String fellowshipId, String userId);
+  Future<FellowshipModel?> getFellowshipByNameAndJoinCode(
+    String name,
+    String joinCode,
+  );
 }
 
 class FellowshipFirestoreDataSourceImpl
@@ -198,6 +202,28 @@ class FellowshipFirestoreDataSourceImpl
       });
     } catch (e) {
       throw Exception('Failed to accept fellowship invite: $e');
+    }
+  }
+
+  @override
+  Future<FellowshipModel?> getFellowshipByNameAndJoinCode(
+    String name,
+    String joinCode,
+  ) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('fellowships')
+          .where('name', isEqualTo: name)
+          .where('joinCode', isEqualTo: joinCode)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isEmpty) return null;
+
+      final doc = querySnapshot.docs.first;
+      return FellowshipModel.fromJson(doc.data(), doc.id);
+    } catch (e) {
+      throw Exception('Failed to get fellowship by name and join code: $e');
     }
   }
 }

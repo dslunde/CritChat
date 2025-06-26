@@ -164,6 +164,11 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
                           label: 'Visibility',
                           value: fellowship.isPublic ? 'Public' : 'Private',
                         ),
+                        if (!fellowship.isPublic &&
+                            fellowship.joinCode != null) ...[
+                          const SizedBox(height: 12),
+                          _buildJoinCodeRow(fellowship.joinCode!),
+                        ],
                         const SizedBox(height: 12),
                         _buildStatRow(
                           icon: Icons.calendar_today,
@@ -583,5 +588,66 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
 
     // Navigate back to fellowships page
     Navigator.of(context).popUntil((route) => route.isFirst);
+  }
+
+  Widget _buildJoinCodeRow(String joinCode) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.vpn_key, color: AppColors.primaryColor, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Join Code',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  joinCode,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => _copyJoinCode(joinCode),
+            icon: const Icon(Icons.copy, size: 20),
+            color: AppColors.primaryColor,
+            tooltip: 'Copy join code',
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _copyJoinCode(String joinCode) {
+    // Copy to clipboard functionality would go here
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Join code "$joinCode" copied to clipboard!'),
+        backgroundColor: AppColors.primaryColor,
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }

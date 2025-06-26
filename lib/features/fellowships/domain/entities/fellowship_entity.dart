@@ -6,6 +6,7 @@ class FellowshipEntity {
   final List<String> memberIds;
   final String gameSystem;
   final bool isPublic;
+  final String? joinCode;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -17,6 +18,7 @@ class FellowshipEntity {
     required this.memberIds,
     required this.gameSystem,
     required this.isPublic,
+    this.joinCode,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -35,6 +37,7 @@ class FellowshipEntity {
     List<String>? memberIds,
     String? gameSystem,
     bool? isPublic,
+    String? joinCode,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -46,6 +49,7 @@ class FellowshipEntity {
       memberIds: memberIds ?? this.memberIds,
       gameSystem: gameSystem ?? this.gameSystem,
       isPublic: isPublic ?? this.isPublic,
+      joinCode: joinCode ?? this.joinCode,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -62,7 +66,8 @@ class FellowshipEntity {
           creatorId == other.creatorId &&
           memberIds.toString() == other.memberIds.toString() &&
           gameSystem == other.gameSystem &&
-          isPublic == other.isPublic;
+          isPublic == other.isPublic &&
+          joinCode == other.joinCode;
 
   @override
   int get hashCode =>
@@ -72,7 +77,8 @@ class FellowshipEntity {
       creatorId.hashCode ^
       memberIds.hashCode ^
       gameSystem.hashCode ^
-      isPublic.hashCode;
+      isPublic.hashCode ^
+      joinCode.hashCode;
 
   @override
   String toString() =>
@@ -84,6 +90,7 @@ class FellowshipEntity {
       'memberIds: $memberIds, '
       'gameSystem: $gameSystem, '
       'isPublic: $isPublic, '
+      'joinCode: $joinCode, '
       'createdAt: $createdAt, '
       'updatedAt: $updatedAt'
       ')';

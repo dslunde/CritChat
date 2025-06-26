@@ -21,6 +21,15 @@ class FellowshipLoaded extends FellowshipState {
   List<Object?> get props => [fellowships];
 }
 
+class PublicFellowshipsLoaded extends FellowshipState {
+  final List<FellowshipEntity> fellowships;
+
+  const PublicFellowshipsLoaded(this.fellowships);
+
+  @override
+  List<Object?> get props => [fellowships];
+}
+
 class FellowshipCreated extends FellowshipState {
   final FellowshipEntity fellowship;
 
@@ -28,6 +37,15 @@ class FellowshipCreated extends FellowshipState {
 
   @override
   List<Object?> get props => [fellowship];
+}
+
+class FellowshipJoined extends FellowshipState {
+  final String message;
+
+  const FellowshipJoined(this.message);
+
+  @override
+  List<Object?> get props => [message];
 }
 
 class FriendInvited extends FellowshipState {}
