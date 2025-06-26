@@ -30,6 +30,12 @@ import '../../features/fellowships/domain/usecases/create_fellowship_usecase.dar
 import '../../features/fellowships/domain/usecases/invite_friend_usecase.dart';
 import '../../features/fellowships/presentation/bloc/fellowship_bloc.dart';
 
+// Features - Notifications
+import '../../features/notifications/data/datasources/notifications_firestore_datasource.dart';
+import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notifications_repository.dart';
+import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
+
 // Core - Chat
 import '../chat/chat_realtime_datasource.dart';
 
@@ -60,6 +66,11 @@ Future<void> init() async {
     () => FellowshipFirestoreDataSourceImpl(firestore: sl()),
   );
 
+  // Notifications Data sources
+  sl.registerLazySingleton<NotificationsFirestoreDataSource>(
+    () => NotificationsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  );
+
   // Chat Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
     () => ChatRealtimeDataSourceImpl(database: sl(), auth: sl()),
@@ -81,6 +92,11 @@ Future<void> init() async {
       fellowshipDataSource: sl(),
       authDataSource: sl(),
     ),
+  );
+
+  // Notifications Repositories
+  sl.registerLazySingleton<NotificationsRepository>(
+    () => NotificationsRepositoryImpl(sl()),
   );
 
   // Auth Use cases
@@ -119,4 +135,7 @@ Future<void> init() async {
       inviteFriendUseCase: sl(),
     ),
   );
+
+  // Notifications BLoC
+  sl.registerFactory(() => NotificationsBloc(repository: sl()));
 }

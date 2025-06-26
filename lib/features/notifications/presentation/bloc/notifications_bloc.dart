@@ -64,34 +64,25 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     try {
       await _notificationsSubscription?.cancel();
 
-      _notificationsSubscription = _repository.watchNotifications().listen(
-        (notifications) async {
-          try {
-            final unreadCount = await _repository.getUnreadCount();
+      await emit.forEach<List<NotificationEntity>>(
+        _repository.watchNotifications(),
+        onData: (notifications) {
+          // Use add() to trigger a separate load event for async operations
+          add(const LoadNotifications());
 
-            if (notifications.isEmpty) {
-              emit(const NotificationsEmpty());
-            } else {
-              emit(
-                NotificationsLoaded(
-                  notifications: notifications,
-                  unreadCount: unreadCount,
-                ),
-              );
-            }
-          } catch (e) {
-            emit(
-              NotificationsError(
-                'Failed to update notifications: ${e.toString()}',
-              ),
+          if (notifications.isEmpty) {
+            return const NotificationsEmpty();
+          } else {
+            // We'll get the exact count in LoadNotifications handler
+            return NotificationsLoaded(
+              notifications: notifications,
+              unreadCount: notifications.where((n) => !n.isRead).length,
             );
           }
         },
-        onError: (error) {
-          emit(
-            NotificationsError(
-              'Real-time notifications error: ${error.toString()}',
-            ),
+        onError: (error, stackTrace) {
+          return NotificationsError(
+            'Real-time notifications error: ${error.toString()}',
           );
         },
       );
