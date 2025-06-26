@@ -2,7 +2,7 @@
 
 ## Current Status: Fellowship Polls Feature Complete - Production Ready ✅
 
-The project has successfully implemented the complete Fellowship Polls feature, providing fellowship members with comprehensive polling functionality. This includes poll creation, voting, custom options, real-time updates, and administrative controls. The feature follows clean architecture principles and is fully integrated with the existing fellowship chat system.
+The project has successfully implemented the complete Fellowship Polls feature, providing fellowship members with comprehensive polling functionality. This includes poll creation, voting, custom options, real-time updates, administrative controls, proper user display names, and intelligent auto-collapse for expired polls. The feature follows clean architecture principles and is fully integrated with the existing fellowship chat system.
 
 ## What Works
 
@@ -15,6 +15,8 @@ The project has successfully implemented the complete Fellowship Polls feature, 
   - Real-time vote counting and percentage display
   - Poll status indicators (Active, Voted, Expired)
   - Administrative controls (close poll, delete poll, remove vote)
+  - **Auto-collapse functionality for expired polls showing winning results**
+  - **Tap-to-expand functionality for collapsed polls**
 
 - **Domain Layer Architecture**: Complete clean architecture implementation
   - PollEntity with comprehensive business logic (voting, expiration, vote counting)
@@ -26,16 +28,20 @@ The project has successfully implemented the complete Fellowship Polls feature, 
 
 - **Data Layer Implementation**: Firebase Realtime Database integration
   - PollModel with complete JSON serialization/deserialization
-  - PollRealtimeDataSource with real-time streaming capabilities
+  - PollRealtimeDataSource with real-time streaming capabilities and Firestore integration
   - Atomic vote updates to prevent race conditions
   - Poll structure: `polls/fellowship_{fellowshipId}/{pollId}` with options and votes
   - Real-time listeners for live poll updates
   - Proper error handling and connection management
+  - **Enhanced user display name resolution via Firestore lookup**
+  - **Optimized database operations with direct path access**
 
 - **BLoC State Management**: Comprehensive state management with real-time updates
   - Poll Events: GetFellowshipPolls, CreatePoll, VoteOnPoll, AddCustomOption, ClosePoll, DeletePoll, RemoveVote
   - Poll States: PollLoading, PollsLoaded, PollError with proper data handling
-  - Real-time stream subscriptions for live poll updates
+  - **StreamController pattern**: Fixed "Stream has already been listened to" errors
+  - **Poll caching**: `_lastPolls` for immediate data replay to new listeners
+  - **PollStateWithData architecture**: Ensures polls persist during all UI operations
   - Proper error handling and user feedback
   - Integration with existing fellowship BLoC architecture
 
@@ -43,16 +49,55 @@ The project has successfully implemented the complete Fellowship Polls feature, 
   - PollCard with swipe-to-vote gestures and pulse animations
   - Different visual states (Active Unvoted, Active Voted, Expired)
   - Progress bars showing vote percentages in real-time
+  - **Auto-collapse for expired polls with winning results display**
+  - **Trophy icons and vote counts for winners**
+  - **Tap-to-expand hint with visual indicators**
   - CreatePollDialog with comprehensive form validation
   - Duration selection chips and settings toggles
   - FellowshipPollsPage with RefreshIndicator and empty states
-  - Integration with fellowship chat via tabbed interface
+  - **Integrated with fellowship chat via tabbed interface (Chat/Polls)**
 
 - **Database Security**: Updated Firebase Realtime Database rules
   - Poll access restricted to fellowship members only
   - Fellowship membership validation via `fellowshipMembers/{fellowshipId}/{userId}`
   - Creator-only administrative actions (close, delete)
   - Proper read/write permissions for poll operations
+  - **Optimized rules for performance and debugging**
+
+### ✅ Enhanced User Experience Features (COMPLETE)
+- **Proper Display Names**: Fixed "Unknown" display names throughout the app
+  - **Chat messages**: Now show proper user display names instead of "Unknown"
+  - **Poll creators**: Poll creation shows actual user names
+  - **Smart fallback system**: Uses email prefix if no display name exists
+  - **Firestore integration**: Fetches display names from user documents
+  - **Updated data sources**: Both ChatRealtimeDataSourceImpl and PollRealtimeDataSourceImpl enhanced
+
+- **Stream Management Excellence**: Resolved all stream-related issues
+  - **Chat tab switching**: Fixed "Stream has already been listened to" errors
+  - **Poll tab switching**: Seamless switching between Chat and Polls tabs
+  - **StreamController pattern**: Broadcast streams with proper caching
+  - **Message caching**: `_lastMessages` for immediate replay
+  - **Poll caching**: `_lastPolls` for persistent poll display
+  - **Proper cleanup**: Subscription management and resource cleanup
+
+- **Database Performance Optimization**: Efficient Firebase operations
+  - **Direct path access**: `polls/fellowship_{fellowshipId}/{pollId}` instead of scanning
+  - **Fellowship parameter**: Added fellowshipId throughout voting chain
+  - **Removed inefficient queries**: Fixed `limitToFirst(1)` poll lookup bug
+  - **Backwards compatibility**: Fallback logic for existing polls
+  - **Atomic operations**: Proper vote updates without race conditions
+
+- **UI State Persistence**: Polls remain visible during all operations
+  - **PollStateWithData base class**: All action states include current polls
+  - **State inheritance**: Vote, create, and delete actions maintain poll display
+  - **Eliminated loading flicker**: Removed unnecessary loading states
+  - **Consistent experience**: Polls never disappear during user interactions
+
+- **Professional Code Quality**: Clean, maintainable debugging and code standards
+  - **Flutter best practices**: Replaced all print() with debugPrint()
+  - **Conditional debugging**: debugPrint handles debug vs release modes automatically
+  - **Clean imports**: Removed unnecessary imports and added required ones
+  - **Comprehensive debugging**: Added throughout critical paths for troubleshooting
 
 ### ✅ Join Fellowship Feature Implementation (COMPLETE)
 - **Join Code System**: Complete CCC-CCC format join code implementation
