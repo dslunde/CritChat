@@ -6,7 +6,6 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:mocktail/mocktail.dart';
 
 import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
-import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
 import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
@@ -19,8 +18,6 @@ import 'package:critchat/features/notifications/presentation/bloc/notifications_
 import 'package:critchat/features/notifications/presentation/bloc/notifications_state.dart';
 
 // Mock classes
-class MockFriendsRepository extends Mock implements FriendsRepository {}
-
 class MockGetFriendsUseCase extends Mock implements GetFriendsUseCase {}
 
 class MockNotificationsRepository extends Mock
@@ -28,7 +25,6 @@ class MockNotificationsRepository extends Mock
 
 void main() {
   group('Friends and Notifications Comprehensive Tests', () {
-    late MockFriendsRepository mockFriendsRepository;
     late MockGetFriendsUseCase mockGetFriendsUseCase;
     late MockNotificationsRepository mockNotificationsRepository;
     late FriendsBloc friendsBloc;
@@ -84,7 +80,6 @@ void main() {
     );
 
     setUp(() {
-      mockFriendsRepository = MockFriendsRepository();
       mockGetFriendsUseCase = MockGetFriendsUseCase();
       mockNotificationsRepository = MockNotificationsRepository();
 

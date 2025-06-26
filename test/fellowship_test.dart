@@ -13,8 +13,6 @@ import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usec
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
-import 'package:critchat/features/auth/domain/entities/user_entity.dart';
-import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 
 // Mock classes
 class MockFellowshipRepository extends Mock implements FellowshipRepository {}
@@ -35,30 +33,6 @@ void main() {
     late FellowshipBloc fellowshipBloc;
 
     // Sample test data with updated UserEntity structure
-    final testUser = UserEntity(
-      id: '1',
-      email: 'test@test.com',
-      displayName: 'Test User',
-      bio: 'Test bio',
-      experienceLevel: 'Veteran',
-      preferredSystems: ['D&D 5e'],
-      totalXp: 100,
-      friends: ['friend1'],
-      fellowships: ['fellowship1'],
-      createdAt: DateTime.now(),
-    );
-
-    final testFriend = FriendEntity(
-      id: 'friend1',
-      displayName: 'Friend User',
-      email: 'friend@test.com',
-      bio: 'Friend bio',
-      experienceLevel: 'Expert',
-      preferredSystems: ['D&D 5e'],
-      totalXp: 150,
-      isOnline: true,
-      lastSeen: DateTime.now(),
-    );
 
     final testFellowship = FellowshipEntity(
       id: 'fellowship1',
