@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/fellowship_entity.dart';
-import '../bloc/fellowship_bloc.dart';
-import '../bloc/fellowship_event.dart';
-import 'invite_friends_dialog.dart';
+import '../pages/fellowship_chat_page.dart';
 
 class FellowshipCard extends StatelessWidget {
   final FellowshipEntity fellowship;
@@ -18,145 +15,121 @@ class FellowshipCard extends StatelessWidget {
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: AppColors.cardBackground,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header Row
-            Row(
-              children: [
-                // Fellowship Icon with game system color
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: _getGameSystemColor(),
-                    shape: BoxShape.circle,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _openFellowshipChat(context),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header Row
+              Row(
+                children: [
+                  // Fellowship Icon with game system color
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: _getGameSystemColor(),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.groups,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.groups,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
+                  const SizedBox(width: 12),
 
-                // Fellowship Info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        fellowship.name,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                  // Fellowship Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          fellowship.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.casino,
-                            size: 16,
-                            color: AppColors.textSecondary,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            fellowship.gameSystem,
-                            style: const TextStyle(
-                              fontSize: 14,
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.casino,
+                              size: 16,
                               color: AppColors.textSecondary,
-                              fontWeight: FontWeight.w500,
                             ),
-                          ),
-                          const Spacer(),
-                          Icon(
-                            fellowship.isPublic ? Icons.public : Icons.lock,
-                            size: 16,
-                            color: AppColors.textSecondary,
-                          ),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 4),
+                            Text(
+                              fellowship.gameSystem,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            Icon(
+                              fellowship.isPublic ? Icons.public : Icons.lock,
+                              size: 16,
+                              color: AppColors.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 12),
-
-            // Description
-            Text(
-              fellowship.description,
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                height: 1.4,
+                  // Tap to open indicator
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: AppColors.textSecondary,
+                  ),
+                ],
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 12),
 
-            // Stats Row
-            Row(
-              children: [
-                _buildStatChip(
-                  icon: Icons.group,
-                  label:
-                      '${fellowship.memberCount} member${fellowship.memberCount == 1 ? '' : 's'}',
+              // Description
+              Text(
+                fellowship.description,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  height: 1.4,
                 ),
-                const SizedBox(width: 8),
-                _buildStatChip(
-                  icon: Icons.schedule,
-                  label: _getTimeAgo(fellowship.updatedAt),
-                ),
-              ],
-            ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            // Action Buttons
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _showInviteFriendsDialog(context),
-                    icon: const Icon(Icons.person_add, size: 18),
-                    label: const Text('Invite Friends'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.primaryColor,
-                      side: const BorderSide(color: AppColors.primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
+              // Stats Row
+              Row(
+                children: [
+                  _buildStatChip(
+                    icon: Icons.group,
+                    label:
+                        '${fellowship.memberCount} member${fellowship.memberCount == 1 ? '' : 's'}',
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => _openFellowship(context),
-                    icon: const Icon(Icons.arrow_forward, size: 18),
-                    label: const Text('Open'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primaryColor,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
+                  const SizedBox(width: 8),
+                  _buildStatChip(
+                    icon: Icons.schedule,
+                    label: _getTimeAgo(fellowship.updatedAt),
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const Spacer(),
+                  _buildStatChip(icon: Icons.chat, label: 'Tap to chat'),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -221,22 +194,10 @@ class FellowshipCard extends StatelessWidget {
     }
   }
 
-  void _showInviteFriendsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => InviteFriendsDialog(
-        fellowshipId: fellowship.id,
-        fellowshipName: fellowship.name,
-      ),
-    );
-  }
-
-  void _openFellowship(BuildContext context) {
-    // TODO: Navigate to fellowship detail page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${fellowship.name}...'),
-        backgroundColor: AppColors.primaryColor,
+  void _openFellowshipChat(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => FellowshipChatPage(fellowship: fellowship),
       ),
     );
   }

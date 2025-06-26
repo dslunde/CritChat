@@ -52,6 +52,7 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
         title: const Text('Create Fellowship'),
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
         elevation: 0,
       ),
       body: BlocListener<FellowshipBloc, FellowshipState>(

@@ -31,81 +31,74 @@ import '../../features/fellowships/presentation/bloc/fellowship_bloc.dart';
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
-  try {
-    // External dependencies
-    sl.registerLazySingleton(() => FirebaseAuth.instance);
-    sl.registerLazySingleton(() => FirebaseFirestore.instance);
+  // External dependencies
+  sl.registerLazySingleton(() => FirebaseAuth.instance);
+  sl.registerLazySingleton(() => FirebaseFirestore.instance);
 
-    // Auth Data sources
-    sl.registerLazySingleton<AuthRemoteDataSource>(
-      () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
-    );
+  // Auth Data sources
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+    () => AuthRemoteDataSourceImpl(firebaseAuth: sl(), firestore: sl()),
+  );
 
-    // Friends Data sources
-    sl.registerLazySingleton<FriendsMockDataSource>(
-      () => FriendsMockDataSource(),
-    );
+  // Friends Data sources
+  sl.registerLazySingleton<FriendsMockDataSource>(
+    () => FriendsMockDataSource(),
+  );
 
-    // Fellowship Data sources
-    sl.registerLazySingleton<FellowshipMockDataSource>(
-      () => FellowshipMockDataSource(),
-    );
+  // Fellowship Data sources
+  sl.registerLazySingleton<FellowshipMockDataSource>(
+    () => FellowshipMockDataSource(),
+  );
 
-    // Auth Repositories
-    sl.registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(remoteDataSource: sl()),
-    );
+  // Auth Repositories
+  sl.registerLazySingleton<AuthRepository>(
+    () => AuthRepositoryImpl(remoteDataSource: sl()),
+  );
 
-    // Friends Repositories
-    sl.registerLazySingleton<FriendsRepository>(
-      () => FriendsRepositoryImpl(sl()),
-    );
+  // Friends Repositories
+  sl.registerLazySingleton<FriendsRepository>(
+    () => FriendsRepositoryImpl(sl()),
+  );
 
-    // Fellowship Repositories
-    sl.registerLazySingleton<FellowshipRepository>(
-      () => FellowshipRepositoryImpl(dataSource: sl()),
-    );
+  // Fellowship Repositories
+  sl.registerLazySingleton<FellowshipRepository>(
+    () => FellowshipRepositoryImpl(dataSource: sl()),
+  );
 
-    // Auth Use cases
-    sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
-    sl.registerLazySingleton(() => SignInUseCase(sl()));
-    sl.registerLazySingleton(() => SignUpUseCase(sl()));
-    sl.registerLazySingleton(() => SignOutUseCase(sl()));
+  // Auth Use cases
+  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
+  sl.registerLazySingleton(() => SignInUseCase(sl()));
+  sl.registerLazySingleton(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton(() => SignOutUseCase(sl()));
 
-    // Friends Use cases
-    sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
+  // Friends Use cases
+  sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
 
-    // Fellowship Use cases
-    sl.registerLazySingleton(() => GetFellowshipsUseCase(repository: sl()));
-    sl.registerLazySingleton(() => CreateFellowshipUseCase(repository: sl()));
-    sl.registerLazySingleton(() => InviteFriendUseCase(repository: sl()));
+  // Fellowship Use cases
+  sl.registerLazySingleton(() => GetFellowshipsUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CreateFellowshipUseCase(repository: sl()));
+  sl.registerLazySingleton(() => InviteFriendUseCase(repository: sl()));
 
-    // Auth BLoC
-    sl.registerFactory(
-      () => AuthBloc(
-        getCurrentUser: sl(),
-        signIn: sl(),
-        signUp: sl(),
-        signOut: sl(),
-        authRepository: sl(),
-      ),
-    );
+  // Auth BLoC
+  sl.registerFactory(
+    () => AuthBloc(
+      getCurrentUser: sl(),
+      signIn: sl(),
+      signUp: sl(),
+      signOut: sl(),
+      authRepository: sl(),
+    ),
+  );
 
-    // Friends BLoC
-    sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
+  // Friends BLoC
+  sl.registerFactory(() => FriendsBloc(getFriendsUseCase: sl()));
 
-    // Fellowship BLoC
-    sl.registerFactory(
-      () => FellowshipBloc(
-        getFellowshipsUseCase: sl(),
-        createFellowshipUseCase: sl(),
-        inviteFriendUseCase: sl(),
-      ),
-    );
-
-    print('✅ All dependencies registered successfully');
-  } catch (e) {
-    print('❌ Error during dependency registration: $e');
-    rethrow;
-  }
+  // Fellowship BLoC
+  sl.registerFactory(
+    () => FellowshipBloc(
+      getFellowshipsUseCase: sl(),
+      createFellowshipUseCase: sl(),
+      inviteFriendUseCase: sl(),
+    ),
+  );
 }
