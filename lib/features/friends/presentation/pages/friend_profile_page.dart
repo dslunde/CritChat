@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/friend_entity.dart';
+import 'chat_page.dart';
 
 class FriendProfilePage extends StatelessWidget {
   final FriendEntity friend;
@@ -158,17 +159,7 @@ class FriendProfilePage extends StatelessWidget {
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            // TODO: Navigate to chat
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Chat functionality coming soon!',
-                                ),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
+                          onPressed: () => _navigateToChat(context),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
                             foregroundColor: Colors.white,
@@ -295,5 +286,12 @@ class FriendProfilePage extends StatelessWidget {
     } else {
       return 'Last seen just now';
     }
+  }
+
+  void _navigateToChat(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChatPage(friend: friend)),
+    );
   }
 }
