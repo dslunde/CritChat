@@ -233,12 +233,12 @@ class _JoinFellowshipPageState extends State<JoinFellowshipPage> {
     }
 
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated && authState.user != null) {
+    if (authState is AuthAuthenticated) {
       context.read<FellowshipBloc>().add(
         JoinFellowshipByCode(
           name: _nameController.text.trim(),
           joinCode: _joinCodeController.text.trim(),
-          userId: authState.user!.id,
+          userId: authState.user.id,
         ),
       );
     }
