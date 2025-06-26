@@ -268,7 +268,13 @@ class _FellowshipPollsPageState extends State<FellowshipPollsPage> {
   }
 
   void _handleVote(String pollId, List<String> optionIds) {
-    _pollBloc.add(VoteOnPoll(pollId: pollId, optionIds: optionIds));
+    _pollBloc.add(
+      VoteOnPoll(
+        pollId: pollId,
+        optionIds: optionIds,
+        fellowshipId: widget.fellowshipId,
+      ),
+    );
   }
 
   void _handleAddCustomOption(String pollId, String optionText) {

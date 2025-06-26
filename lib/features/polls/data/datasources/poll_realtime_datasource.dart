@@ -18,6 +18,7 @@ abstract class PollRealtimeDataSource {
   Future<void> voteOnPoll({
     required String pollId,
     required List<String> optionIds,
+    String? fellowshipId,
   });
   Future<PollOptionModel> addCustomOption({
     required String pollId,
@@ -142,29 +143,50 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
   Future<void> voteOnPoll({
     required String pollId,
     required List<String> optionIds,
+    String? fellowshipId,
   }) async {
     try {
       final currentUser = _auth.currentUser;
       if (currentUser == null) throw Exception('User not authenticated');
 
-      // Find the poll in fellowship collections
+      // If fellowshipId is provided, use it directly
+      if (fellowshipId != null) {
+        final pollRef = _database.ref('polls/fellowship_$fellowshipId/$pollId');
+
+        // Verify poll exists first
+        final pollSnapshot = await pollRef.get();
+        if (!pollSnapshot.exists) {
+          throw Exception('Poll not found');
+        }
+
+        // Update votes and voters atomically
+        final updates = <String, dynamic>{};
+        updates['votes/${currentUser.uid}'] = optionIds;
+        updates['voters/${currentUser.uid}'] =
+            DateTime.now().millisecondsSinceEpoch;
+
+        await pollRef.update(updates);
+        return;
+      }
+
+      // Fallback: Find the poll in fellowship collections (less efficient)
       final snapshot = await _database.ref('polls').get();
       final data = snapshot.value as Map<dynamic, dynamic>?;
 
       if (data == null) throw Exception('Poll not found');
 
-      String? fellowshipId;
+      String? foundFellowshipId;
       for (final fellowshipEntry in data.entries) {
         final fellowshipPolls = fellowshipEntry.value as Map<dynamic, dynamic>?;
         if (fellowshipPolls != null && fellowshipPolls.containsKey(pollId)) {
-          fellowshipId = fellowshipEntry.key as String;
+          foundFellowshipId = fellowshipEntry.key as String;
           break;
         }
       }
 
-      if (fellowshipId == null) throw Exception('Poll not found');
+      if (foundFellowshipId == null) throw Exception('Poll not found');
 
-      final pollRef = _database.ref('polls/$fellowshipId/$pollId');
+      final pollRef = _database.ref('polls/$foundFellowshipId/$pollId');
 
       // Update votes and voters atomically
       final updates = <String, dynamic>{};

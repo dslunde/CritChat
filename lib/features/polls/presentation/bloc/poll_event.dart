@@ -50,11 +50,16 @@ class CreatePoll extends PollEvent {
 class VoteOnPoll extends PollEvent {
   final String pollId;
   final List<String> optionIds;
+  final String? fellowshipId;
 
-  const VoteOnPoll({required this.pollId, required this.optionIds});
+  const VoteOnPoll({
+    required this.pollId,
+    required this.optionIds,
+    this.fellowshipId,
+  });
 
   @override
-  List<Object> get props => [pollId, optionIds];
+  List<Object?> get props => [pollId, optionIds, fellowshipId];
 }
 
 class AddCustomOption extends PollEvent {

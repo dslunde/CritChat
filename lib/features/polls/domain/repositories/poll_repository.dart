@@ -22,6 +22,7 @@ abstract class PollRepository {
   Future<void> voteOnPoll({
     required String pollId,
     required List<String> optionIds,
+    String? fellowshipId,
   });
 
   /// Add a custom option to a poll (if allowed)

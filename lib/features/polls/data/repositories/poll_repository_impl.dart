@@ -46,8 +46,13 @@ class PollRepositoryImpl implements PollRepository {
   Future<void> voteOnPoll({
     required String pollId,
     required List<String> optionIds,
+    String? fellowshipId,
   }) async {
-    await dataSource.voteOnPoll(pollId: pollId, optionIds: optionIds);
+    await dataSource.voteOnPoll(
+      pollId: pollId,
+      optionIds: optionIds,
+      fellowshipId: fellowshipId,
+    );
   }
 
   @override

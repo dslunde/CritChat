@@ -100,8 +100,7 @@ class PollBloc extends Bloc<PollEvent, PollState> {
 
   Future<void> _onCreatePoll(CreatePoll event, Emitter<PollState> emit) async {
     try {
-      emit(PollLoading());
-
+      // Don't emit loading - let the stream update handle the new poll
       final poll = await createPollUseCase(
         title: event.title,
         description: event.description,
@@ -120,7 +119,12 @@ class PollBloc extends Bloc<PollEvent, PollState> {
 
   Future<void> _onVoteOnPoll(VoteOnPoll event, Emitter<PollState> emit) async {
     try {
-      await voteOnPollUseCase(pollId: event.pollId, optionIds: event.optionIds);
+      // Don't emit loading - let the stream update handle the vote changes
+      await voteOnPollUseCase(
+        pollId: event.pollId,
+        optionIds: event.optionIds,
+        fellowshipId: event.fellowshipId,
+      );
 
       emit(PollVoteSuccess(pollId: event.pollId, optionIds: event.optionIds));
     } catch (e) {

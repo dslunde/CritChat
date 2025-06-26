@@ -10,6 +10,7 @@ class VoteOnPollUseCase {
   Future<void> call({
     required String pollId,
     required List<String> optionIds,
+    String? fellowshipId,
   }) async {
     final currentUser = auth.currentUser;
     if (currentUser == null) {
@@ -53,6 +54,10 @@ class VoteOnPollUseCase {
       throw Exception('Cannot vote for the same option multiple times');
     }
 
-    await repository.voteOnPoll(pollId: pollId, optionIds: optionIds);
+    await repository.voteOnPoll(
+      pollId: pollId,
+      optionIds: optionIds,
+      fellowshipId: fellowshipId,
+    );
   }
 }
