@@ -4,7 +4,9 @@ import 'package:critchat/features/fellowships/presentation/pages/search_open_fel
 import 'package:critchat/features/fellowships/presentation/pages/join_fellowship_page.dart';
 
 class JoinFellowshipSelectionPage extends StatelessWidget {
-  const JoinFellowshipSelectionPage({super.key});
+  final String userId;
+
+  const JoinFellowshipSelectionPage({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
                   48, // Account for padding
             ),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const SizedBox(height: 32),
 
@@ -84,7 +87,7 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
                   onTap: () => _navigateToJoinByCode(context),
                 ),
 
-                const Spacer(),
+                const SizedBox(height: 48),
 
                 // Help text
                 Container(
@@ -212,7 +215,7 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
   void _navigateToSearchOpen(BuildContext context) async {
     final result = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => const SearchOpenFellowshipsPage(),
+        builder: (context) => SearchOpenFellowshipsPage(userId: userId),
       ),
     );
 
@@ -222,9 +225,11 @@ class JoinFellowshipSelectionPage extends StatelessWidget {
   }
 
   void _navigateToJoinByCode(BuildContext context) async {
-    final result = await Navigator.of(
-      context,
-    ).push(MaterialPageRoute(builder: (context) => const JoinFellowshipPage()));
+    final result = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => JoinFellowshipPage(userId: userId),
+      ),
+    );
 
     if (result == true && context.mounted) {
       Navigator.of(context).pop(true); // Pass success back to fellowships page

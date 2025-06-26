@@ -9,7 +9,17 @@ class JoinFellowshipByCodeUseCase {
     required String name,
     required String joinCode,
     required String userId,
-  }) {
-    return repository.joinFellowshipByCode(name, joinCode, userId);
+  }) async {
+    final result = await repository.joinFellowshipByCode(
+      name,
+      joinCode,
+      userId,
+    );
+    if (!result) {
+      throw Exception(
+        'Could not join fellowship. Double check the name and join code match *exactly* what your GM gave you.',
+      );
+    }
+    return result;
   }
 }

@@ -4,6 +4,7 @@ import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/widgets/app_top_bar.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
@@ -253,28 +254,52 @@ class FellowshipsPage extends StatelessWidget {
   }
 
   void _navigateToFindFellowships(BuildContext context) async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const JoinFellowshipSelectionPage(),
-      ),
-    );
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              JoinFellowshipSelectionPage(userId: authState.user.id),
+        ),
+      );
 
-    // If fellowship was joined successfully, reload the list
-    if (result == true && context.mounted) {
-      context.read<FellowshipBloc>().add(GetFellowships());
+      // If fellowship was joined successfully, reload the list
+      if (result == true && context.mounted) {
+        context.read<FellowshipBloc>().add(GetFellowships());
+      }
+    } else {
+      // Show error if not authenticated
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to join fellowships.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   void _navigateToJoinFellowships(BuildContext context) async {
-    final result = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const JoinFellowshipSelectionPage(),
-      ),
-    );
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) =>
+              JoinFellowshipSelectionPage(userId: authState.user.id),
+        ),
+      );
 
-    // If fellowship was joined successfully, reload the list
-    if (result == true && context.mounted) {
-      context.read<FellowshipBloc>().add(GetFellowships());
+      // If fellowship was joined successfully, reload the list
+      if (result == true && context.mounted) {
+        context.read<FellowshipBloc>().add(GetFellowships());
+      }
+    } else {
+      // Show error if not authenticated
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please log in to join fellowships.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
-import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 
 class SearchOpenFellowshipsPage extends StatelessWidget {
-  const SearchOpenFellowshipsPage({super.key});
+  final String userId;
+
+  const SearchOpenFellowshipsPage({super.key, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -154,15 +155,9 @@ class SearchOpenFellowshipsPage extends StatelessWidget {
   }
 
   void _joinFellowship(BuildContext context, String fellowshipId) {
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated) {
-      context.read<FellowshipBloc>().add(
-        JoinPublicFellowship(
-          fellowshipId: fellowshipId,
-          userId: authState.user.id,
-        ),
-      );
-    }
+    context.read<FellowshipBloc>().add(
+      JoinPublicFellowship(fellowshipId: fellowshipId, userId: userId),
+    );
   }
 }
 

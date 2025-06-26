@@ -3,14 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/utils/join_code_generator.dart';
-import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 
 class JoinFellowshipPage extends StatefulWidget {
-  const JoinFellowshipPage({super.key});
+  final String userId;
+
+  const JoinFellowshipPage({super.key, required this.userId});
 
   @override
   State<JoinFellowshipPage> createState() => _JoinFellowshipPageState();
@@ -232,15 +233,12 @@ class _JoinFellowshipPageState extends State<JoinFellowshipPage> {
       return;
     }
 
-    final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated) {
-      context.read<FellowshipBloc>().add(
-        JoinFellowshipByCode(
-          name: _nameController.text.trim(),
-          joinCode: _joinCodeController.text.trim(),
-          userId: authState.user.id,
-        ),
-      );
-    }
+    context.read<FellowshipBloc>().add(
+      JoinFellowshipByCode(
+        name: _nameController.text.trim(),
+        joinCode: _joinCodeController.text.trim(),
+        userId: widget.userId,
+      ),
+    );
   }
 }
