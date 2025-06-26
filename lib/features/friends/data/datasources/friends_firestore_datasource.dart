@@ -108,14 +108,34 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['displayName'] ?? 'Someone';
 
-      // Create friend request notification
+      // Create friend request notification (NOT auto-accepting)
       final notificationId = _firestore.collection('notifications').doc().id;
 
-      // For simplified implementation, we'll directly add as friends
-      // and create a friend request accepted notification
+      // Only create the notification - do NOT add as friends yet
+      await _firestore.collection('notifications').doc(notificationId).set({
+        'userId': friendId,
+        'senderId': currentUser.uid,
+        'type': 'friendRequest', // Proper friend request type
+        'title': 'Friend Request',
+        'message': '$currentUserName wants to be your friend',
+        'data': {'senderId': currentUser.uid},
+        'isRead': false,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to send friend request: $e');
+    }
+  }
+
+  @override
+  Future<void> acceptFriendRequest(String friendId) async {
+    try {
+      final currentUser = _auth.currentUser;
+      if (currentUser == null) throw Exception('User not authenticated');
+
       final batch = _firestore.batch();
 
-      // Add as friends
+      // Add each other as friends
       batch.update(_firestore.collection('users').doc(currentUser.uid), {
         'friends': FieldValue.arrayUnion([friendId]),
       });
@@ -124,28 +144,10 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
         'friends': FieldValue.arrayUnion([currentUser.uid]),
       });
 
-      // Create notification for the friend
-      batch.set(_firestore.collection('notifications').doc(notificationId), {
-        'userId': friendId,
-        'senderId': currentUser.uid,
-        'type': 'friendRequestAccepted', // Since we're auto-accepting
-        'title': 'New Friend',
-        'message': '$currentUserName is now your friend!',
-        'data': {'friendId': currentUser.uid},
-        'isRead': false,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
-
       await batch.commit();
     } catch (e) {
-      throw Exception('Failed to send friend request: $e');
+      throw Exception('Failed to accept friend request: $e');
     }
-  }
-
-  @override
-  Future<void> acceptFriendRequest(String friendId) async {
-    // For simplified implementation, this is the same as send friend request
-    await sendFriendRequest(friendId);
   }
 
   @override

@@ -69,11 +69,43 @@ class FellowshipRepositoryImpl implements FellowshipRepository {
     String friendId,
   ) async {
     try {
-      // Add friend to fellowship
-      await _fellowshipDataSource.addMember(fellowshipId, friendId);
+      // Get fellowship details for the invitation
+      final fellowship = await _fellowshipDataSource.getFellowshipById(
+        fellowshipId,
+      );
+      if (fellowship == null) {
+        throw Exception('Fellowship not found');
+      }
 
-      // Add fellowship to friend's fellowships list
-      await _authDataSource.addFellowship(friendId, fellowshipId);
+      // Get inviter details
+      final inviter = await _authDataSource.getUserById(fellowship.creatorId);
+      final inviterName = inviter?.displayName ?? 'Someone';
+
+      // Send invitation notification (NOT auto-adding to fellowship)
+      await _fellowshipDataSource.inviteFriendToFellowship(
+        fellowshipId,
+        friendId,
+        inviterName,
+        fellowship.name,
+      );
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> acceptFellowshipInvite(
+    String fellowshipId,
+    String userId,
+  ) async {
+    try {
+      // Add user to fellowship
+      await _fellowshipDataSource.acceptFellowshipInvite(fellowshipId, userId);
+
+      // Add fellowship to user's fellowships list
+      await _authDataSource.addFellowship(userId, fellowshipId);
 
       return true;
     } catch (e) {

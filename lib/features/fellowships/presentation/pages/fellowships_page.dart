@@ -174,21 +174,42 @@ class FellowshipsPage extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: () => _navigateToCreateFellowship(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Create Fellowship'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+            Column(
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _navigateToCreateFellowship(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Create Fellowship'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                const SizedBox(height: 16),
+                OutlinedButton.icon(
+                  onPressed: () => _navigateToFindFellowships(context),
+                  icon: const Icon(Icons.search),
+                  label: const Text('Find Open Fellowships'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primaryColor,
+                    side: const BorderSide(color: AppColors.primaryColor),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
@@ -213,5 +234,15 @@ class FellowshipsPage extends StatelessWidget {
     if (result == true && context.mounted) {
       context.read<FellowshipBloc>().add(GetFellowships());
     }
+  }
+
+  void _navigateToFindFellowships(BuildContext context) {
+    // TODO: Implement Find Open Fellowships page
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Find Open Fellowships feature coming soon!'),
+        backgroundColor: AppColors.primaryColor,
+      ),
+    );
   }
 }

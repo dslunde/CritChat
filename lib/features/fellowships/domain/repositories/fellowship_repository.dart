@@ -11,6 +11,7 @@ abstract class FellowshipRepository {
   });
   Future<FellowshipEntity> getFellowshipById(String id);
   Future<bool> inviteFriendToFellowship(String fellowshipId, String friendId);
+  Future<bool> acceptFellowshipInvite(String fellowshipId, String userId);
   Future<bool> removeMemberFromFellowship(String fellowshipId, String memberId);
   Future<FellowshipEntity> updateFellowship(FellowshipEntity fellowship);
   Future<bool> deleteFellowship(String fellowshipId);

@@ -165,7 +165,7 @@ class NotificationsFirestoreDataSourceImpl
 
       final batch = _firestore.batch();
 
-      // Add each other as friends
+      // Add each other as friends (using proper method)
       final currentUserRef = _firestore.collection('users').doc(currentUserId);
       final senderUserRef = _firestore.collection('users').doc(senderId);
 
@@ -187,13 +187,20 @@ class NotificationsFirestoreDataSourceImpl
       });
 
       // Create acceptance notification for sender
+      final senderUserDoc = await _firestore
+          .collection('users')
+          .doc(currentUserId)
+          .get();
+      final senderUserData = senderUserDoc.data();
+      final accepterName = senderUserData?['displayName'] ?? 'Someone';
+
       final acceptNotification = NotificationModel(
         id: _firestore.collection('notifications').doc().id,
         userId: senderId,
         senderId: currentUserId,
         type: NotificationType.friendRequestAccepted,
         title: 'Friend Request Accepted',
-        message: 'Your friend request has been accepted!',
+        message: '$accepterName accepted your friend request!',
         isRead: false,
         createdAt: DateTime.now(),
       );
@@ -233,7 +240,7 @@ class NotificationsFirestoreDataSourceImpl
 
       final batch = _firestore.batch();
 
-      // Add user to fellowship
+      // Add user to fellowship (using proper method)
       final fellowshipRef = _firestore
           .collection('fellowships')
           .doc(fellowshipId);

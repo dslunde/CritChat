@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../domain/entities/fellowship_entity.dart';
 import '../widgets/invite_friends_dialog.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 
-class FellowshipInfoPage extends StatelessWidget {
+class FellowshipInfoPage extends StatefulWidget {
   final FellowshipEntity fellowship;
 
   const FellowshipInfoPage({super.key, required this.fellowship});
+
+  @override
+  State<FellowshipInfoPage> createState() => _FellowshipInfoPageState();
+}
+
+class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
+  FellowshipEntity get fellowship => widget.fellowship;
 
   @override
   Widget build(BuildContext context) {
@@ -175,25 +185,39 @@ class FellowshipInfoPage extends StatelessWidget {
 
                   // Members Section
                   _buildInfoSection(
-                    title: 'Members (${fellowship.memberCount})',
+                    title: 'Members (${fellowship.memberIds.length})',
                     icon: Icons.people,
-                    child: Column(
-                      children: [
-                        _buildMemberTile('Alex Drake', 'Creator', true),
-                        _buildMemberTile('Sarah Chen', 'Member', false),
-                        _buildMemberTile('Mike Johnson', 'Member', false),
-                        if (fellowship.memberCount > 3)
-                          Container(
+                    child: FutureBuilder<List<Widget>>(
+                      future: _buildMembersList(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16.0),
+                              child: CircularProgressIndicator(
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Container(
                             padding: const EdgeInsets.all(12),
                             child: Text(
-                              '+${fellowship.memberCount - 3} more members',
+                              'Error loading members',
                               style: const TextStyle(
-                                color: AppColors.textSecondary,
+                                color: Colors.red,
                                 fontStyle: FontStyle.italic,
                               ),
                             ),
-                          ),
-                      ],
+                          );
+                        }
+
+                        final memberWidgets = snapshot.data ?? [];
+                        return Column(children: memberWidgets);
+                      },
                     ),
                   ),
 
@@ -309,7 +333,16 @@ class FellowshipInfoPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMemberTile(String name, String role, bool isCreator) {
+  Widget _buildMemberTile(
+    String name,
+    String role,
+    bool isCreator,
+    String userId,
+  ) {
+    // Check if current user is the creator and can remove members
+    final canRemoveMember =
+        _isCurrentUserCreator() && !isCreator && userId != _getCurrentUserId();
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
       child: Row(
@@ -364,6 +397,14 @@ class FellowshipInfoPage extends StatelessWidget {
                 ),
               ),
             ),
+          if (canRemoveMember)
+            IconButton(
+              onPressed: () => _showRemoveMemberDialog(name, userId),
+              icon: const Icon(Icons.remove_circle_outline),
+              color: Colors.red,
+              iconSize: 20,
+              constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            ),
         ],
       ),
     );
@@ -409,6 +450,7 @@ class FellowshipInfoPage extends StatelessWidget {
       builder: (context) => InviteFriendsDialog(
         fellowshipId: fellowship.id,
         fellowshipName: fellowship.name,
+        fellowshipMemberIds: fellowship.memberIds,
       ),
     );
   }
@@ -442,6 +484,91 @@ class FellowshipInfoPage extends StatelessWidget {
             child: const Text('Leave', style: TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<List<Widget>> _buildMembersList() async {
+    final List<Widget> memberWidgets = [];
+
+    try {
+      // Get user documents for all member IDs
+      for (final memberId in fellowship.memberIds) {
+        // For now, we'll create a simple member tile with just the ID
+        // In a real app, you'd fetch user details from Firestore
+        final isCreator = memberId == fellowship.creatorId;
+        memberWidgets.add(
+          _buildMemberTile(
+            'User $memberId', // Placeholder - would be actual user name
+            isCreator ? 'Creator' : 'Member',
+            isCreator,
+            memberId,
+          ),
+        );
+      }
+    } catch (e) {
+      // Return empty list on error
+      return [];
+    }
+
+    return memberWidgets;
+  }
+
+  bool _isCurrentUserCreator() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      return authState.user.id == fellowship.creatorId;
+    }
+    return false;
+  }
+
+  String? _getCurrentUserId() {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      return authState.user.id;
+    }
+    return null;
+  }
+
+  void _showRemoveMemberDialog(String memberName, String userId) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.cardBackground,
+        title: const Text(
+          'Remove Member',
+          style: TextStyle(color: AppColors.textPrimary),
+        ),
+        content: Text(
+          'Are you sure you want to remove $memberName from "${fellowship.name}"?',
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              _removeMember(userId);
+            },
+            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _removeMember(String userId) {
+    // TODO: Implement member removal through fellowship repository
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Member removal functionality coming soon!'),
+        backgroundColor: AppColors.primaryColor,
       ),
     );
   }

@@ -13,11 +13,13 @@ import '../bloc/fellowship_event.dart';
 class InviteFriendsDialog extends StatelessWidget {
   final String fellowshipId;
   final String fellowshipName;
+  final List<String> fellowshipMemberIds;
 
   const InviteFriendsDialog({
     super.key,
     required this.fellowshipId,
     required this.fellowshipName,
+    required this.fellowshipMemberIds,
   });
 
   @override
@@ -98,16 +100,21 @@ class InviteFriendsDialog extends StatelessWidget {
                     }
 
                     if (state is FriendsLoaded) {
-                      if (state.friends.isEmpty) {
+                      // Filter out friends who are already members of this fellowship
+                      final availableFriends = state.friends.where((friend) {
+                        return !_isAlreadyMember(friend.id);
+                      }).toList();
+
+                      if (availableFriends.isEmpty) {
                         return _buildEmptyState();
                       }
 
                       return ListView.builder(
                         shrinkWrap: true,
                         padding: const EdgeInsets.all(16),
-                        itemCount: state.friends.length,
+                        itemCount: availableFriends.length,
                         itemBuilder: (context, index) {
-                          final friend = state.friends[index];
+                          final friend = availableFriends[index];
                           return _buildFriendItem(context, friend);
                         },
                       );
@@ -312,6 +319,10 @@ class InviteFriendsDialog extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  bool _isAlreadyMember(String friendId) {
+    return fellowshipMemberIds.contains(friendId);
   }
 
   void _inviteFriend(BuildContext context, String friendId, String friendName) {

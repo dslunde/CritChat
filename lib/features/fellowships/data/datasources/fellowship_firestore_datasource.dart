@@ -10,6 +10,13 @@ abstract class FellowshipFirestoreDataSource {
   Future<FellowshipModel> addMember(String fellowshipId, String userId);
   Future<FellowshipModel> removeMember(String fellowshipId, String userId);
   Future<List<FellowshipModel>> getAllFellowships();
+  Future<void> inviteFriendToFellowship(
+    String fellowshipId,
+    String friendId,
+    String inviterName,
+    String fellowshipName,
+  );
+  Future<void> acceptFellowshipInvite(String fellowshipId, String userId);
 }
 
 class FellowshipFirestoreDataSourceImpl
@@ -145,6 +152,52 @@ class FellowshipFirestoreDataSourceImpl
           .toList();
     } catch (e) {
       throw Exception('Failed to get all fellowships: $e');
+    }
+  }
+
+  @override
+  Future<void> inviteFriendToFellowship(
+    String fellowshipId,
+    String friendId,
+    String inviterName,
+    String fellowshipName,
+  ) async {
+    try {
+      // Create fellowship invitation notification (NOT auto-adding)
+      final notificationId = _firestore.collection('notifications').doc().id;
+
+      // Only create the notification - do NOT add to fellowship yet
+      await _firestore.collection('notifications').doc(notificationId).set({
+        'userId': friendId,
+        'senderId': fellowshipId, // Using fellowship ID as sender for invites
+        'type': 'fellowshipInvite',
+        'title': 'Fellowship Invitation',
+        'message': '$inviterName invited you to join "$fellowshipName"',
+        'data': {
+          'fellowshipId': fellowshipId,
+          'inviterName': inviterName,
+          'fellowshipName': fellowshipName,
+        },
+        'isRead': false,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to invite friend to fellowship: $e');
+    }
+  }
+
+  @override
+  Future<void> acceptFellowshipInvite(
+    String fellowshipId,
+    String userId,
+  ) async {
+    try {
+      // Add user to fellowship
+      await _firestore.collection('fellowships').doc(fellowshipId).update({
+        'memberIds': FieldValue.arrayUnion([userId]),
+      });
+    } catch (e) {
+      throw Exception('Failed to accept fellowship invite: $e');
     }
   }
 }
