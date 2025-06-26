@@ -162,7 +162,7 @@ class SearchOpenFellowshipsPage extends StatelessWidget {
 }
 
 class _OpenFellowshipCard extends StatelessWidget {
-  final fellowship;
+  final dynamic fellowship;
   final VoidCallback onJoin;
 
   const _OpenFellowshipCard({required this.fellowship, required this.onJoin});

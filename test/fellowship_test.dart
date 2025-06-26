@@ -10,6 +10,9 @@ import 'package:critchat/features/fellowships/domain/repositories/fellowship_rep
 import 'package:critchat/features/fellowships/domain/usecases/get_fellowships_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/get_public_fellowships_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/join_fellowship_by_code_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/remove_member_usecase.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
@@ -24,12 +27,23 @@ class MockCreateFellowshipUseCase extends Mock
 
 class MockInviteFriendUseCase extends Mock implements InviteFriendUseCase {}
 
+class MockGetPublicFellowshipsUseCase extends Mock
+    implements GetPublicFellowshipsUseCase {}
+
+class MockJoinFellowshipByCodeUseCase extends Mock
+    implements JoinFellowshipByCodeUseCase {}
+
+class MockRemoveMemberUseCase extends Mock implements RemoveMemberUseCase {}
+
 void main() {
   group('Fellowship Feature Comprehensive Tests', () {
     late MockFellowshipRepository mockRepository;
     late MockGetFellowshipsUseCase mockGetFellowshipsUseCase;
     late MockCreateFellowshipUseCase mockCreateFellowshipUseCase;
     late MockInviteFriendUseCase mockInviteFriendUseCase;
+    late MockGetPublicFellowshipsUseCase mockGetPublicFellowshipsUseCase;
+    late MockJoinFellowshipByCodeUseCase mockJoinFellowshipByCodeUseCase;
+    late MockRemoveMemberUseCase mockRemoveMemberUseCase;
     late FellowshipBloc fellowshipBloc;
 
     // Sample test data with updated UserEntity structure
@@ -63,11 +77,17 @@ void main() {
       mockGetFellowshipsUseCase = MockGetFellowshipsUseCase();
       mockCreateFellowshipUseCase = MockCreateFellowshipUseCase();
       mockInviteFriendUseCase = MockInviteFriendUseCase();
+      mockGetPublicFellowshipsUseCase = MockGetPublicFellowshipsUseCase();
+      mockJoinFellowshipByCodeUseCase = MockJoinFellowshipByCodeUseCase();
+      mockRemoveMemberUseCase = MockRemoveMemberUseCase();
 
       fellowshipBloc = FellowshipBloc(
         getFellowshipsUseCase: mockGetFellowshipsUseCase,
         createFellowshipUseCase: mockCreateFellowshipUseCase,
         inviteFriendUseCase: mockInviteFriendUseCase,
+        getPublicFellowshipsUseCase: mockGetPublicFellowshipsUseCase,
+        joinFellowshipByCodeUseCase: mockJoinFellowshipByCodeUseCase,
+        removeMemberUseCase: mockRemoveMemberUseCase,
       );
     });
 
@@ -170,6 +190,7 @@ void main() {
               gameSystem: any(named: 'gameSystem'),
               isPublic: any(named: 'isPublic'),
               creatorId: any(named: 'creatorId'),
+              joinCode: any(named: 'joinCode'),
             ),
           ).thenAnswer((_) async => testFellowship);
           return fellowshipBloc;
@@ -196,6 +217,7 @@ void main() {
               gameSystem: any(named: 'gameSystem'),
               isPublic: any(named: 'isPublic'),
               creatorId: any(named: 'creatorId'),
+              joinCode: any(named: 'joinCode'),
             ),
           ).thenThrow(Exception('Failed to create fellowship'));
           return fellowshipBloc;
