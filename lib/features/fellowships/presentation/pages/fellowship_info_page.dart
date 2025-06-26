@@ -3,6 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/widgets/invite_friends_dialog.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 
@@ -20,238 +23,260 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Fellowship Info'),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Header with gradient background
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.primaryColor, _getGameSystemColor()],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+    return BlocListener<FellowshipBloc, FellowshipState>(
+      listener: (context, state) {
+        if (state is MemberRemoved) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Member removed successfully'),
+              backgroundColor: AppColors.primaryColor,
+            ),
+          );
+        } else if (state is FellowshipError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.backgroundColor,
+        appBar: AppBar(
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: Colors.white,
+          iconTheme: const IconThemeData(color: Colors.white),
+          title: const Text('Fellowship Info'),
+          elevation: 0,
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Header with gradient background
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primaryColor, _getGameSystemColor()],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                 ),
-              ),
-              child: Column(
-                children: [
-                  const SizedBox(height: 32),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 32),
 
-                  // Fellowship Image/Avatar
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
+                    // Fellowship Image/Avatar
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 4),
+                      ),
+                      child: const Icon(
+                        Icons.groups,
+                        color: Colors.white,
+                        size: 60,
+                      ),
                     ),
-                    child: const Icon(
-                      Icons.groups,
-                      color: Colors.white,
-                      size: 60,
-                    ),
-                  ),
 
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-                  // Fellowship Name
-                  Text(
-                    fellowship.name,
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    // Fellowship Name
+                    Text(
+                      fellowship.name,
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
 
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
 
-                  // Game System
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.casino, color: Colors.white, size: 16),
-                        const SizedBox(width: 6),
-                        Text(
-                          fellowship.gameSystem,
-                          style: const TextStyle(
+                    // Game System
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.casino,
                             color: Colors.white,
-                            fontWeight: FontWeight.w600,
+                            size: 16,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 6),
+                          Text(
+                            fellowship.gameSystem,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Invite Friend Button
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _showInviteFriendsDialog(context),
-                        icon: const Icon(Icons.person_add),
-                        label: const Text('Invite a Friend'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: AppColors.primaryColor,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                    // Invite Friend Button
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showInviteFriendsDialog(context),
+                          icon: const Icon(Icons.person_add),
+                          label: const Text('Invite a Friend'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: AppColors.primaryColor,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
                           ),
-                          elevation: 2,
                         ),
                       ),
                     ),
-                  ),
 
-                  const SizedBox(height: 32),
-                ],
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
-            ),
 
-            // Fellowship Details
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Description Section
-                  _buildInfoSection(
-                    title: 'Description',
-                    content: fellowship.description,
-                    icon: Icons.description,
-                  ),
+              // Fellowship Details
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Description Section
+                    _buildInfoSection(
+                      title: 'Description',
+                      content: fellowship.description,
+                      icon: Icons.description,
+                    ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Stats Section
-                  _buildInfoSection(
-                    title: 'Fellowship Stats',
-                    icon: Icons.analytics,
-                    child: Column(
-                      children: [
-                        _buildStatRow(
-                          icon: Icons.group,
-                          label: 'Members',
-                          value: '${fellowship.memberCount}',
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatRow(
-                          icon: fellowship.isPublic ? Icons.public : Icons.lock,
-                          label: 'Visibility',
-                          value: fellowship.isPublic ? 'Public' : 'Private',
-                        ),
-                        if (!fellowship.isPublic &&
-                            fellowship.joinCode != null) ...[
+                    // Stats Section
+                    _buildInfoSection(
+                      title: 'Fellowship Stats',
+                      icon: Icons.analytics,
+                      child: Column(
+                        children: [
+                          _buildStatRow(
+                            icon: Icons.group,
+                            label: 'Members',
+                            value: '${fellowship.memberCount}',
+                          ),
                           const SizedBox(height: 12),
-                          _buildJoinCodeRow(fellowship.joinCode!),
+                          _buildStatRow(
+                            icon: fellowship.isPublic
+                                ? Icons.public
+                                : Icons.lock,
+                            label: 'Visibility',
+                            value: fellowship.isPublic ? 'Public' : 'Private',
+                          ),
+                          if (!fellowship.isPublic &&
+                              fellowship.joinCode != null) ...[
+                            const SizedBox(height: 12),
+                            _buildJoinCodeRow(fellowship.joinCode!),
+                          ],
+                          const SizedBox(height: 12),
+                          _buildStatRow(
+                            icon: Icons.calendar_today,
+                            label: 'Created',
+                            value: _formatDate(fellowship.createdAt),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildStatRow(
+                            icon: Icons.update,
+                            label: 'Last Activity',
+                            value: _formatDate(fellowship.updatedAt),
+                          ),
                         ],
-                        const SizedBox(height: 12),
-                        _buildStatRow(
-                          icon: Icons.calendar_today,
-                          label: 'Created',
-                          value: _formatDate(fellowship.createdAt),
-                        ),
-                        const SizedBox(height: 12),
-                        _buildStatRow(
-                          icon: Icons.update,
-                          label: 'Last Activity',
-                          value: _formatDate(fellowship.updatedAt),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-                  // Members Section
-                  _buildInfoSection(
-                    title: 'Members (${fellowship.memberIds.length})',
-                    icon: Icons.people,
-                    child: FutureBuilder<List<Widget>>(
-                      future: _buildMembersList(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16.0),
-                              child: CircularProgressIndicator(
-                                color: AppColors.primaryColor,
+                    // Members Section
+                    _buildInfoSection(
+                      title: 'Members (${fellowship.memberIds.length})',
+                      icon: Icons.people,
+                      child: FutureBuilder<List<Widget>>(
+                        future: _buildMembersList(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16.0),
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
-                            ),
-                          );
-                        }
+                            );
+                          }
 
-                        if (snapshot.hasError) {
-                          return Container(
-                            padding: const EdgeInsets.all(12),
-                            child: Text(
-                              'Error loading members',
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontStyle: FontStyle.italic,
+                          if (snapshot.hasError) {
+                            return Container(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(
+                                'Error loading members',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontStyle: FontStyle.italic,
+                                ),
                               ),
-                            ),
-                          );
-                        }
+                            );
+                          }
 
-                        final memberWidgets = snapshot.data ?? [];
-                        return Column(children: memberWidgets);
-                      },
+                          final memberWidgets = snapshot.data ?? [];
+                          return Column(children: memberWidgets);
+                        },
+                      ),
                     ),
-                  ),
 
-                  const SizedBox(height: 48),
-                ],
+                    const SizedBox(height: 48),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
 
-      // Leave Fellowship Button at bottom
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: AppColors.backgroundColor,
-          border: Border(top: BorderSide(color: AppColors.borderColor)),
-        ),
-        child: SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () => _showLeaveFellowshipDialog(context),
-            icon: const Icon(Icons.exit_to_app),
-            label: const Text('Leave Fellowship'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+        // Leave Fellowship Button at bottom
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: AppColors.backgroundColor,
+            border: Border(top: BorderSide(color: AppColors.borderColor)),
+          ),
+          child: SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: () => _showLeaveFellowshipDialog(context),
+              icon: const Icon(Icons.exit_to_app),
+              label: const Text('Leave Fellowship'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
@@ -460,9 +485,11 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
   }
 
   void _showLeaveFellowshipDialog(BuildContext context) {
+    final pageContext =
+        context; // Capture the page context that has access to BLoCs
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
         title: const Text(
           'Leave Fellowship',
@@ -474,7 +501,7 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppColors.textSecondary),
@@ -482,8 +509,10 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              _leaveFellowship(context);
+              Navigator.of(dialogContext).pop();
+              _leaveFellowship(
+                pageContext,
+              ); // Use the page context, not dialog context
             },
             child: const Text('Leave', style: TextStyle(color: Colors.red)),
           ),
@@ -535,9 +564,11 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
   }
 
   void _showRemoveMemberDialog(String memberName, String userId) {
+    final pageContext =
+        context; // Capture the page context that has access to BLoCs
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.cardBackground,
         title: const Text(
           'Remove Member',
@@ -549,7 +580,7 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text(
               'Cancel',
               style: TextStyle(color: AppColors.textSecondary),
@@ -557,8 +588,11 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
-              _removeMember(userId);
+              Navigator.of(dialogContext).pop();
+              // Call _removeMember in the page context, not dialog context
+              pageContext.read<FellowshipBloc>().add(
+                RemoveMember(fellowshipId: fellowship.id, memberId: userId),
+              );
             },
             child: const Text('Remove', style: TextStyle(color: Colors.red)),
           ),
@@ -567,23 +601,21 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
     );
   }
 
-  void _removeMember(String userId) {
-    // TODO: Implement member removal through fellowship repository
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Member removal functionality coming soon!'),
-        backgroundColor: AppColors.primaryColor,
-      ),
-    );
-  }
-
   void _leaveFellowship(BuildContext context) {
-    // TODO: Implement leave fellowship functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Left fellowship'),
-        backgroundColor: Colors.red,
-      ),
+    final currentUserId = _getCurrentUserId();
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Unable to leave fellowship: User not authenticated'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Use the RemoveMember event to remove the current user from the fellowship
+    context.read<FellowshipBloc>().add(
+      RemoveMember(fellowshipId: fellowship.id, memberId: currentUserId),
     );
 
     // Navigate back to fellowships page

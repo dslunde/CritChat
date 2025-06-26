@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
-import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/utils/join_code_generator.dart';
 
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';

@@ -32,6 +32,7 @@ import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_
 import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/get_public_fellowships_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/join_fellowship_by_code_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/remove_member_usecase.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 
 // Notifications
@@ -137,6 +138,7 @@ void _initFellowships() {
   sl.registerLazySingleton(() => InviteFriendUseCase(repository: sl()));
   sl.registerLazySingleton(() => GetPublicFellowshipsUseCase(repository: sl()));
   sl.registerLazySingleton(() => JoinFellowshipByCodeUseCase(repository: sl()));
+  sl.registerLazySingleton(() => RemoveMemberUseCase(repository: sl()));
 
   // BLoC
   sl.registerFactory(
@@ -146,6 +148,7 @@ void _initFellowships() {
       inviteFriendUseCase: sl(),
       getPublicFellowshipsUseCase: sl(),
       joinFellowshipByCodeUseCase: sl(),
+      removeMemberUseCase: sl(),
     ),
   );
 }

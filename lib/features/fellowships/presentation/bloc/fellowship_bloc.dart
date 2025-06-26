@@ -6,6 +6,7 @@ import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_
 import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/get_public_fellowships_usecase.dart';
 import 'package:critchat/features/fellowships/domain/usecases/join_fellowship_by_code_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/remove_member_usecase.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
@@ -16,6 +17,7 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   final InviteFriendUseCase inviteFriendUseCase;
   final GetPublicFellowshipsUseCase getPublicFellowshipsUseCase;
   final JoinFellowshipByCodeUseCase joinFellowshipByCodeUseCase;
+  final RemoveMemberUseCase removeMemberUseCase;
 
   FellowshipBloc({
     required this.getFellowshipsUseCase,
@@ -23,6 +25,7 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
     required this.inviteFriendUseCase,
     required this.getPublicFellowshipsUseCase,
     required this.joinFellowshipByCodeUseCase,
+    required this.removeMemberUseCase,
   }) : super(FellowshipInitial()) {
     on<GetFellowships>(_onGetFellowships);
     on<CreateFellowship>(_onCreateFellowship);
@@ -102,9 +105,18 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   ) async {
     try {
       emit(FellowshipLoading());
-      // This would be implemented when we have the remove member use case
-      emit(MemberRemoved());
-      add(GetFellowships());
+      final success = await removeMemberUseCase(
+        event.fellowshipId,
+        event.memberId,
+      );
+
+      if (success) {
+        emit(MemberRemoved());
+        // Reload fellowships to show updated member count
+        add(GetFellowships());
+      } else {
+        emit(const FellowshipError('Failed to remove member'));
+      }
     } catch (e) {
       debugPrint('Error removing member: $e');
       emit(FellowshipError('Failed to remove member'));

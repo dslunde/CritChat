@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/chat/chat_realtime_datasource.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'fellowship_info_page.dart';
 
 class FellowshipChatPage extends StatefulWidget {
@@ -398,7 +401,13 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
   void _navigateToFellowshipInfo(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => FellowshipInfoPage(fellowship: widget.fellowship),
+        builder: (context) => MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => sl<FellowshipBloc>()),
+            BlocProvider(create: (context) => sl<AuthBloc>()),
+          ],
+          child: FellowshipInfoPage(fellowship: widget.fellowship),
+        ),
       ),
     );
   }
