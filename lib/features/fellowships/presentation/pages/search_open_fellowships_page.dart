@@ -7,7 +7,6 @@ import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
-import 'package:critchat/features/fellowships/presentation/widgets/fellowship_card.dart';
 
 class SearchOpenFellowshipsPage extends StatelessWidget {
   const SearchOpenFellowshipsPage({super.key});
@@ -156,11 +155,11 @@ class SearchOpenFellowshipsPage extends StatelessWidget {
 
   void _joinFellowship(BuildContext context, String fellowshipId) {
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthAuthenticated && authState.user != null) {
+    if (authState is AuthAuthenticated) {
       context.read<FellowshipBloc>().add(
         JoinPublicFellowship(
           fellowshipId: fellowshipId,
-          userId: authState.user!.id,
+          userId: authState.user.id,
         ),
       );
     }
