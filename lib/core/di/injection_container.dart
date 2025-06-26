@@ -45,6 +45,16 @@ import 'package:critchat/features/notifications/presentation/bloc/notifications_
 // Chat
 import 'package:critchat/core/chat/chat_realtime_datasource.dart';
 
+// Polls
+import 'package:critchat/features/polls/data/datasources/poll_realtime_datasource.dart';
+import 'package:critchat/features/polls/data/repositories/poll_repository_impl.dart';
+import 'package:critchat/features/polls/domain/repositories/poll_repository.dart';
+import 'package:critchat/features/polls/domain/usecases/create_poll_usecase.dart';
+import 'package:critchat/features/polls/domain/usecases/vote_on_poll_usecase.dart';
+import 'package:critchat/features/polls/domain/usecases/get_fellowship_polls_usecase.dart';
+import 'package:critchat/features/polls/domain/usecases/add_custom_option_usecase.dart';
+import 'package:critchat/features/polls/presentation/bloc/poll_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -57,6 +67,7 @@ Future<void> init() async {
   _initFellowships();
   _initNotifications();
   _initChat();
+  _initPolls();
 
   // Initialize fellowship memberships for Realtime Database security rules
   await _initializeFellowshipMemberships();
@@ -186,5 +197,38 @@ void _initChat() {
   // Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
     () => ChatRealtimeDataSourceImpl(database: sl(), auth: sl()),
+  );
+}
+
+void _initPolls() {
+  // Data sources
+  sl.registerLazySingleton<PollRealtimeDataSource>(
+    () => PollRealtimeDataSourceImpl(database: sl(), auth: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<PollRepository>(
+    () => PollRepositoryImpl(dataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreatePollUseCase(repository: sl()));
+  sl.registerLazySingleton(
+    () => VoteOnPollUseCase(repository: sl(), auth: sl()),
+  );
+  sl.registerLazySingleton(() => GetFellowshipPollsUseCase(repository: sl()));
+  sl.registerLazySingleton(
+    () => AddCustomOptionUseCase(repository: sl(), auth: sl()),
+  );
+
+  // BLoC
+  sl.registerFactory(
+    () => PollBloc(
+      createPollUseCase: sl(),
+      voteOnPollUseCase: sl(),
+      getFellowshipPollsUseCase: sl(),
+      addCustomOptionUseCase: sl(),
+      pollRepository: sl(),
+    ),
   );
 }

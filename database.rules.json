@@ -19,6 +19,25 @@
         ".read": "auth != null",
         ".write": "auth != null"
       }
+    },
+    "polls": {
+      "$fellowshipKey": {
+        ".read": "auth != null && $fellowshipKey.beginsWith('fellowship_') && root.child('fellowshipMembers').child($fellowshipKey.replace('fellowship_', '')).child(auth.uid).exists()",
+        ".write": "auth != null && $fellowshipKey.beginsWith('fellowship_') && root.child('fellowshipMembers').child($fellowshipKey.replace('fellowship_', '')).child(auth.uid).exists()",
+        "$pollId": {
+          ".validate": "auth != null",
+          "votes": {
+            "$userId": {
+              ".write": "auth != null && $userId == auth.uid"
+            }
+          },
+          "voters": {
+            "$userId": {
+              ".write": "auth != null && $userId == auth.uid"
+            }
+          }
+        }
+      }
     }
   }
 } 
