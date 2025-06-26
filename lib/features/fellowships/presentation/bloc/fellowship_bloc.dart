@@ -4,8 +4,6 @@ import 'package:flutter/foundation.dart';
 import '../../domain/usecases/get_fellowships_usecase.dart';
 import '../../domain/usecases/create_fellowship_usecase.dart';
 import '../../domain/usecases/invite_friend_usecase.dart';
-import '../../../auth/domain/entities/user_entity.dart';
-import '../../../../core/di/injection_container.dart';
 import 'fellowship_event.dart';
 import 'fellowship_state.dart';
 
@@ -49,15 +47,12 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
     try {
       emit(FellowshipLoading());
 
-      // Get current user ID from auth
-      final currentUser = getIt<UserEntity>();
-
       final fellowship = await createFellowshipUseCase(
         name: event.name,
         description: event.description,
         gameSystem: event.gameSystem,
         isPublic: event.isPublic,
-        creatorId: currentUser.id,
+        creatorId: event.creatorId,
       );
 
       emit(FellowshipCreated(fellowship));

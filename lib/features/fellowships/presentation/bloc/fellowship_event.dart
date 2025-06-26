@@ -14,16 +14,24 @@ class CreateFellowship extends FellowshipEvent {
   final String description;
   final String gameSystem;
   final bool isPublic;
+  final String creatorId;
 
   const CreateFellowship({
     required this.name,
     required this.description,
     required this.gameSystem,
     required this.isPublic,
+    required this.creatorId,
   });
 
   @override
-  List<Object?> get props => [name, description, gameSystem, isPublic];
+  List<Object?> get props => [
+    name,
+    description,
+    gameSystem,
+    isPublic,
+    creatorId,
+  ];
 }
 
 class InviteFriend extends FellowshipEvent {

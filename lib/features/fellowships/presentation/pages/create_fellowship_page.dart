@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../auth/presentation/bloc/auth_bloc.dart';
+import '../../../auth/presentation/bloc/auth_state.dart';
 import '../bloc/fellowship_bloc.dart';
 import '../bloc/fellowship_event.dart';
 import '../bloc/fellowship_state.dart';
@@ -334,14 +336,18 @@ class _CreateFellowshipPageState extends State<CreateFellowshipPage> {
 
   void _createFellowship() {
     if (_formKey.currentState!.validate()) {
-      context.read<FellowshipBloc>().add(
-        CreateFellowship(
-          name: _nameController.text.trim(),
-          description: _descriptionController.text.trim(),
-          gameSystem: _selectedGameSystem,
-          isPublic: _isPublic,
-        ),
-      );
+      final authState = context.read<AuthBloc>().state;
+      if (authState is AuthAuthenticated) {
+        context.read<FellowshipBloc>().add(
+          CreateFellowship(
+            name: _nameController.text.trim(),
+            description: _descriptionController.text.trim(),
+            gameSystem: _selectedGameSystem,
+            isPublic: _isPublic,
+            creatorId: authState.user.id,
+          ),
+        );
+      }
     }
   }
 }

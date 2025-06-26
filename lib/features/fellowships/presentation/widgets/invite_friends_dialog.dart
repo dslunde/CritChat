@@ -23,7 +23,7 @@ class InviteFriendsDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<FriendsBloc>()..add(GetFriends()),
+      create: (context) => sl<FriendsBloc>()..add(const LoadFriends()),
       child: Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
@@ -172,11 +172,11 @@ class InviteFriendsDialog extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 24,
-          backgroundImage: friend.profilePictureUrl.isNotEmpty
-              ? NetworkImage(friend.profilePictureUrl)
+          backgroundImage: friend.photoUrl?.isNotEmpty == true
+              ? NetworkImage(friend.photoUrl!)
               : null,
           backgroundColor: AppColors.primaryColor,
-          child: friend.profilePictureUrl.isEmpty
+          child: friend.photoUrl?.isEmpty != false
               ? Text(
                   friend.displayName.isNotEmpty
                       ? friend.displayName[0].toUpperCase()
@@ -315,16 +315,10 @@ class InviteFriendsDialog extends StatelessWidget {
   }
 
   void _inviteFriend(BuildContext context, String friendId, String friendName) {
-    // Use the parent context to access FellowshipBloc
-    final fellowshipBloc = context
-        .findAncestorWidgetOfExactType<BlocProvider<FellowshipBloc>>()
-        ?.bloc;
-
-    if (fellowshipBloc != null) {
-      fellowshipBloc.add(
-        InviteFriend(fellowshipId: fellowshipId, friendId: friendId),
-      );
-    }
+    // Access FellowshipBloc from service locator since it may not be in the dialog's context
+    sl<FellowshipBloc>().add(
+      InviteFriend(fellowshipId: fellowshipId, friendId: friendId),
+    );
 
     // Show immediate feedback
     ScaffoldMessenger.of(context).showSnackBar(

@@ -43,8 +43,8 @@ void main() {
       bio: 'Test bio',
       experienceLevel: 'Veteran',
       preferredSystems: ['D&D 5e'],
-      totalXP: 100,
-      joinedGroupIds: ['fellowship1'],
+      totalXp: 100,
+      joinedGroups: ['fellowship1'],
     );
 
     final testFellowship = FellowshipEntity(
@@ -148,7 +148,13 @@ void main() {
         'should emit [FellowshipLoading, FellowshipCreated] when CreateFellowship is successful',
         build: () {
           when(
-            () => mockCreateFellowshipUseCase(any()),
+            () => mockCreateFellowshipUseCase(
+              name: any(named: 'name'),
+              description: any(named: 'description'),
+              gameSystem: any(named: 'gameSystem'),
+              isPublic: any(named: 'isPublic'),
+              creatorId: any(named: 'creatorId'),
+            ),
           ).thenAnswer((_) async => testFellowship);
           return fellowshipBloc;
         },
@@ -158,6 +164,7 @@ void main() {
             description: 'Test description',
             gameSystem: 'D&D 5e',
             isPublic: true,
+            creatorId: '1',
           ),
         ),
         expect: () => [FellowshipLoading(), FellowshipCreated(testFellowship)],
