@@ -7,6 +7,8 @@ import 'package:critchat/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:critchat/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:critchat/features/auth/domain/usecases/get_auth_state_changes_usecase.dart';
 import 'package:critchat/features/auth/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:critchat/features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
+import 'package:critchat/core/di/injection_container.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -108,6 +110,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           user.displayName == null ||
           user.experienceLevel == null ||
           user.preferredSystems.isEmpty;
+
+      // Sync user's fellowship memberships to Realtime Database for security rules
+      try {
+        final fellowshipDataSource = sl<FellowshipFirestoreDataSource>();
+        await fellowshipDataSource.syncUserFellowshipMemberships(user.id);
+        debugPrint('✅ Synced fellowship memberships for user: ${user.id}');
+      } catch (e) {
+        debugPrint('⚠️ Failed to sync fellowship memberships: $e');
+        // Don't block authentication for this
+      }
 
       debugPrint('🔍 AuthStateChanged: Emitting AuthAuthenticated');
       emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));

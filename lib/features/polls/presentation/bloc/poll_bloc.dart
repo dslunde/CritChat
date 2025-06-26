@@ -17,6 +17,8 @@ class PollBloc extends Bloc<PollEvent, PollState> {
   final PollRepository pollRepository;
 
   StreamSubscription<List<PollEntity>>? _pollsSubscription;
+  StreamController<List<PollEntity>>? _pollsController;
+  List<PollEntity> _lastPolls = [];
 
   PollBloc({
     required this.createPollUseCase,
@@ -38,6 +40,7 @@ class PollBloc extends Bloc<PollEvent, PollState> {
   @override
   Future<void> close() {
     _pollsSubscription?.cancel();
+    _pollsController?.close();
     return super.close();
   }
 
@@ -48,12 +51,33 @@ class PollBloc extends Bloc<PollEvent, PollState> {
     try {
       emit(PollLoading());
 
+      // Clean up existing subscription and controller
       await _pollsSubscription?.cancel();
+      _pollsController?.close();
+
+      // Create a new broadcast controller that caches the last value
+      _pollsController = StreamController<List<PollEntity>>.broadcast(
+        onListen: () {
+          // When a new listener subscribes, immediately send the last known polls
+          if (_lastPolls.isNotEmpty && !_pollsController!.isClosed) {
+            _pollsController!.add(_lastPolls);
+          }
+        },
+      );
+
+      // Listen to the Firebase stream and forward data to our controller
       _pollsSubscription = getFellowshipPollsUseCase(event.fellowshipId).listen(
         (polls) {
+          _lastPolls = polls; // Cache the polls
+          if (!_pollsController!.isClosed) {
+            _pollsController!.add(polls);
+          }
           add(PollsUpdated(polls: polls));
         },
         onError: (error) {
+          if (!_pollsController!.isClosed) {
+            _pollsController!.addError(error);
+          }
           add(PollsUpdated(polls: []));
         },
       );

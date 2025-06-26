@@ -17,24 +17,25 @@
     "fellowshipMembers": {
       "$fellowshipId": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null",
+        "$userId": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
       }
     },
     "polls": {
+      ".read": "auth != null",
+      ".write": "auth != null",
       "$fellowshipKey": {
-        ".read": "auth != null && $fellowshipKey.beginsWith('fellowship_') && root.child('fellowshipMembers').child($fellowshipKey.replace('fellowship_', '')).child(auth.uid).exists()",
-        ".write": "auth != null && $fellowshipKey.beginsWith('fellowship_') && root.child('fellowshipMembers').child($fellowshipKey.replace('fellowship_', '')).child(auth.uid).exists()",
+        ".read": "auth != null",
+        ".write": "auth != null",
         "$pollId": {
-          ".validate": "auth != null",
-          "votes": {
-            "$userId": {
-              ".write": "auth != null && $userId == auth.uid"
-            }
-          },
-          "voters": {
-            "$userId": {
-              ".write": "auth != null && $userId == auth.uid"
-            }
+          ".read": "auth != null",
+          ".write": "auth != null",
+          "$field": {
+            ".read": "auth != null",
+            ".write": "auth != null"
           }
         }
       }

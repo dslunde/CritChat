@@ -23,6 +23,7 @@ abstract class FellowshipFirestoreDataSource {
     String joinCode,
   );
   Future<void> syncFellowshipMemberships();
+  Future<void> syncUserFellowshipMemberships(String userId);
 }
 
 class FellowshipFirestoreDataSourceImpl
@@ -74,6 +75,13 @@ class FellowshipFirestoreDataSourceImpl
 
       // Update the document with the generated ID
       await docRef.update({'id': docRef.id});
+
+      // Sync creator membership to Realtime Database for security rules
+      for (final memberId in newFellowship.memberIds) {
+        await _database
+            .ref('fellowshipMembers/${newFellowship.id}/$memberId')
+            .set(true);
+      }
 
       return newFellowship;
     } catch (e) {
@@ -261,6 +269,27 @@ class FellowshipFirestoreDataSourceImpl
       }
     } catch (e) {
       throw Exception('Failed to sync fellowship memberships: $e');
+    }
+  }
+
+  /// Sync a specific user's fellowship memberships to Realtime Database
+  @override
+  Future<void> syncUserFellowshipMemberships(String userId) async {
+    try {
+      // Get all fellowships where this user is a member
+      final querySnapshot = await _firestore
+          .collection('fellowships')
+          .where('memberIds', arrayContains: userId)
+          .get();
+
+      for (final doc in querySnapshot.docs) {
+        final fellowship = FellowshipModel.fromJson(doc.data(), doc.id);
+        await _database
+            .ref('fellowshipMembers/${fellowship.id}/$userId')
+            .set(true);
+      }
+    } catch (e) {
+      throw Exception('Failed to sync user fellowship memberships: $e');
     }
   }
 }
