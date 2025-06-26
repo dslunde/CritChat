@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../constants/app_colors.dart';
-import '../di/injection_container.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 import '../../features/auth/presentation/bloc/auth_state.dart';
 import '../../features/notifications/notifications_page.dart';
-import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
-import '../../features/notifications/presentation/bloc/notifications_event.dart';
-import '../../features/notifications/presentation/bloc/notifications_state.dart';
 import '../../features/profile/profile_page.dart';
 
 class AppTopBar extends StatelessWidget {
@@ -105,67 +101,25 @@ class AppTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 16),
 
-          // Notifications Button with Badge
-          BlocProvider(
-            create: (context) =>
-                sl<NotificationsBloc>()..add(const LoadNotifications()),
-            child: BlocBuilder<NotificationsBloc, NotificationsState>(
-              builder: (context, state) {
-                int unreadCount = 0;
-                if (state is NotificationsLoaded) {
-                  unreadCount = state.unreadCount;
-                }
-
-                return GestureDetector(
-                  onTap: () => _navigateToNotifications(context),
-                  child: Stack(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.notifications_outlined,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      if (unreadCount > 0)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(2),
-                            decoration: const BoxDecoration(
-                              color: Colors.red,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: Text(
-                              unreadCount > 99 ? '99+' : unreadCount.toString(),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                );
-              },
+          // Notifications Button
+          GestureDetector(
+            onTap: () => _navigateToNotifications(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
           ),
         ],
