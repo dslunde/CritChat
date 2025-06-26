@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:critchat/features/auth/domain/entities/user_entity.dart';
 
 abstract class AuthEvent extends Equatable {
   const AuthEvent();
@@ -55,4 +56,13 @@ class AuthOnboardingCompleted extends AuthEvent {
     preferredSystems,
     experienceLevel,
   ];
+}
+
+class AuthStateChanged extends AuthEvent {
+  const AuthStateChanged(this.user);
+
+  final UserEntity? user;
+
+  @override
+  List<Object?> get props => [user];
 }

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/chat/chat_realtime_datasource.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../domain/entities/friend_entity.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/chat/chat_realtime_datasource.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 
 class ChatPage extends StatefulWidget {
   final FriendEntity friend;
@@ -50,9 +50,11 @@ class _ChatPageState extends State<ChatPage> {
       await _chatDataSource.sendMessage(_chatId, content);
       _scrollToBottom();
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+      }
     }
   }
 

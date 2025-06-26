@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/friend_entity.dart';
-import '../pages/friend_profile_page.dart';
-import '../pages/chat_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/presentation/pages/friend_profile_page.dart';
+import 'package:critchat/features/friends/presentation/pages/chat_page.dart';
 
 class FriendListItem extends StatelessWidget {
   final FriendEntity friend;

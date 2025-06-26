@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/fellowship_entity.dart';
-import '../pages/fellowship_chat_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/presentation/pages/fellowship_chat_page.dart';
 
 class FellowshipCard extends StatelessWidget {
   final FellowshipEntity fellowship;

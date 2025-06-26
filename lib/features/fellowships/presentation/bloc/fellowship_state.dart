@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 
 abstract class FellowshipState extends Equatable {
   const FellowshipState();

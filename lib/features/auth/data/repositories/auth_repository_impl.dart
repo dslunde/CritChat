@@ -1,7 +1,7 @@
-import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../datasources/auth_remote_datasource.dart';
-import '../models/user_model.dart';
+import 'package:critchat/features/auth/domain/entities/user_entity.dart';
+import 'package:critchat/features/auth/domain/repositories/auth_repository.dart';
+import 'package:critchat/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:critchat/features/auth/data/models/user_model.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   const AuthRepositoryImpl({required AuthRemoteDataSource remoteDataSource})

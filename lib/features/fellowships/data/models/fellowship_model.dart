@@ -1,4 +1,4 @@
-import '../../domain/entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 
 class FellowshipModel extends FellowshipEntity {
   const FellowshipModel({

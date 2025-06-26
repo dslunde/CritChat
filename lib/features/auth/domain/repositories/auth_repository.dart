@@ -1,4 +1,4 @@
-import '../entities/user_entity.dart';
+import 'package:critchat/features/auth/domain/entities/user_entity.dart';
 
 abstract class AuthRepository {
   /// Get current authenticated user

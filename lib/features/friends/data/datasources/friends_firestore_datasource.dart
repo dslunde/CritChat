@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/friend_model.dart';
-import '../../../auth/data/models/user_model.dart';
+import 'package:critchat/features/friends/data/models/friend_model.dart';
+import 'package:critchat/features/auth/data/models/user_model.dart';
 
 abstract class FriendsFirestoreDataSource {
   Future<List<FriendModel>> getFriends();

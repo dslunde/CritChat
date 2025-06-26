@@ -1,4 +1,4 @@
-import '../models/fellowship_model.dart';
+import 'package:critchat/features/fellowships/data/models/fellowship_model.dart';
 
 class FellowshipMockDataSource {
   final List<FellowshipModel> _fellowships = [
@@ -117,8 +117,9 @@ class FellowshipMockDataSource {
     if (fellowshipIndex == -1) return false;
 
     final fellowship = _fellowships[fellowshipIndex];
-    if (fellowship.memberIds.contains(friendId))
+    if (fellowship.memberIds.contains(friendId)) {
       return false; // Already a member
+    }
 
     final updatedFellowship = fellowship.copyWith(
       memberIds: [...fellowship.memberIds, friendId],

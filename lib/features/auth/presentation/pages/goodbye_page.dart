@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/constants/app_strings.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
 
 class GoodbyePage extends StatefulWidget {
   const GoodbyePage({super.key});

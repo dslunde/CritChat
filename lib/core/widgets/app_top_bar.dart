@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../constants/app_colors.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
-import '../../features/auth/presentation/bloc/auth_state.dart';
-import '../../features/notifications/notifications_page.dart';
-import '../../features/profile/profile_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/features/notifications/notifications_page.dart';
+import 'package:critchat/features/profile/profile_page.dart';
 
 class AppTopBar extends StatelessWidget {
   final Color? backgroundColor;

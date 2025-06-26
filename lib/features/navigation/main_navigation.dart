@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants/app_colors.dart';
-import '../auth/presentation/bloc/auth_bloc.dart';
-import '../lfg/lfg_page.dart';
-import '../friends/friends_page.dart';
-import '../home/home_page.dart';
-import '../fellowships/presentation/pages/fellowships_page.dart';
-import '../profile/for_me_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/lfg/lfg_page.dart';
+import 'package:critchat/features/friends/friends_page.dart';
+import 'package:critchat/features/home/home_page.dart';
+import 'package:critchat/features/fellowships/presentation/pages/fellowships_page.dart';
+import 'package:critchat/features/profile/for_me_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});

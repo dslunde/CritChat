@@ -1,4 +1,4 @@
-import '../entities/notification_entity.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 abstract class NotificationsRepository {
   Future<List<NotificationEntity>> getNotifications();

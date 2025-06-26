@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants/app_colors.dart';
-import '../auth/presentation/bloc/auth_bloc.dart';
-import '../auth/presentation/bloc/auth_event.dart';
-import '../auth/presentation/bloc/auth_state.dart';
-import '../friends/presentation/pages/search_friends_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/features/friends/presentation/pages/search_friends_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});

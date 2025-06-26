@@ -2,8 +2,8 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../domain/repositories/notifications_repository.dart';
-import '../../domain/entities/notification_entity.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 import 'notifications_event.dart';
 import 'notifications_state.dart';
 

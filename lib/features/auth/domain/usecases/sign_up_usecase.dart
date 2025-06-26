@@ -1,5 +1,5 @@
-import '../entities/user_entity.dart';
-import '../repositories/auth_repository.dart';
+import 'package:critchat/features/auth/domain/entities/user_entity.dart';
+import 'package:critchat/features/auth/domain/repositories/auth_repository.dart';
 
 class SignUpUseCase {
   const SignUpUseCase(this._authRepository);

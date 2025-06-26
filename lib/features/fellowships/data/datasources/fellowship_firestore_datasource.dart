@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/fellowship_model.dart';
+import 'package:critchat/features/fellowships/data/models/fellowship_model.dart';
 
 abstract class FellowshipFirestoreDataSource {
   Future<List<FellowshipModel>> getFellowships(List<String> fellowshipIds);

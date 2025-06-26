@@ -1,8 +1,8 @@
-import '../../domain/entities/fellowship_entity.dart';
-import '../../domain/repositories/fellowship_repository.dart';
-import '../datasources/fellowship_firestore_datasource.dart';
-import '../models/fellowship_model.dart';
-import '../../../auth/data/datasources/auth_firestore_datasource.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/domain/repositories/fellowship_repository.dart';
+import 'package:critchat/features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
+import 'package:critchat/features/fellowships/data/models/fellowship_model.dart';
+import 'package:critchat/features/auth/data/datasources/auth_firestore_datasource.dart';
 
 class FellowshipRepositoryImpl implements FellowshipRepository {
   final FellowshipFirestoreDataSource _fellowshipDataSource;

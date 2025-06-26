@@ -1,4 +1,4 @@
-import '../repositories/auth_repository.dart';
+import 'package:critchat/features/auth/domain/repositories/auth_repository.dart';
 
 class SignOutUseCase {
   const SignOutUseCase(this._authRepository);

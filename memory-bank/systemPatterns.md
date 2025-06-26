@@ -12,34 +12,50 @@ The application uses the BLoC (Business Logic Component) pattern for state manag
 - **Testable**: Clear separation between business logic and UI
 - **Scalable**: Pattern proven effective across 4+ major features
 - **Real-time Integration**: BLoC pattern works excellently with Firebase streams
+- **Use Case Architecture**: BLoCs depend only on use cases, not directly on repositories for proper clean architecture
 
 ### Clean Architecture Implementation
-Consistent 3-layer architecture across all features:
-- **Domain Layer**: Entities, repository interfaces, and use cases
+Consistent 3-layer architecture across all features with proper abstraction:
+- **Domain Layer**: Entities, repository interfaces, and use cases (business logic abstraction)
 - **Data Layer**: Models, data sources (Firebase/Mock), and repository implementations
 - **Presentation Layer**: BLoC state management, pages, and widgets
+- **Use Case Pattern**: All BLoCs interact with domain layer through use cases, eliminating direct repository dependencies
 
 ### Dependency Injection Pattern
-GetIt service locator pattern used throughout:
+GetIt service locator pattern used throughout with modular organization:
 - **Firebase Services**: FirebaseAuth, FirebaseFirestore, FirebaseDatabase registered as singletons
 - **Data Sources**: All Firebase data sources registered with proper dependencies
 - **Repositories**: Repository implementations injected with data source dependencies
-- **BLoCs**: Registered with repository dependencies for clean separation
+- **Use Cases**: Domain use cases registered with repository dependencies
+- **BLoCs**: Registered with use case dependencies for clean separation
+- **Modular Initialization**: Feature-specific initialization functions (`_initAuth()`, `_initFriends()`, `_initFellowships()`, `_initNotifications()`, `_initChat()`)
+
+### Authentication Architecture Patterns
+Enhanced authentication system with proper stream management:
+- **Single Source of Truth**: Firebase `authStateChanges` stream is the only trigger for authentication state changes
+- **Use Case Abstraction**: `GetAuthStateChangesUseCase` and `CompleteOnboardingUseCase` abstract repository access
+- **Race Condition Prevention**: Eliminated duplicate `AuthStarted` events that caused UI flashing
+- **Stream Management**: Proper stream subscription and disposal in BLoCs
+- **State Consistency**: Clean state transitions without duplicate emissions
 
 ### Testing Strategy
 Comprehensive testing approach with multiple layers:
 - **Widget Tests**: UI component behavior and user interactions
-- **BLoC Tests**: State management and business logic validation
+- **BLoC Tests**: State management and business logic validation with 18 comprehensive authentication test cases
 - **Integration Tests**: End-to-end authentication and Firebase integration
 - **Mocking Strategy**: Clean, isolated testing with mocktail
+- **Race Condition Testing**: Specific tests ensuring no duplicate state emissions
+- **Use Case Testing**: Testing business logic abstraction layer
 - **CI/CD Ready**: All tests designed for automated pipeline execution
 
 ### Code Quality Standards
 - **Zero Linting Issues**: Strict adherence to Flutter analyzer rules
+- **Import Standardization**: All imports use absolute package imports (`package:critchat/...`) for better maintainability
 - **Modern APIs**: Use current Flutter APIs, avoid deprecated methods
-- **Clean Architecture**: Proper separation of domain, data, and presentation layers
+- **Clean Architecture**: Proper separation of domain, data, and presentation layers with use case abstraction
 - **Consistent Logging**: `debugPrint()` for development, no production `print()` statements
 - **Dependency Management**: Clear, organized imports and dependencies
+- **BuildContext Safety**: Proper `if (mounted)` checks in async operations
 
 ## Data Models & Storage
 
@@ -133,7 +149,7 @@ Consistent event and state patterns across all features:
 #### Events
 - **Load Events**: `GetFriends`, `GetFellowships`, `GetNotifications`
 - **Action Events**: `CreateFellowship`, `SendFriendRequest`, `AcceptFriendRequest`
-- **Stream Events**: `NotificationsUpdated` for real-time data
+- **Stream Events**: `NotificationsUpdated`, `AuthStateChanged` for real-time data
 
 #### States
 - **Initial**: Feature not yet loaded
@@ -141,6 +157,14 @@ Consistent event and state patterns across all features:
 - **Loaded**: Data successfully loaded with content
 - **Success**: Action completed successfully (creation, invitation, etc.)
 - **Error**: Error state with detailed error information
+
+### Use Case Implementation Patterns
+Consistent use case patterns across all features:
+- **Repository Abstraction**: Use cases abstract repository access from BLoCs
+- **Business Logic**: Use cases contain business logic and validation
+- **Error Handling**: Use cases handle and transform errors appropriately
+- **Testability**: Use cases are easily testable in isolation
+- **Single Responsibility**: Each use case has a single, well-defined purpose
 
 ### UI Component Patterns
 - **Cards**: Consistent card design for Friends, Fellowships, and Notifications
@@ -158,4 +182,10 @@ Consistent event and state patterns across all features:
 - **User Authentication**: All Firebase operations require authenticated users
 - **Document-level Security**: Users can only access their own data and fellowships they're members of
 - **Batch Operations**: Complex multi-document operations use Firestore batches for consistency
-- **Real-time Security**: Realtime Database rules ensure users can only access appropriate chat rooms 
+- **Real-time Security**: Realtime Database rules ensure users can only access appropriate chat rooms
+
+### Import Organization Patterns
+- **Absolute Package Imports**: All imports use `package:critchat/...` format for better maintainability
+- **Consistent Import Order**: Flutter imports, package imports, relative imports (when necessary)
+- **Clear Dependency Relationships**: Absolute imports make dependency relationships explicit
+- **IDE Support**: Better IDE support with absolute imports for refactoring and navigation 

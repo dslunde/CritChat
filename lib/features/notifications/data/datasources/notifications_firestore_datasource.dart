@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/notification_model.dart';
-import '../../domain/entities/notification_entity.dart';
+import 'package:critchat/features/notifications/data/models/notification_model.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 abstract class NotificationsFirestoreDataSource {
   Future<List<NotificationModel>> getNotifications();

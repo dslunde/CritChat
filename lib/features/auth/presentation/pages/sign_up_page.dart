@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:formz/formz.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_strings.dart';
-import '../bloc/auth_bloc.dart';
-import '../bloc/auth_event.dart';
-import '../bloc/auth_state.dart';
-import '../forms/email_input.dart';
-import '../forms/password_input.dart';
-import '../widgets/auth_text_field.dart';
-import '../widgets/auth_button.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/constants/app_strings.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/features/auth/presentation/forms/email_input.dart';
+import 'package:critchat/features/auth/presentation/forms/password_input.dart';
+import 'package:critchat/features/auth/presentation/widgets/auth_text_field.dart';
+import 'package:critchat/features/auth/presentation/widgets/auth_button.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

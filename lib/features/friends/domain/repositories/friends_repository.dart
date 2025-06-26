@@ -1,4 +1,4 @@
-import '../entities/friend_entity.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 
 abstract class FriendsRepository {
   Future<List<FriendEntity>> getFriends();

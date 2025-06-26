@@ -42,5 +42,27 @@ jobs:
       - name: Install Flutter Dependencies
         run: flutter pub get
 
+      - name: Set iOS Deployment Target
+        run: |
+          # Ensure iOS deployment target is set to 15.0 for CI builds
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 15.0/g' ios/Flutter/Debug.xcconfig || true
+          sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]*/IPHONEOS_DEPLOYMENT_TARGET = 15.0/g' ios/Flutter/Release.xcconfig || true
+
       - name: Install Pods
         run: cd ios && pod install --repo-update
+
+      - name: Build and Distribute iOS App
+        run: cd ios && bundle exec fastlane distribute
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          FASTLANE_USER: ${{ secrets.APPLE_DEVELOPER_EMAIL }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          FASTLANE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          FIREBASE_SERVICE_CREDENTIALS_FILE_PATH: ${{ github.workspace }}/firebase_credentials.json
+
+      - name: Cleanup sensitive files
+        if: always()
+        run: |
+          rm -f firebase_credentials.json
+          rm -f ios/fastlane/fastlane.env.default

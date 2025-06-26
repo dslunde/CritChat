@@ -1,7 +1,7 @@
-import '../../domain/entities/notification_entity.dart';
-import '../../domain/repositories/notifications_repository.dart';
-import '../datasources/notifications_firestore_datasource.dart';
-import '../models/notification_model.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/data/datasources/notifications_firestore_datasource.dart';
+import 'package:critchat/features/notifications/data/models/notification_model.dart';
 
 class NotificationsRepositoryImpl implements NotificationsRepository {
   final NotificationsFirestoreDataSource _dataSource;
