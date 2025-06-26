@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
@@ -8,6 +9,8 @@ import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/features/auth/data/datasources/auth_firestore_datasource.dart';
+import 'package:critchat/core/di/injection_container.dart';
 
 class FellowshipInfoPage extends StatefulWidget {
   final FellowshipEntity fellowship;
@@ -32,6 +35,8 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
               backgroundColor: AppColors.primaryColor,
             ),
           );
+          // Pop back to previous screen with success result
+          Navigator.of(context).pop(true);
         } else if (state is FellowshipError) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
@@ -527,12 +532,26 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
     try {
       // Get user documents for all member IDs
       for (final memberId in fellowship.memberIds) {
-        // For now, we'll create a simple member tile with just the ID
-        // In a real app, you'd fetch user details from Firestore
         final isCreator = memberId == fellowship.creatorId;
+
+        // Try to get user details from AuthFirestoreDataSource
+        String displayName = 'User $memberId'; // Fallback
+        try {
+          final authDataSource = sl<AuthFirestoreDataSource>();
+          final user = await authDataSource.getUserById(memberId);
+          if (user != null &&
+              user.displayName != null &&
+              user.displayName!.isNotEmpty) {
+            displayName = user.displayName!;
+          }
+        } catch (e) {
+          // If we can't fetch user details, use fallback
+          debugPrint('Error fetching user details for $memberId: $e');
+        }
+
         memberWidgets.add(
           _buildMemberTile(
-            'User $memberId', // Placeholder - would be actual user name
+            displayName,
             isCreator ? 'Creator' : 'Member',
             isCreator,
             memberId,
@@ -617,9 +636,6 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
     context.read<FellowshipBloc>().add(
       RemoveMember(fellowshipId: fellowship.id, memberId: currentUserId),
     );
-
-    // Navigate back to fellowships page
-    Navigator.of(context).popUntil((route) => route.isFirst);
   }
 
   Widget _buildJoinCodeRow(String joinCode) {

@@ -55,6 +55,13 @@ class FellowshipsPage extends StatelessWidget {
                             backgroundColor: AppColors.primaryColor,
                           ),
                         );
+                      } else if (state is MemberRemoved) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Left fellowship successfully!'),
+                            backgroundColor: AppColors.primaryColor,
+                          ),
+                        );
                       }
                     },
                     builder: (context, state) {

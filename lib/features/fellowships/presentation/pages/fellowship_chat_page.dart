@@ -398,8 +398,8 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
     );
   }
 
-  void _navigateToFellowshipInfo(BuildContext context) {
-    Navigator.of(context).push(
+  void _navigateToFellowshipInfo(BuildContext context) async {
+    final result = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => MultiBlocProvider(
           providers: [
@@ -410,6 +410,11 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
         ),
       ),
     );
+
+    // If user left the fellowship, navigate back to fellowships page
+    if (result == true && context.mounted) {
+      Navigator.of(context).pop(true); // Pass success back to fellowships page
+    }
   }
 
   Color _getGameSystemColor() {
