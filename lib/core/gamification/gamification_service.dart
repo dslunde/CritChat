@@ -161,18 +161,18 @@ class GamificationService {
     }
   }
 
-  /// Initialize XP for a new user
+  /// Initialize XP for a new user (ensures totalXp field exists)
   Future<XpEntity?> initializeUserXp(String userId) async {
     try {
-      debugPrint('Initializing XP for user $userId');
+      debugPrint('Ensuring XP field exists for user $userId');
 
       final xpEntity = await _repository.initializeUserXp(userId);
 
-      debugPrint('XP initialized successfully for user $userId');
+      debugPrint('XP field ensured for user $userId');
 
       return xpEntity;
     } catch (e) {
-      debugPrint('Error initializing XP for user $userId: $e');
+      debugPrint('Error ensuring XP field for user $userId: $e');
       return null;
     }
   }
