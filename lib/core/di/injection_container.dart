@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -56,6 +57,19 @@ Future<void> init() async {
   _initFellowships();
   _initNotifications();
   _initChat();
+
+  // Initialize fellowship memberships for Realtime Database security rules
+  await _initializeFellowshipMemberships();
+}
+
+Future<void> _initializeFellowshipMemberships() async {
+  try {
+    final fellowshipDataSource = sl<FellowshipFirestoreDataSource>();
+    await fellowshipDataSource.syncFellowshipMemberships();
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('Failed to sync fellowship memberships: $e');
+  }
 }
 
 void _initExternalDependencies() {
@@ -121,7 +135,7 @@ void _initFriends() {
 void _initFellowships() {
   // Data sources
   sl.registerLazySingleton<FellowshipFirestoreDataSource>(
-    () => FellowshipFirestoreDataSourceImpl(firestore: sl()),
+    () => FellowshipFirestoreDataSourceImpl(firestore: sl(), database: sl()),
   );
 
   // Repositories

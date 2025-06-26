@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:critchat/features/fellowships/data/models/fellowship_model.dart';
 
 abstract class FellowshipFirestoreDataSource {
@@ -21,14 +22,19 @@ abstract class FellowshipFirestoreDataSource {
     String name,
     String joinCode,
   );
+  Future<void> syncFellowshipMemberships();
 }
 
 class FellowshipFirestoreDataSourceImpl
     implements FellowshipFirestoreDataSource {
   final FirebaseFirestore _firestore;
+  final FirebaseDatabase _database;
 
-  FellowshipFirestoreDataSourceImpl({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  FellowshipFirestoreDataSourceImpl({
+    FirebaseFirestore? firestore,
+    FirebaseDatabase? database,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _database = database ?? FirebaseDatabase.instance;
 
   @override
   Future<List<FellowshipModel>> getFellowships(
@@ -119,6 +125,9 @@ class FellowshipFirestoreDataSourceImpl
         'memberIds': FieldValue.arrayUnion([userId]),
       });
 
+      // Sync membership to Realtime Database for security rules
+      await _database.ref('fellowshipMembers/$fellowshipId/$userId').set(true);
+
       final updatedFellowship = await getFellowshipById(fellowshipId);
       return updatedFellowship!;
     } catch (e) {
@@ -135,6 +144,9 @@ class FellowshipFirestoreDataSourceImpl
       await _firestore.collection('fellowships').doc(fellowshipId).update({
         'memberIds': FieldValue.arrayRemove([userId]),
       });
+
+      // Remove membership from Realtime Database
+      await _database.ref('fellowshipMembers/$fellowshipId/$userId').remove();
 
       final updatedFellowship = await getFellowshipById(fellowshipId);
       return updatedFellowship!;
@@ -200,6 +212,9 @@ class FellowshipFirestoreDataSourceImpl
       await _firestore.collection('fellowships').doc(fellowshipId).update({
         'memberIds': FieldValue.arrayUnion([userId]),
       });
+
+      // Sync membership to Realtime Database for security rules
+      await _database.ref('fellowshipMembers/$fellowshipId/$userId').set(true);
     } catch (e) {
       throw Exception('Failed to accept fellowship invite: $e');
     }
@@ -224,6 +239,28 @@ class FellowshipFirestoreDataSourceImpl
       return FellowshipModel.fromJson(doc.data(), doc.id);
     } catch (e) {
       throw Exception('Failed to get fellowship by name and join code: $e');
+    }
+  }
+
+  @override
+  Future<void> syncFellowshipMemberships() async {
+    try {
+      // Get all fellowships
+      final querySnapshot = await _firestore.collection('fellowships').get();
+
+      for (final doc in querySnapshot.docs) {
+        final fellowship = FellowshipModel.fromJson(doc.data(), doc.id);
+        final fellowshipId = fellowship.id;
+
+        // Sync each member to Realtime Database
+        for (final memberId in fellowship.memberIds) {
+          await _database
+              .ref('fellowshipMembers/$fellowshipId/$memberId')
+              .set(true);
+        }
+      }
+    } catch (e) {
+      throw Exception('Failed to sync fellowship memberships: $e');
     }
   }
 }
