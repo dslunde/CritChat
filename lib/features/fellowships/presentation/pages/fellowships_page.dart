@@ -4,6 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/app_top_bar.dart';
 import '../../../../core/di/injection_container.dart';
+import '../../domain/usecases/get_fellowships_usecase.dart';
+import '../../domain/usecases/create_fellowship_usecase.dart';
+import '../../domain/usecases/invite_friend_usecase.dart';
+import '../../domain/repositories/fellowship_repository.dart';
+import '../../data/datasources/fellowship_mock_datasource.dart';
 import '../bloc/fellowship_bloc.dart';
 import '../bloc/fellowship_event.dart';
 import '../bloc/fellowship_state.dart';
@@ -16,7 +21,38 @@ class FellowshipsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => sl<FellowshipBloc>()..add(GetFellowships()),
+      create: (context) {
+        try {
+          print('🔍 Attempting to get FellowshipBloc from service locator...');
+          final bloc = sl<FellowshipBloc>();
+          print('✅ Successfully got FellowshipBloc from service locator');
+          bloc.add(GetFellowships());
+          return bloc;
+        } catch (e) {
+          print('❌ Error getting FellowshipBloc: $e');
+          print('📝 Available registrations:');
+          try {
+            print(
+              '   - GetFellowshipsUseCase: ${sl.isRegistered<GetFellowshipsUseCase>()}',
+            );
+            print(
+              '   - CreateFellowshipUseCase: ${sl.isRegistered<CreateFellowshipUseCase>()}',
+            );
+            print(
+              '   - InviteFriendUseCase: ${sl.isRegistered<InviteFriendUseCase>()}',
+            );
+            print(
+              '   - FellowshipRepository: ${sl.isRegistered<FellowshipRepository>()}',
+            );
+            print(
+              '   - FellowshipMockDataSource: ${sl.isRegistered<FellowshipMockDataSource>()}',
+            );
+          } catch (checkError) {
+            print('   - Error checking registrations: $checkError');
+          }
+          rethrow;
+        }
+      },
       child: Scaffold(
         backgroundColor: Colors.black,
         body: SafeArea(
