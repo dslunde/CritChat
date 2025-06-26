@@ -71,7 +71,9 @@ class _PollCardState extends State<PollCard>
     if (widget.poll.isExpired) {
       return AppColors.textHint; // Gray for expired
     } else if (widget.poll.hasUserVoted(widget.currentUserId)) {
-      return AppColors.primaryColor.withOpacity(0.6); // Muted primary for voted
+      return AppColors.primaryColor.withValues(
+        alpha: 0.6,
+      ); // Muted primary for voted
     } else {
       return AppColors.primaryColor; // Bold primary for unvoted active
     }
@@ -181,9 +183,9 @@ class _PollCardState extends State<PollCard>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: chipColor.withOpacity(0.1),
+        color: chipColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: chipColor.withOpacity(0.3)),
+        border: Border.all(color: chipColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -244,7 +246,7 @@ class _PollCardState extends State<PollCard>
                             (percentage / 100),
                         height: 48,
                         decoration: BoxDecoration(
-                          color: AppColors.primaryColor.withOpacity(0.1),
+                          color: AppColors.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
@@ -390,7 +392,7 @@ class _PollCardState extends State<PollCard>
           icon: const Icon(Icons.send),
           color: AppColors.primaryColor,
           style: IconButton.styleFrom(
-            backgroundColor: AppColors.primaryColor.withOpacity(0.1),
+            backgroundColor: AppColors.primaryColor.withValues(alpha: 0.1),
           ),
         ),
       ],

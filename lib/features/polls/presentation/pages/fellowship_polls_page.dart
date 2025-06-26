@@ -155,8 +155,8 @@ class _FellowshipPollsPageState extends State<FellowshipPollsPage> {
           onPressed: _showCreatePollDialog,
           backgroundColor: AppColors.primaryColor,
           foregroundColor: Colors.white,
-          child: const Icon(Icons.poll),
           tooltip: 'Create Poll',
+          child: const Icon(Icons.poll),
         ),
       ),
     );

@@ -233,7 +233,7 @@ class _CreatePollDialogState extends State<CreatePollDialog> {
         borderSide: const BorderSide(color: AppColors.errorColor),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      fillColor: AppColors.backgroundColor.withOpacity(0.5),
+      fillColor: AppColors.backgroundColor.withValues(alpha: 0.5),
       filled: true,
     );
   }
@@ -311,7 +311,7 @@ class _CreatePollDialogState extends State<CreatePollDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.backgroundColor.withOpacity(0.5),
+        color: AppColors.backgroundColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderColor),
       ),
@@ -338,7 +338,7 @@ class _CreatePollDialogState extends State<CreatePollDialog> {
                     });
                   }
                 },
-                selectedColor: AppColors.primaryColor.withOpacity(0.2),
+                selectedColor: AppColors.primaryColor.withValues(alpha: 0.2),
                 checkmarkColor: AppColors.primaryColor,
                 labelStyle: TextStyle(
                   color: isSelected
@@ -358,7 +358,7 @@ class _CreatePollDialogState extends State<CreatePollDialog> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.backgroundColor.withOpacity(0.5),
+        color: AppColors.backgroundColor.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.borderColor),
       ),

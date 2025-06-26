@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -28,6 +29,9 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
 
   late String _chatId;
   Stream<List<Message>>? _messagesStream;
+  StreamSubscription<List<Message>>? _messagesSubscription;
+  StreamController<List<Message>>? _messagesController;
+  List<Message> _lastMessages = [];
   late TabController _tabController;
 
   @override
@@ -42,7 +46,34 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
     _chatId = ChatRealtimeDataSourceImpl.createFellowshipChatId(
       widget.fellowship.id,
     );
-    _messagesStream = _chatDataSource.getMessages(_chatId);
+
+    // Create a broadcast StreamController that caches the last value
+    _messagesController = StreamController<List<Message>>.broadcast(
+      onListen: () {
+        // When a new listener subscribes, immediately send the last known messages
+        if (_lastMessages.isNotEmpty && !_messagesController!.isClosed) {
+          _messagesController!.add(_lastMessages);
+        }
+      },
+    );
+    _messagesStream = _messagesController!.stream;
+
+    // Listen to the Firebase stream and forward data to our controller
+    _messagesSubscription = _chatDataSource
+        .getMessages(_chatId)
+        .listen(
+          (messages) {
+            _lastMessages = messages; // Cache the messages
+            if (!_messagesController!.isClosed) {
+              _messagesController!.add(messages);
+            }
+          },
+          onError: (error) {
+            if (!_messagesController!.isClosed) {
+              _messagesController!.addError(error);
+            }
+          },
+        );
   }
 
   void _onTabChanged() {
@@ -495,6 +526,8 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
     _messageController.dispose();
     _scrollController.dispose();
     _tabController.dispose();
+    _messagesSubscription?.cancel();
+    _messagesController?.close();
     super.dispose();
   }
 }
