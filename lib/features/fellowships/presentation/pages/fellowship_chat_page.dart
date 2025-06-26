@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/chat/chat_realtime_datasource.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../domain/entities/fellowship_entity.dart';
 import 'fellowship_info_page.dart';
 
@@ -15,42 +18,51 @@ class FellowshipChatPage extends StatefulWidget {
 
 class _FellowshipChatPageState extends State<FellowshipChatPage> {
   final TextEditingController _messageController = TextEditingController();
-  final List<ChatMessage> _messages = [];
+  final ChatRealtimeDataSource _chatDataSource = sl<ChatRealtimeDataSource>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ScrollController _scrollController = ScrollController();
+
+  late String _chatId;
+  Stream<List<Message>>? _messagesStream;
 
   @override
   void initState() {
     super.initState();
-    _loadMockMessages();
+    _initializeChat();
   }
 
-  void _loadMockMessages() {
-    setState(() {
-      _messages.addAll([
-        ChatMessage(
-          id: '1',
-          senderId: 'user1',
-          senderName: 'Alex Drake',
-          content: 'Welcome to our fellowship! Ready for tonight\'s session?',
-          timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-          isSystemMessage: false,
-        ),
-        ChatMessage(
-          id: '2',
-          senderId: 'system',
-          senderName: 'System',
-          content: 'Sarah Chen joined the fellowship',
-          timestamp: DateTime.now().subtract(const Duration(hours: 1)),
-          isSystemMessage: true,
-        ),
-        ChatMessage(
-          id: '3',
-          senderId: 'user2',
-          senderName: 'Sarah Chen',
-          content: 'Thanks for the invite! Looking forward to playing!',
-          timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-          isSystemMessage: false,
-        ),
-      ]);
+  void _initializeChat() {
+    _chatId = ChatRealtimeDataSourceImpl.createFellowshipChatId(
+      widget.fellowship.id,
+    );
+    _messagesStream = _chatDataSource.getMessages(_chatId);
+  }
+
+  void _sendMessage() async {
+    if (_messageController.text.trim().isEmpty) return;
+
+    final content = _messageController.text.trim();
+    _messageController.clear();
+
+    try {
+      await _chatDataSource.sendMessage(_chatId, content);
+      _scrollToBottom();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -110,14 +122,91 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
         children: [
           // Messages List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
+            child: _messagesStream == null
+                ? const Center(child: CircularProgressIndicator())
+                : StreamBuilder<List<Message>>(
+                    stream: _messagesStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: AppColors.errorColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error loading messages',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                snapshot.error.toString(),
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final messages = snapshot.data ?? [];
+
+                      if (messages.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No messages yet',
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Start the conversation!',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // Auto-scroll to bottom when new messages arrive
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollToBottom();
+                      });
+
+                      return ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          return _buildMessageBubble(message);
+                        },
+                      );
+                    },
+                  ),
           ),
 
           // Message Input
@@ -159,6 +248,7 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
                     style: const TextStyle(color: AppColors.textPrimary),
                     maxLines: null,
                     textCapitalization: TextCapitalization.sentences,
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -177,190 +267,131 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message) {
-    if (message.isSystemMessage) {
-      return Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        child: Center(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.textSecondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              message.content,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
+  Widget _buildMessageBubble(Message message) {
+    final currentUserId = _auth.currentUser?.uid;
+    final isMe = message.senderId == currentUserId;
 
-    final isCurrentUser =
-        message.senderId == 'currentUser'; // Mock current user
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: isCurrentUser
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isCurrentUser) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primaryColor,
+          if (!isMe)
+            Padding(
+              padding: const EdgeInsets.only(left: 40, bottom: 4),
               child: Text(
-                message.senderName[0].toUpperCase(),
+                message.senderName,
                 style: const TextStyle(
-                  color: Colors.white,
                   fontSize: 12,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.7,
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: isCurrentUser
-                    ? AppColors.primaryColor
-                    : AppColors.cardBackground,
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!isCurrentUser)
-                    Text(
-                      message.senderName,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: isCurrentUser
-                            ? Colors.white70
-                            : AppColors.primaryColor,
-                      ),
-                    ),
-                  if (!isCurrentUser) const SizedBox(height: 2),
-                  Text(
-                    message.content,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: isCurrentUser
-                          ? Colors.white
-                          : AppColors.textPrimary,
-                    ),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMe) ...[
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryColor,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
+                  child: message.senderPhotoUrl.isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            message.senderPhotoUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(
+                                  Icons.person,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                          ),
+                        )
+                      : Text(
+                          message.senderName.isNotEmpty
+                              ? message.senderName[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                ),
+                const SizedBox(width: 8),
+              ],
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isMe
+                        ? AppColors.primaryColor
+                        : AppColors.surfaceColor,
+                    borderRadius: BorderRadius.circular(16).copyWith(
+                      bottomLeft: isMe
+                          ? const Radius.circular(16)
+                          : const Radius.circular(4),
+                      bottomRight: isMe
+                          ? const Radius.circular(4)
+                          : const Radius.circular(16),
+                    ),
+                    border: !isMe
+                        ? Border.all(color: AppColors.borderColor, width: 1)
+                        : null,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _formatTime(message.timestamp),
+                        message.content,
                         style: TextStyle(
-                          fontSize: 10,
-                          color: isCurrentUser
-                              ? Colors.white70
-                              : AppColors.textSecondary,
+                          color: isMe ? Colors.white : AppColors.textPrimary,
+                          fontSize: 15,
                         ),
                       ),
-                      if (isCurrentUser) ...[
-                        const SizedBox(width: 4),
-                        Icon(
-                          Icons.done_all,
-                          size: 12,
-                          color: message.isRead ? Colors.blue : Colors.white70,
-                        ),
-                      ],
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _formatTime(message.timestamp),
+                            style: TextStyle(
+                              color: isMe
+                                  ? Colors.white70
+                                  : AppColors.textSecondary,
+                              fontSize: 11,
+                            ),
+                          ),
+                          if (isMe) ...[
+                            const SizedBox(width: 4),
+                            Icon(
+                              message.isRead ? Icons.done_all : Icons.done,
+                              size: 14,
+                              color: message.isRead
+                                  ? Colors.lightBlueAccent
+                                  : Colors.white70,
+                            ),
+                          ],
+                        ],
+                      ),
                     ],
                   ),
-                ],
-              ),
-            ),
-          ),
-          if (isCurrentUser) ...[
-            const SizedBox(width: 8),
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.primaryColor,
-              child: const Text(
-                'Y',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
                 ),
               ),
-            ),
-          ],
+              if (isMe) const SizedBox(width: 40),
+            ],
+          ),
         ],
       ),
     );
-  }
-
-  Color _getGameSystemColor() {
-    switch (widget.fellowship.gameSystem.toLowerCase()) {
-      case 'd&d 5e':
-      case 'dungeons & dragons 5e':
-        return Colors.red;
-      case 'pathfinder 2e':
-        return Colors.orange;
-      case 'call of cthulhu 7e':
-        return Colors.deepPurple;
-      case 'shadowrun 6e':
-        return Colors.cyan;
-      case 'vampire: the masquerade 5e':
-        return Colors.deepOrange;
-      default:
-        return AppColors.primaryColor;
-    }
-  }
-
-  String _formatTime(DateTime timestamp) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final messageDate = DateTime(
-      timestamp.year,
-      timestamp.month,
-      timestamp.day,
-    );
-
-    if (messageDate == today) {
-      return '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}';
-    } else {
-      return '${timestamp.day}/${timestamp.month}';
-    }
-  }
-
-  void _sendMessage() {
-    if (_messageController.text.trim().isEmpty) return;
-
-    final newMessage = ChatMessage(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      senderId: 'currentUser',
-      senderName: 'You',
-      content: _messageController.text.trim(),
-      timestamp: DateTime.now(),
-      isSystemMessage: false,
-    );
-
-    setState(() {
-      _messages.add(newMessage);
-    });
-
-    _messageController.clear();
   }
 
   void _navigateToFellowshipInfo(BuildContext context) {
@@ -371,29 +402,42 @@ class _FellowshipChatPageState extends State<FellowshipChatPage> {
     );
   }
 
+  Color _getGameSystemColor() {
+    switch (widget.fellowship.gameSystem.toLowerCase()) {
+      case 'd&d 5e':
+        return const Color(0xFFD32F2F);
+      case 'pathfinder':
+        return const Color(0xFF8B4513);
+      case 'call of cthulhu':
+        return const Color(0xFF2E7D32);
+      case 'shadowrun':
+        return const Color(0xFF7B1FA2);
+      case 'vampire: the masquerade':
+        return const Color(0xFF8B0000);
+      default:
+        return AppColors.primaryColor;
+    }
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
-}
-
-class ChatMessage {
-  final String id;
-  final String senderId;
-  final String senderName;
-  final String content;
-  final DateTime timestamp;
-  final bool isSystemMessage;
-  final bool isRead;
-
-  ChatMessage({
-    required this.id,
-    required this.senderId,
-    required this.senderName,
-    required this.content,
-    required this.timestamp,
-    required this.isSystemMessage,
-    this.isRead = false,
-  });
 }

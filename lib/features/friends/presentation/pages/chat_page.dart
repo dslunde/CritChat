@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/chat/chat_realtime_datasource.dart';
+import '../../../../core/di/injection_container.dart';
 import '../../domain/entities/friend_entity.dart';
 
 class ChatPage extends StatefulWidget {
@@ -13,69 +16,54 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   final TextEditingController _messageController = TextEditingController();
-  final List<ChatMessage> _messages = [];
+  final ChatRealtimeDataSource _chatDataSource = sl<ChatRealtimeDataSource>();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final ScrollController _scrollController = ScrollController();
+
+  late String _chatId;
+  Stream<List<Message>>? _messagesStream;
 
   @override
   void initState() {
     super.initState();
-    _loadMockMessages();
+    _initializeChat();
   }
 
-  void _loadMockMessages() {
-    // Mock messages for demonstration
-    _messages.addAll([
-      ChatMessage(
-        text: "Hey! Ready for tonight's campaign?",
-        isMe: false,
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: true,
-      ),
-      ChatMessage(
-        text:
-            "Absolutely! My character is all set. Can't wait to see what the DM has in store for us.",
-        isMe: true,
-        timestamp: DateTime.now().subtract(
-          const Duration(hours: 2, minutes: 5),
-        ),
-        isRead: true,
-      ),
-      ChatMessage(
-        text: "I heard there might be a dragon encounter! 🐉",
-        isMe: false,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 30)),
-        isRead: true,
-      ),
-      ChatMessage(
-        text: "My wizard is ready with some new spells!",
-        isMe: true,
-        timestamp: DateTime.now().subtract(const Duration(minutes: 28)),
-        isRead: false,
-      ),
-    ]);
+  void _initializeChat() {
+    final currentUserId = _auth.currentUser?.uid;
+    if (currentUserId != null) {
+      _chatId = ChatRealtimeDataSourceImpl.createDirectChatId(
+        currentUserId,
+        widget.friend.id,
+      );
+      _messagesStream = _chatDataSource.getMessages(_chatId);
+    }
   }
 
-  void _sendMessage() {
+  void _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        ChatMessage(
-          text: _messageController.text.trim(),
-          isMe: true,
-          timestamp: DateTime.now(),
-          isRead: false,
-        ),
-      );
-    });
-
+    final content = _messageController.text.trim();
     _messageController.clear();
 
-    // Simulate read receipt after a delay
-    Future.delayed(const Duration(seconds: 2), () {
-      if (mounted) {
-        setState(() {
-          _messages.last.isRead = true;
-        });
+    try {
+      await _chatDataSource.sendMessage(_chatId, content);
+      _scrollToBottom();
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send message: $e')));
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -145,14 +133,91 @@ class _ChatPageState extends State<ChatPage> {
         children: [
           // Messages List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _messages.length,
-              itemBuilder: (context, index) {
-                final message = _messages[index];
-                return _buildMessageBubble(message);
-              },
-            ),
+            child: _messagesStream == null
+                ? const Center(child: CircularProgressIndicator())
+                : StreamBuilder<List<Message>>(
+                    stream: _messagesStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      if (snapshot.hasError) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                size: 64,
+                                color: AppColors.errorColor,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Error loading messages',
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.headlineSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                snapshot.error.toString(),
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      final messages = snapshot.data ?? [];
+
+                      if (messages.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No messages yet',
+                                style: Theme.of(context).textTheme.headlineSmall
+                                    ?.copyWith(color: Colors.grey[600]),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Start the conversation!',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+
+                      // Auto-scroll to bottom when new messages arrive
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        _scrollToBottom();
+                      });
+
+                      return ListView.builder(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.all(16),
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          final message = messages[index];
+                          return _buildMessageBubble(message);
+                        },
+                      );
+                    },
+                  ),
           ),
 
           // Message Input
@@ -198,19 +263,19 @@ class _ChatPageState extends State<ChatPage> {
                       fillColor: AppColors.backgroundColor,
                     ),
                     onSubmitted: (_) => _sendMessage(),
+                    textInputAction: TextInputAction.send,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Container(
-                  width: 48,
-                  height: 48,
                   decoration: const BoxDecoration(
                     color: AppColors.primaryColor,
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
                     onPressed: _sendMessage,
-                    icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.send, color: Colors.white),
+                    padding: const EdgeInsets.all(12),
                   ),
                 ),
               ],
@@ -221,113 +286,100 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _buildMessageBubble(ChatMessage message) {
+  Widget _buildMessageBubble(Message message) {
+    final currentUserId = _auth.currentUser?.uid;
+    final isMe = message.senderId == currentUserId;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
-        mainAxisAlignment: message.isMe
+        mainAxisAlignment: isMe
             ? MainAxisAlignment.end
             : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!message.isMe) ...[
+          if (!isMe) ...[
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.2),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryColor,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(
-                Icons.person,
-                color: AppColors.primaryColor,
-                size: 16,
-              ),
+              child: message.senderPhotoUrl.isNotEmpty
+                  ? ClipOval(
+                      child: Image.network(
+                        message.senderPhotoUrl,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.person,
+                              color: Colors.white,
+                              size: 16,
+                            ),
+                      ),
+                    )
+                  : const Icon(Icons.person, color: Colors.white, size: 16),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Column(
-              crossAxisAlignment: message.isMe
-                  ? CrossAxisAlignment.end
-                  : CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    color: message.isMe
-                        ? AppColors.primaryColor
-                        : AppColors.surfaceColor,
-                    borderRadius: BorderRadius.circular(18).copyWith(
-                      bottomLeft: message.isMe
-                          ? const Radius.circular(18)
-                          : const Radius.circular(4),
-                      bottomRight: message.isMe
-                          ? const Radius.circular(4)
-                          : const Radius.circular(18),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Text(
-                    message.text,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isMe ? AppColors.primaryColor : AppColors.surfaceColor,
+                borderRadius: BorderRadius.circular(20).copyWith(
+                  bottomLeft: isMe
+                      ? const Radius.circular(20)
+                      : const Radius.circular(4),
+                  bottomRight: isMe
+                      ? const Radius.circular(4)
+                      : const Radius.circular(20),
+                ),
+                border: !isMe
+                    ? Border.all(color: AppColors.dividerColor, width: 1)
+                    : null,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    message.content,
                     style: TextStyle(
-                      color: message.isMe
-                          ? Colors.white
-                          : AppColors.textPrimary,
-                      fontSize: 14,
+                      color: isMe ? Colors.white : AppColors.textPrimary,
+                      fontSize: 16,
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      _formatTime(message.timestamp),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AppColors.textSecondary,
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _formatTime(message.timestamp),
+                        style: TextStyle(
+                          color: isMe
+                              ? Colors.white70
+                              : AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                    if (message.isMe) ...[
-                      const SizedBox(width: 4),
-                      Icon(
-                        message.isRead ? Icons.done_all : Icons.done,
-                        size: 16,
-                        color: message.isRead
-                            ? AppColors.primaryColor
-                            : AppColors.textSecondary,
-                      ),
+                      if (isMe) ...[
+                        const SizedBox(width: 4),
+                        Icon(
+                          message.isRead ? Icons.done_all : Icons.done,
+                          size: 16,
+                          color: message.isRead
+                              ? Colors.lightBlueAccent
+                              : Colors.white70,
+                        ),
+                      ],
                     ],
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
-          if (message.isMe) ...[
-            const SizedBox(width: 8),
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person,
-                color: AppColors.primaryColor,
-                size: 16,
-              ),
-            ),
-          ],
+          if (isMe) const SizedBox(width: 40),
         ],
       ),
     );
@@ -338,33 +390,20 @@ class _ChatPageState extends State<ChatPage> {
     final difference = now.difference(dateTime);
 
     if (difference.inDays > 0) {
-      return '${dateTime.day}/${dateTime.month}';
+      return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
-      return '${dateTime.hour}:${dateTime.minute.toString().padLeft(2, '0')}';
+      return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
       return '${difference.inMinutes}m ago';
     } else {
-      return 'now';
+      return 'Just now';
     }
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
-}
-
-class ChatMessage {
-  final String text;
-  final bool isMe;
-  final DateTime timestamp;
-  bool isRead;
-
-  ChatMessage({
-    required this.text,
-    required this.isMe,
-    required this.timestamp,
-    this.isRead = false,
-  });
 }

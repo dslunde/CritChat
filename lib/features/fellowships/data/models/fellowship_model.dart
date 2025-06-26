@@ -27,9 +27,9 @@ class FellowshipModel extends FellowshipEntity {
     );
   }
 
-  factory FellowshipModel.fromJson(Map<String, dynamic> json) {
+  factory FellowshipModel.fromJson(Map<String, dynamic> json, [String? docId]) {
     return FellowshipModel(
-      id: json['id'] as String,
+      id: docId ?? json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String,
       creatorId: json['creatorId'] as String,
@@ -55,6 +55,7 @@ class FellowshipModel extends FellowshipEntity {
     };
   }
 
+  @override
   FellowshipModel copyWith({
     String? id,
     String? name,

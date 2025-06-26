@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../domain/entities/friend_entity.dart';
+import '../../../auth/data/models/user_model.dart';
 
 class FriendModel extends FriendEntity {
   const FriendModel({
@@ -59,6 +60,21 @@ class FriendModel extends FriendEntity {
       preferredSystems: entity.preferredSystems,
       experienceLevel: entity.experienceLevel,
       totalXp: entity.totalXp,
+    );
+  }
+
+  factory FriendModel.fromUserModel(UserModel user) {
+    return FriendModel(
+      id: user.id,
+      displayName: user.displayName ?? 'Unknown User',
+      email: user.email,
+      photoUrl: user.photoUrl,
+      bio: user.bio,
+      isOnline: false, // This would be calculated from presence system
+      lastSeen: user.lastLogin,
+      preferredSystems: user.preferredSystems,
+      experienceLevel: user.experienceLevel,
+      totalXp: user.totalXp,
     );
   }
 }
