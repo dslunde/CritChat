@@ -34,6 +34,7 @@ class _PollCardState extends State<PollCard>
   final TextEditingController _customOptionController = TextEditingController();
   bool _showCustomOptionInput = false;
   Set<String> _selectedOptions = {};
+  bool _isCollapsed = false;
 
   @override
   void initState() {
@@ -52,6 +53,9 @@ class _PollCardState extends State<PollCard>
         widget.poll.votes[widget.currentUserId] ?? [],
       );
     }
+
+    // Auto-collapse expired polls
+    _isCollapsed = widget.poll.isExpired;
   }
 
   @override
@@ -64,6 +68,12 @@ class _PollCardState extends State<PollCard>
   void _triggerPulse() {
     _pulseController.forward().then((_) {
       _pulseController.reverse();
+    });
+  }
+
+  void _toggleCollapse() {
+    setState(() {
+      _isCollapsed = !_isCollapsed;
     });
   }
 
@@ -95,30 +105,38 @@ class _PollCardState extends State<PollCard>
             color: AppColors.cardBackground,
             child: GestureDetector(
               onLongPress: _showPollOptions,
+              onTap: widget.poll.isExpired ? _toggleCollapse : null,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildPollHeader(),
-                    const SizedBox(height: 12),
-                    if (widget.poll.description != null) ...[
-                      Text(
-                        widget.poll.description!,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppColors.textSecondary,
-                          height: 1.4,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                    _buildPollOptions(),
-                    const SizedBox(height: 16),
-                    _buildPollFooter(),
-                    if (_showCustomOptionInput) ...[
+                    if (!_isCollapsed) ...[
                       const SizedBox(height: 12),
-                      _buildCustomOptionInput(),
+                      if (widget.poll.description != null) ...[
+                        Text(
+                          widget.poll.description!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textSecondary,
+                            height: 1.4,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      _buildPollOptions(),
+                      const SizedBox(height: 16),
+                      _buildPollFooter(),
+                      if (_showCustomOptionInput) ...[
+                        const SizedBox(height: 12),
+                        _buildCustomOptionInput(),
+                      ],
+                    ] else ...[
+                      const SizedBox(height: 8),
+                      _buildCollapsedResults(),
+                      const SizedBox(height: 8),
+                      _buildExpandHint(),
                     ],
                   ],
                 ),
@@ -397,6 +415,119 @@ class _PollCardState extends State<PollCard>
         ),
       ],
     );
+  }
+
+  Widget _buildCollapsedResults() {
+    // Find the winning option(s)
+    final winningOptions = _getWinningOptions();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.emoji_events, size: 16, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            Text(
+              winningOptions.length > 1 ? 'Winners:' : 'Winner:',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        ...winningOptions.map((option) {
+          final voteCount = widget.poll.getOptionVoteCount(option.id);
+          final percentage = widget.poll.totalVotes > 0
+              ? (voteCount / widget.poll.totalVotes * 100)
+              : 0.0;
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    option.text,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                ),
+                Text(
+                  '$voteCount vote${voteCount == 1 ? '' : 's'} (${percentage.toStringAsFixed(0)}%)',
+                  style: const TextStyle(
+                    fontSize: 11,
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Widget _buildExpandHint() {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.textHint.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.expand_more, size: 14, color: AppColors.textHint),
+            const SizedBox(width: 4),
+            Text(
+              'Tap to expand',
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textHint,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  List<PollOptionEntity> _getWinningOptions() {
+    if (widget.poll.options.isEmpty) return [];
+
+    // Find the maximum vote count
+    int maxVotes = 0;
+    for (final option in widget.poll.options) {
+      final voteCount = widget.poll.getOptionVoteCount(option.id);
+      if (voteCount > maxVotes) {
+        maxVotes = voteCount;
+      }
+    }
+
+    // Return all options with the maximum vote count
+    return widget.poll.options
+        .where(
+          (option) => widget.poll.getOptionVoteCount(option.id) == maxVotes,
+        )
+        .toList();
   }
 
   void _handleOptionTap(String optionId) {

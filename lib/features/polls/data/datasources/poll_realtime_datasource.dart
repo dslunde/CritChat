@@ -1,5 +1,6 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:critchat/features/polls/data/models/poll_model.dart';
 import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
@@ -33,10 +34,38 @@ abstract class PollRealtimeDataSource {
 class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
   final FirebaseDatabase _database;
   final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
-  PollRealtimeDataSourceImpl({FirebaseDatabase? database, FirebaseAuth? auth})
-    : _database = database ?? FirebaseDatabase.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+  PollRealtimeDataSourceImpl({
+    FirebaseDatabase? database,
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  }) : _database = database ?? FirebaseDatabase.instance,
+       _auth = auth ?? FirebaseAuth.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance;
+
+  /// Helper method to get user display name from Firestore
+  Future<String> _getUserDisplayName(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        final displayName = userData?['displayName'] as String?;
+        if (displayName != null && displayName.isNotEmpty) {
+          return displayName;
+        }
+      }
+      // Fallback to email prefix if no display name
+      final currentUser = _auth.currentUser;
+      if (currentUser?.email != null) {
+        return currentUser!.email!.split('@')[0];
+      }
+      return 'User';
+    } catch (e) {
+      debugPrint('Failed to get user display name: $e');
+      return 'User';
+    }
+  }
 
   @override
   Stream<List<PollModel>> getPollsForFellowship(String fellowshipId) {
@@ -117,7 +146,7 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
         'title': title,
         'description': description,
         'creatorId': currentUser.uid,
-        'creatorName': currentUser.displayName ?? 'Unknown',
+        'creatorName': await _getUserDisplayName(currentUser.uid),
         'fellowshipId': fellowshipId,
         'createdAt': DateTime.now().millisecondsSinceEpoch,
         'expiresAt': expiresAt.millisecondsSinceEpoch,

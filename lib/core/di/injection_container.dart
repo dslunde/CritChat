@@ -196,14 +196,16 @@ void _initNotifications() {
 void _initChat() {
   // Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
-    () => ChatRealtimeDataSourceImpl(database: sl(), auth: sl()),
+    () =>
+        ChatRealtimeDataSourceImpl(database: sl(), auth: sl(), firestore: sl()),
   );
 }
 
 void _initPolls() {
   // Data sources
   sl.registerLazySingleton<PollRealtimeDataSource>(
-    () => PollRealtimeDataSourceImpl(database: sl(), auth: sl()),
+    () =>
+        PollRealtimeDataSourceImpl(database: sl(), auth: sl(), firestore: sl()),
   );
 
   // Repositories

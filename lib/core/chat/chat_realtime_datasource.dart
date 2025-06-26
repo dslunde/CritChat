@@ -1,5 +1,7 @@
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class Message {
   final String id;
@@ -58,10 +60,38 @@ abstract class ChatRealtimeDataSource {
 class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
   final FirebaseDatabase _database;
   final FirebaseAuth _auth;
+  final FirebaseFirestore _firestore;
 
-  ChatRealtimeDataSourceImpl({FirebaseDatabase? database, FirebaseAuth? auth})
-    : _database = database ?? FirebaseDatabase.instance,
-      _auth = auth ?? FirebaseAuth.instance;
+  ChatRealtimeDataSourceImpl({
+    FirebaseDatabase? database,
+    FirebaseAuth? auth,
+    FirebaseFirestore? firestore,
+  }) : _database = database ?? FirebaseDatabase.instance,
+       _auth = auth ?? FirebaseAuth.instance,
+       _firestore = firestore ?? FirebaseFirestore.instance;
+
+  /// Helper method to get user display name from Firestore
+  Future<String> _getUserDisplayName(String userId) async {
+    try {
+      final userDoc = await _firestore.collection('users').doc(userId).get();
+      if (userDoc.exists) {
+        final userData = userDoc.data();
+        final displayName = userData?['displayName'] as String?;
+        if (displayName != null && displayName.isNotEmpty) {
+          return displayName;
+        }
+      }
+      // Fallback to email prefix if no display name
+      final currentUser = _auth.currentUser;
+      if (currentUser?.email != null) {
+        return currentUser!.email!.split('@')[0];
+      }
+      return 'User';
+    } catch (e) {
+      debugPrint('Failed to get user display name: $e');
+      return 'User';
+    }
+  }
 
   @override
   Stream<List<Message>> getMessages(String chatId) {
@@ -96,7 +126,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
       final message = Message(
         id: messageRef.key!,
         senderId: currentUser.uid,
-        senderName: currentUser.displayName ?? 'Unknown',
+        senderName: await _getUserDisplayName(currentUser.uid),
         senderPhotoUrl: currentUser.photoURL ?? '',
         content: content,
         timestamp: DateTime.now(),
