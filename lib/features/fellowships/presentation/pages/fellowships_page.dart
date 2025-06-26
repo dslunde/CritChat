@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/app_top_bar.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../bloc/fellowship_bloc.dart';
-import '../bloc/fellowship_event.dart';
-import '../bloc/fellowship_state.dart';
-import '../widgets/fellowship_card.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/widgets/app_top_bar.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
+import 'package:critchat/features/fellowships/presentation/widgets/fellowship_card.dart';
 import 'create_fellowship_page.dart';
 
 class FellowshipsPage extends StatelessWidget {

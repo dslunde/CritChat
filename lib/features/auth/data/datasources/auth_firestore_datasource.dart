@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import '../models/user_model.dart';
+import 'package:critchat/features/auth/data/models/user_model.dart';
 
 abstract class AuthFirestoreDataSource {
   Future<UserModel?> getCurrentUser();

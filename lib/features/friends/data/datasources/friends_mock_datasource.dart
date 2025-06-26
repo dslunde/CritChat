@@ -1,4 +1,4 @@
-import '../models/friend_model.dart';
+import 'package:critchat/features/friends/data/models/friend_model.dart';
 
 class FriendsMockDataSource {
   static final List<FriendModel> _mockFriends = [

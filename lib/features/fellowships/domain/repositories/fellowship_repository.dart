@@ -1,4 +1,4 @@
-import '../entities/fellowship_entity.dart';
+import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 
 abstract class FellowshipRepository {
   Future<List<FellowshipEntity>> getFellowships();

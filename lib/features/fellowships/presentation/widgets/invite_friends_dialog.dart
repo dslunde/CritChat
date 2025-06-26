@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../../friends/domain/entities/friend_entity.dart';
-import '../../../friends/presentation/bloc/friends_bloc.dart';
-import '../../../friends/presentation/bloc/friends_state.dart';
-import '../../../friends/presentation/bloc/friends_event.dart';
-import '../bloc/fellowship_bloc.dart';
-import '../bloc/fellowship_event.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_state.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 
 class InviteFriendsDialog extends StatelessWidget {
   final String fellowshipId;

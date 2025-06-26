@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../../auth/presentation/bloc/auth_bloc.dart';
-import '../../../auth/presentation/bloc/auth_state.dart';
-import '../bloc/fellowship_bloc.dart';
-import '../bloc/fellowship_event.dart';
-import '../bloc/fellowship_state.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 
 class CreateFellowshipPage extends StatefulWidget {
   const CreateFellowshipPage({super.key});

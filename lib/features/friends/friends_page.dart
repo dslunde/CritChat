@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/widgets/app_top_bar.dart';
-import '../../core/di/injection_container.dart';
-import 'presentation/bloc/friends_bloc.dart';
-import 'presentation/bloc/friends_event.dart';
-import 'presentation/bloc/friends_state.dart';
-import 'presentation/widgets/friend_list_item.dart';
-import 'presentation/pages/search_friends_page.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/widgets/app_top_bar.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_state.dart';
+import 'package:critchat/features/friends/presentation/widgets/friend_list_item.dart';
+import 'package:critchat/features/friends/presentation/pages/search_friends_page.dart';
 
 class FriendsPage extends StatelessWidget {
   const FriendsPage({super.key});

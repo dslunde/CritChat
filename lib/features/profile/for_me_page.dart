@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_colors.dart';
-import '../../core/widgets/app_top_bar.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/widgets/app_top_bar.dart';
 
 class ForMePage extends StatelessWidget {
   const ForMePage({super.key});

@@ -1,45 +1,44 @@
 import 'package:get_it/get_it.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-// Features - Auth
-import '../../features/auth/data/datasources/auth_remote_datasource.dart';
-import '../../features/auth/data/datasources/auth_firestore_datasource.dart';
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
-import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
-import '../../features/auth/domain/usecases/sign_in_usecase.dart';
-import '../../features/auth/domain/usecases/sign_up_usecase.dart';
-import '../../features/auth/domain/usecases/sign_out_usecase.dart';
-import '../../features/auth/domain/usecases/get_auth_state_changes_usecase.dart';
-import '../../features/auth/domain/usecases/complete_onboarding_usecase.dart';
-import '../../features/auth/presentation/bloc/auth_bloc.dart';
+// Auth
+import 'package:critchat/features/auth/data/datasources/auth_remote_datasource.dart';
+import 'package:critchat/features/auth/data/datasources/auth_firestore_datasource.dart';
+import 'package:critchat/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:critchat/features/auth/domain/repositories/auth_repository.dart';
+import 'package:critchat/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_up_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_out_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/get_auth_state_changes_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/complete_onboarding_usecase.dart';
+import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 
-// Features - Friends
-import '../../features/friends/data/datasources/friends_firestore_datasource.dart';
-import '../../features/friends/data/repositories/friends_repository_impl.dart';
-import '../../features/friends/domain/repositories/friends_repository.dart';
-import '../../features/friends/domain/usecases/get_friends_usecase.dart';
-import '../../features/friends/presentation/bloc/friends_bloc.dart';
+// Friends
+import 'package:critchat/features/friends/data/datasources/friends_firestore_datasource.dart';
+import 'package:critchat/features/friends/data/repositories/friends_repository_impl.dart';
+import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
+import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
 
-// Features - Fellowships
-import '../../features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
-import '../../features/fellowships/data/repositories/fellowship_repository_impl.dart';
-import '../../features/fellowships/domain/repositories/fellowship_repository.dart';
-import '../../features/fellowships/domain/usecases/get_fellowships_usecase.dart';
-import '../../features/fellowships/domain/usecases/create_fellowship_usecase.dart';
-import '../../features/fellowships/domain/usecases/invite_friend_usecase.dart';
-import '../../features/fellowships/presentation/bloc/fellowship_bloc.dart';
+// Fellowships
+import 'package:critchat/features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
+import 'package:critchat/features/fellowships/data/repositories/fellowship_repository_impl.dart';
+import 'package:critchat/features/fellowships/domain/repositories/fellowship_repository.dart';
+import 'package:critchat/features/fellowships/domain/usecases/get_fellowships_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 
-// Features - Notifications
-import '../../features/notifications/data/datasources/notifications_firestore_datasource.dart';
-import '../../features/notifications/data/repositories/notifications_repository_impl.dart';
-import '../../features/notifications/domain/repositories/notifications_repository.dart';
-import '../../features/notifications/presentation/bloc/notifications_bloc.dart';
+// Notifications
+import 'package:critchat/features/notifications/data/datasources/notifications_firestore_datasource.dart';
+import 'package:critchat/features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
 
-// Core - Chat
-import '../chat/chat_realtime_datasource.dart';
+// Chat
+import 'package:critchat/core/chat/chat_realtime_datasource.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -58,7 +57,6 @@ Future<void> init() async {
 void _initExternalDependencies() {
   sl.registerLazySingleton(() => FirebaseAuth.instance);
   sl.registerLazySingleton(() => FirebaseFirestore.instance);
-  sl.registerLazySingleton(() => FirebaseDatabase.instance);
 }
 
 void _initAuth() {

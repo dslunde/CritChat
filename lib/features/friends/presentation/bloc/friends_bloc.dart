@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_friends_usecase.dart';
+import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
 import 'friends_event.dart';
 import 'friends_state.dart';
 

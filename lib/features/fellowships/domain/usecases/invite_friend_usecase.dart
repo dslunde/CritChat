@@ -1,4 +1,4 @@
-import '../repositories/fellowship_repository.dart';
+import 'package:critchat/features/fellowships/domain/repositories/fellowship_repository.dart';
 
 class InviteFriendUseCase {
   final FellowshipRepository repository;

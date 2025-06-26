@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 
 abstract class FriendsState extends Equatable {
   const FriendsState();

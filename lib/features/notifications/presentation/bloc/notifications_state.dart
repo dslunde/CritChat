@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../../domain/entities/notification_entity.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 abstract class NotificationsState extends Equatable {
   const NotificationsState();

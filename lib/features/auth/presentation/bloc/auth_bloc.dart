@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../domain/usecases/get_current_user_usecase.dart';
-import '../../domain/usecases/sign_in_usecase.dart';
-import '../../domain/usecases/sign_up_usecase.dart';
-import '../../domain/usecases/sign_out_usecase.dart';
-import '../../domain/usecases/get_auth_state_changes_usecase.dart';
-import '../../domain/usecases/complete_onboarding_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/get_current_user_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_up_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/sign_out_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/get_auth_state_changes_usecase.dart';
+import 'package:critchat/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 

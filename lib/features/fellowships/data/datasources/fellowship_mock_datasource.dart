@@ -1,4 +1,4 @@
-import '../models/fellowship_model.dart';
+import 'package:critchat/features/fellowships/data/models/fellowship_model.dart';
 
 class FellowshipMockDataSource {
   final List<FellowshipModel> _fellowships = [

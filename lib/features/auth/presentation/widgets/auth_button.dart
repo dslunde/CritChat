@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
+import 'package:critchat/core/constants/app_colors.dart';
 
 class AuthButton extends StatelessWidget {
   const AuthButton({

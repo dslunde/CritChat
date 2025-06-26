@@ -1,6 +1,6 @@
-import '../../domain/entities/friend_entity.dart';
-import '../../domain/repositories/friends_repository.dart';
-import '../datasources/friends_firestore_datasource.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
+import 'package:critchat/features/friends/data/datasources/friends_firestore_datasource.dart';
 
 class FriendsRepositoryImpl implements FriendsRepository {
   final FriendsFirestoreDataSource _dataSource;

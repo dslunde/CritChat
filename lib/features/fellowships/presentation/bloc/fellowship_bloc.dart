@@ -1,11 +1,11 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/foundation.dart';
 
-import '../../domain/usecases/get_fellowships_usecase.dart';
-import '../../domain/usecases/create_fellowship_usecase.dart';
-import '../../domain/usecases/invite_friend_usecase.dart';
-import 'fellowship_event.dart';
-import 'fellowship_state.dart';
+import 'package:critchat/features/fellowships/domain/usecases/get_fellowships_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/create_fellowship_usecase.dart';
+import 'package:critchat/features/fellowships/domain/usecases/invite_friend_usecase.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
+import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 
 class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   final GetFellowshipsUseCase getFellowshipsUseCase;

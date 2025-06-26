@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../domain/entities/friend_entity.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 import 'chat_page.dart';
 
 class FriendProfilePage extends StatelessWidget {

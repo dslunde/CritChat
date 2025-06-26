@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../domain/entities/friend_entity.dart';
-import '../../../auth/data/models/user_model.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/auth/data/models/user_model.dart';
 
 class FriendModel extends FriendEntity {
   const FriendModel({

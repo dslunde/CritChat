@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/di/injection_container.dart';
-import '../../domain/entities/friend_entity.dart';
-import '../../domain/repositories/friends_repository.dart';
+import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
 
 class SearchFriendsPage extends StatefulWidget {
   const SearchFriendsPage({super.key});
