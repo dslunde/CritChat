@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/friends/presentation/pages/search_friends_page.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
+import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -152,6 +156,27 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
                     ],
+
+                    // XP Progress Section
+                    StreamBuilder<XpEntity>(
+                      stream: sl<GamificationService>()
+                          .getCurrentUserXpStream(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasData) {
+                          return Column(
+                            children: [
+                              XpProgressWidget(
+                                xpEntity: snapshot.data!,
+                                showLabel: true,
+                                compact: false,
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
                   ],
 
                   // Status Message

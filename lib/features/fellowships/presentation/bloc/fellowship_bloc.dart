@@ -10,6 +10,8 @@ import 'package:critchat/features/fellowships/domain/usecases/remove_member_usec
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
 
 class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   final GetFellowshipsUseCase getFellowshipsUseCase;
@@ -67,6 +69,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
         creatorId: event.creatorId,
         joinCode: event.joinCode,
       );
+
+      // Award XP for creating fellowship
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardFellowshipCreated(fellowship.id);
+        debugPrint('✅ Awarded fellowship creation XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award fellowship creation XP: $e');
+      }
 
       emit(FellowshipCreated(fellowship));
     } catch (e) {
@@ -182,6 +193,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for joining fellowship
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardFellowshipJoined('fellowship_by_code');
+          debugPrint('✅ Awarded fellowship join XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award fellowship join XP: $e');
+        }
+
         emit(const FellowshipJoined('Successfully joined fellowship!'));
         // Reload fellowships to show the newly joined fellowship
         add(GetFellowships());
@@ -242,6 +262,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for joining fellowship
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardFellowshipJoined(event.fellowshipId);
+          debugPrint('✅ Awarded fellowship join XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award fellowship join XP: $e');
+        }
+
         emit(const FellowshipJoined('Successfully joined fellowship!'));
       } else {
         emit(const FellowshipError('Failed to join fellowship'));

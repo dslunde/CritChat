@@ -135,6 +135,16 @@ class GamificationService {
     }
   }
 
+  /// Get XP data for any user by ID
+  Future<XpEntity?> getUserXp(String userId) async {
+    try {
+      return await _repository.getUserXp(userId);
+    } catch (e) {
+      debugPrint('Error getting user XP for $userId: $e');
+      return null;
+    }
+  }
+
   /// Get XP stream for current user (for real-time updates)
   Stream<XpEntity>? getCurrentUserXpStream() {
     try {
