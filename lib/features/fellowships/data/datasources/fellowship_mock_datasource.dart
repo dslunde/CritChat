@@ -117,8 +117,9 @@ class FellowshipMockDataSource {
     if (fellowshipIndex == -1) return false;
 
     final fellowship = _fellowships[fellowshipIndex];
-    if (fellowship.memberIds.contains(friendId))
+    if (fellowship.memberIds.contains(friendId)) {
       return false; // Already a member
+    }
 
     final updatedFellowship = fellowship.copyWith(
       memberIds: [...fellowship.memberIds, friendId],
