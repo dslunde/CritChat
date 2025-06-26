@@ -63,11 +63,8 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
   @override
   Future<PollModel?> getPollById(String pollId) async {
     try {
-      final snapshot = await _database
-          .ref('polls')
-          .orderByKey()
-          .limitToFirst(1)
-          .get();
+      // Get all polls data (removed limitToFirst constraint)
+      final snapshot = await _database.ref('polls').get();
       final data = snapshot.value as Map<dynamic, dynamic>?;
 
       if (data == null) return null;
