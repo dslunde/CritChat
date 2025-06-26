@@ -13,4 +13,6 @@ class AppColors {
   static const Color textSecondary = Color(0xFF7F8C8D);
   static const Color textHint = Color(0xFFBDC3C7);
   static const Color dividerColor = Color(0xFFECF0F1);
+  static const Color cardBackground = Colors.white;
+  static const Color borderColor = Color(0xFFE5E5E5);
 }
