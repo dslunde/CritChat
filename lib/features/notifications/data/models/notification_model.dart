@@ -10,6 +10,7 @@ class NotificationModel extends NotificationEntity {
     required super.message,
     super.data,
     required super.isRead,
+    required super.isActioned,
     required super.createdAt,
     super.readAt,
   });
@@ -27,6 +28,7 @@ class NotificationModel extends NotificationEntity {
       message: json['message'] as String,
       data: json['data'] as Map<String, dynamic>?,
       isRead: json['isRead'] as bool? ?? false,
+      isActioned: json['isActioned'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String),
       readAt: json['readAt'] != null
           ? DateTime.parse(json['readAt'] as String)
@@ -43,6 +45,7 @@ class NotificationModel extends NotificationEntity {
       'message': message,
       'data': data,
       'isRead': isRead,
+      'isActioned': isActioned,
       'createdAt': createdAt.toIso8601String(),
       'readAt': readAt?.toIso8601String(),
     };
@@ -58,6 +61,7 @@ class NotificationModel extends NotificationEntity {
       message: entity.message,
       data: entity.data,
       isRead: entity.isRead,
+      isActioned: entity.isActioned,
       createdAt: entity.createdAt,
       readAt: entity.readAt,
     );
@@ -73,6 +77,7 @@ class NotificationModel extends NotificationEntity {
     String? message,
     Map<String, dynamic>? data,
     bool? isRead,
+    bool? isActioned,
     DateTime? createdAt,
     DateTime? readAt,
   }) {
@@ -85,6 +90,7 @@ class NotificationModel extends NotificationEntity {
       message: message ?? this.message,
       data: data ?? this.data,
       isRead: isRead ?? this.isRead,
+      isActioned: isActioned ?? this.isActioned,
       createdAt: createdAt ?? this.createdAt,
       readAt: readAt ?? this.readAt,
     );
@@ -106,6 +112,7 @@ class NotificationModel extends NotificationEntity {
       message: '$senderName wants to be your friend',
       data: {'friendRequestId': id},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }
@@ -127,6 +134,7 @@ class NotificationModel extends NotificationEntity {
       message: '$senderName invited you to join "$fellowshipName"',
       data: {'fellowshipId': fellowshipId, 'fellowshipName': fellowshipName},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }
@@ -160,6 +168,7 @@ class NotificationModel extends NotificationEntity {
               'fellowshipName': fellowshipName,
             },
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }

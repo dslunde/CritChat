@@ -19,6 +19,11 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   }
 
   @override
+  Future<void> markAsActioned(String notificationId) async {
+    await _dataSource.markAsActioned(notificationId);
+  }
+
+  @override
   Future<void> markAllAsRead() async {
     await _dataSource.markAllAsRead();
   }

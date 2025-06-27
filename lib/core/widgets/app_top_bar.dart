@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
+import 'package:critchat/core/widgets/notification_indicator.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/notifications/notifications_page.dart';
@@ -134,24 +136,30 @@ class AppTopBar extends StatelessWidget {
 
           const SizedBox(width: 8),
 
-          // Notifications Button
-          GestureDetector(
-            onTap: () => _navigateToNotifications(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  width: 1,
+          // Notifications Button with Red Dot Indicator
+          StreamNotificationIndicator(
+            countStream:
+                sl<NotificationIndicatorService>().unreadNotificationsStream,
+            size: 12,
+            offset: const EdgeInsets.only(top: 2, right: 2),
+            child: GestureDetector(
+              onTap: () => _navigateToNotifications(context),
+              child: Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.3),
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: const Icon(
-                Icons.notifications_outlined,
-                color: Colors.white,
-                size: 24,
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ),
             ),
           ),

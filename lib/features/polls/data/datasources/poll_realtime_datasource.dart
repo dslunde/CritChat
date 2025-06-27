@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:critchat/features/polls/data/models/poll_model.dart';
 import 'package:critchat/features/polls/domain/entities/poll_entity.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 abstract class PollRealtimeDataSource {
   Stream<List<PollModel>> getPollsForFellowship(String fellowshipId);
@@ -35,14 +37,17 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
   final FirebaseDatabase _database;
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final NotificationsRepository _notificationsRepository;
 
   PollRealtimeDataSourceImpl({
     FirebaseDatabase? database,
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
+    required NotificationsRepository notificationsRepository,
   }) : _database = database ?? FirebaseDatabase.instance,
        _auth = auth ?? FirebaseAuth.instance,
-       _firestore = firestore ?? FirebaseFirestore.instance;
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _notificationsRepository = notificationsRepository;
 
   /// Helper method to get user display name from Firestore
   Future<String> _getUserDisplayName(String userId) async {
@@ -65,6 +70,30 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
       debugPrint('Failed to get user display name: $e');
       return 'User';
     }
+  }
+
+  /// Helper method to get fellowship members for poll notifications
+  Future<List<String>> _getFellowshipMembers(
+    String fellowshipId,
+    String creatorId,
+  ) async {
+    try {
+      final fellowshipDoc = await _firestore
+          .collection('fellowships')
+          .doc(fellowshipId)
+          .get();
+
+      if (fellowshipDoc.exists) {
+        final data = fellowshipDoc.data();
+        final members = List<String>.from(data?['members'] ?? []);
+        // Remove creator from recipients
+        members.remove(creatorId);
+        return members;
+      }
+    } catch (e) {
+      debugPrint('Failed to get fellowship members: $e');
+    }
+    return [];
   }
 
   @override
@@ -130,6 +159,7 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
 
       final pollRef = _database.ref('polls/fellowship_$fellowshipId').push();
       final pollId = pollRef.key!;
+      final creatorName = await _getUserDisplayName(currentUser.uid);
 
       // Create initial options
       final optionsMap = <String, Map<String, dynamic>>{};
@@ -146,7 +176,7 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
         'title': title,
         'description': description,
         'creatorId': currentUser.uid,
-        'creatorName': await _getUserDisplayName(currentUser.uid),
+        'creatorName': creatorName,
         'fellowshipId': fellowshipId,
         'createdAt': DateTime.now().millisecondsSinceEpoch,
         'expiresAt': expiresAt.millisecondsSinceEpoch,
@@ -159,6 +189,52 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
       };
 
       await pollRef.set(pollData);
+
+      // Create notifications for fellowship members about the new poll
+      try {
+        final members = await _getFellowshipMembers(
+          fellowshipId,
+          currentUser.uid,
+        );
+
+        // Get fellowship name
+        final fellowshipDoc = await _firestore
+            .collection('fellowships')
+            .doc(fellowshipId)
+            .get();
+
+        final fellowshipName = fellowshipDoc.data()?['name'] ?? 'Fellowship';
+
+        // Create notification for each member
+        for (final memberId in members) {
+          final notification = NotificationEntity(
+            id: _firestore.collection('notifications').doc().id,
+            userId: memberId,
+            senderId: currentUser.uid,
+            type: NotificationType
+                .fellowshipMessage, // Using fellowshipMessage for polls
+            title: 'New Poll Created',
+            message:
+                '$creatorName created a new poll in $fellowshipName: "$title"',
+            data: {
+              'pollId': pollId,
+              'fellowshipId': fellowshipId,
+              'fellowshipName': fellowshipName,
+              'contentType': 'poll',
+            },
+            isRead: false,
+            isActioned: false,
+            createdAt: DateTime.now(),
+          );
+
+          await _notificationsRepository.createNotification(notification);
+        }
+        debugPrint(
+          '✅ Created poll notifications for ${members.length} members',
+        );
+      } catch (e) {
+        debugPrint('⚠️ Failed to create poll notifications: $e');
+      }
 
       return PollModel.fromJson(pollData, pollId);
     } catch (e) {

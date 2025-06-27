@@ -143,6 +143,7 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
         'message': '$currentUserName wants to be your friend',
         'data': {'senderId': currentUser.uid},
         'isRead': false,
+        'isActioned': false,
         'createdAt': DateTime.now().toIso8601String(),
       });
     } catch (e) {

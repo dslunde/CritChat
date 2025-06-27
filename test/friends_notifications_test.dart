@@ -18,6 +18,7 @@ import 'package:critchat/features/notifications/domain/repositories/notification
 import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_state.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
 
 // Mock classes
 class MockGetFriendsUseCase extends Mock implements GetFriendsUseCase {}
@@ -28,6 +29,9 @@ class MockRemoveFriendUseCase extends Mock implements RemoveFriendUseCase {}
 
 class MockNotificationsRepository extends Mock
     implements NotificationsRepository {}
+
+class MockNotificationIndicatorService extends Mock
+    implements NotificationIndicatorService {}
 
 void main() {
   group('Friends and Notifications Comprehensive Tests', () {
@@ -70,6 +74,7 @@ void main() {
       message: 'Friend One wants to be your friend',
       data: {'senderId': 'friend1'},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
 
@@ -82,6 +87,7 @@ void main() {
       message: 'You have been invited to join Adventure Guild',
       data: {'fellowshipId': 'fellowship1'},
       isRead: true,
+      isActioned: false,
       createdAt: DateTime.now().subtract(const Duration(hours: 1)),
     );
 
@@ -96,6 +102,7 @@ void main() {
       );
       notificationsBloc = NotificationsBloc(
         repository: mockNotificationsRepository,
+        indicatorService: MockNotificationIndicatorService(),
       );
 
       // Setup default mock responses
@@ -571,6 +578,7 @@ void main() {
             'senderEmail': testFriend1.email,
           },
           isRead: false,
+          isActioned: false,
           createdAt: DateTime.now(),
         );
 

@@ -4,16 +4,21 @@ import 'package:flutter/foundation.dart';
 
 import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
 import 'notifications_event.dart';
 import 'notifications_state.dart';
 
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   final NotificationsRepository _repository;
+  final NotificationIndicatorService _indicatorService;
   StreamSubscription<List<NotificationEntity>>? _notificationsSubscription;
 
-  NotificationsBloc({required NotificationsRepository repository})
-    : _repository = repository,
-      super(const NotificationsInitial()) {
+  NotificationsBloc({
+    required NotificationsRepository repository,
+    required NotificationIndicatorService indicatorService,
+  }) : _repository = repository,
+       _indicatorService = indicatorService,
+       super(const NotificationsInitial()) {
     on<LoadNotifications>(_onLoadNotifications);
     on<WatchNotifications>(_onWatchNotifications);
     on<MarkAsRead>(_onMarkAsRead);
@@ -40,6 +45,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
 
       final notifications = await _repository.getNotifications();
       final unreadCount = await _repository.getUnreadCount();
+
+      // Update the indicator service with the new unread count
+      _indicatorService.updateUnreadNotifications(unreadCount);
 
       if (notifications.isEmpty) {
         emit(const NotificationsEmpty());
@@ -157,6 +165,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         event.senderId,
       );
 
+      // Mark as actioned to hide buttons
+      await _repository.markAsActioned(event.notificationId);
+
       emit(FriendRequestAccepted(event.senderId));
       emit(const NotificationActionSuccess('Friend request accepted!'));
 
@@ -181,6 +192,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           action: 'declining',
         ),
       );
+
+      // Mark as actioned first to hide buttons
+      await _repository.markAsActioned(event.notificationId);
 
       await _repository.declineFriendRequest(
         event.notificationId,
@@ -216,6 +230,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         event.fellowshipId,
       );
 
+      // Mark as actioned to hide buttons
+      await _repository.markAsActioned(event.notificationId);
+
       emit(FellowshipInviteAccepted(event.fellowshipId));
       emit(const NotificationActionSuccess('Fellowship invitation accepted!'));
 
@@ -242,6 +259,9 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
           action: 'declining',
         ),
       );
+
+      // Mark as actioned first to hide buttons
+      await _repository.markAsActioned(event.notificationId);
 
       await _repository.declineFellowshipInvite(
         event.notificationId,

@@ -6,6 +6,7 @@ import 'package:critchat/features/notifications/domain/entities/notification_ent
 abstract class NotificationsFirestoreDataSource {
   Future<List<NotificationModel>> getNotifications();
   Future<void> markAsRead(String notificationId);
+  Future<void> markAsActioned(String notificationId);
   Future<void> markAllAsRead();
   Future<void> deleteNotification(String notificationId);
   Future<void> createNotification(NotificationModel notification);
@@ -86,6 +87,19 @@ class NotificationsFirestoreDataSourceImpl
       });
     } catch (e) {
       throw Exception('Failed to mark notification as read: $e');
+    }
+  }
+
+  @override
+  Future<void> markAsActioned(String notificationId) async {
+    try {
+      await _firestore.collection('notifications').doc(notificationId).update({
+        'isActioned': true,
+        'isRead': true,
+        'readAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      throw Exception('Failed to mark notification as actioned: $e');
     }
   }
 
@@ -202,6 +216,7 @@ class NotificationsFirestoreDataSourceImpl
         title: 'Friend Request Accepted',
         message: '$accepterName accepted your friend request!',
         isRead: false,
+        isActioned: false,
         createdAt: DateTime.now(),
       );
 
