@@ -22,12 +22,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required SignOutUseCase signOut,
     required GetAuthStateChangesUseCase getAuthStateChanges,
     required CompleteOnboardingUseCase completeOnboarding,
+    required GamificationService gamificationService,
   }) : _getCurrentUser = getCurrentUser,
        _signIn = signIn,
        _signUp = signUp,
        _signOut = signOut,
        _getAuthStateChanges = getAuthStateChanges,
        _completeOnboarding = completeOnboarding,
+       _gamificationService = gamificationService,
        super(const AuthInitial()) {
     on<AuthStarted>(_onAuthStarted);
     on<AuthSignInRequested>(_onSignInRequested);
@@ -58,6 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SignOutUseCase _signOut;
   final GetAuthStateChangesUseCase _getAuthStateChanges;
   final CompleteOnboardingUseCase _completeOnboarding;
+  final GamificationService _gamificationService;
   StreamSubscription? _authStateSubscription;
 
   @override
@@ -125,8 +128,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
 
       try {
-        final gamificationService = sl<GamificationService>();
-        await gamificationService.initializeUserXp(user.id);
+        await _gamificationService.initializeUserXp(user.id);
         debugPrint('✅ Initialized XP for user: ${user.id}');
       } catch (e) {
         debugPrint('⚠️ Failed to initialize user XP: $e');
@@ -205,12 +207,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         experienceLevel: event.experienceLevel,
       );
 
-      final gamificationService = sl<GamificationService>();
       int totalXpAwarded = 0;
 
       // Award XP for Sign Up
       try {
-        await gamificationService.awardXp(XpRewardType.signUp);
+        await _gamificationService.awardXp(XpRewardType.signUp);
         totalXpAwarded += 10;
         debugPrint('✅ Awarded sign-up XP');
       } catch (e) {
@@ -219,7 +220,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       // Award XP for Completing Profile
       try {
-        await gamificationService.awardXp(XpRewardType.completeProfile);
+        await _gamificationService.awardXp(XpRewardType.completeProfile);
         totalXpAwarded += 25;
         debugPrint('✅ Awarded complete profile XP');
       } catch (e) {

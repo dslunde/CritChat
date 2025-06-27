@@ -135,6 +135,7 @@ void _initAuth() {
       signOut: sl(),
       getAuthStateChanges: sl(),
       completeOnboarding: sl(),
+      gamificationService: sl(),
     ),
   );
 }
