@@ -10,6 +10,9 @@ import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/auth/data/datasources/auth_firestore_datasource.dart';
 import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
+import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 
 class FellowshipInfoPage extends StatefulWidget {
   final FellowshipEntity fellowship;
@@ -411,6 +414,21 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
                     color: AppColors.textSecondary,
                   ),
                 ),
+                // Add XP Progress for member
+                const SizedBox(height: 4),
+                FutureBuilder<XpEntity?>(
+                  future: _getUserXp(userId),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData && snapshot.data != null) {
+                      return XpProgressWidget(
+                        xpEntity: snapshot.data!,
+                        compact: true,
+                        showLabel: true,
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
               ],
             ),
           ),
@@ -441,6 +459,16 @@ class _FellowshipInfoPageState extends State<FellowshipInfoPage> {
         ],
       ),
     );
+  }
+
+  Future<XpEntity?> _getUserXp(String userId) async {
+    try {
+      final gamificationService = sl<GamificationService>();
+      return await gamificationService.getUserXp(userId);
+    } catch (e) {
+      debugPrint('Error getting user XP for $userId: $e');
+      return null;
+    }
   }
 
   Color _getGameSystemColor() {

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/widgets/app_top_bar.dart';
-import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
@@ -17,154 +16,151 @@ class FellowshipsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => sl<FellowshipBloc>()..add(GetFellowships()),
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: Column(
-            children: [
-              // Top Bar - Primary color
-              const AppTopBar(backgroundColor: AppColors.primaryColor),
+    // Get the fellowship bloc from the context and trigger initial load
+    final fellowshipBloc = context.read<FellowshipBloc>();
+    fellowshipBloc.add(GetFellowships());
 
-              // Content Area
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  color: AppColors.backgroundColor,
-                  child: BlocConsumer<FellowshipBloc, FellowshipState>(
-                    listener: (context, state) {
-                      if (state is FellowshipError) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(state.message),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      } else if (state is FellowshipCreated) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Fellowship created successfully!'),
-                            backgroundColor: AppColors.primaryColor,
-                          ),
-                        );
-                      } else if (state is FriendInvited) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Friend invited successfully!'),
-                            backgroundColor: AppColors.primaryColor,
-                          ),
-                        );
-                      } else if (state is MemberRemoved) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Left fellowship successfully!'),
-                            backgroundColor: AppColors.primaryColor,
-                          ),
-                        );
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Top Bar - Primary color
+            const AppTopBar(backgroundColor: AppColors.primaryColor),
+
+            // Content Area
+            Expanded(
+              child: Container(
+                width: double.infinity,
+                color: AppColors.backgroundColor,
+                child: BlocConsumer<FellowshipBloc, FellowshipState>(
+                  listener: (context, state) {
+                    if (state is FellowshipError) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    } else if (state is FellowshipCreated) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Fellowship created successfully!'),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
+                    } else if (state is FriendInvited) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Friend invited successfully!'),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
+                    } else if (state is MemberRemoved) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Left fellowship successfully!'),
+                          backgroundColor: AppColors.primaryColor,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    if (state is FellowshipLoading) {
+                      return const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primaryColor,
+                        ),
+                      );
+                    }
+
+                    if (state is FellowshipLoaded) {
+                      if (state.fellowships.isEmpty) {
+                        return _buildEmptyState(context);
                       }
-                    },
-                    builder: (context, state) {
-                      if (state is FellowshipLoading) {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: AppColors.primaryColor,
-                          ),
-                        );
-                      }
 
-                      if (state is FellowshipLoaded) {
-                        if (state.fellowships.isEmpty) {
-                          return _buildEmptyState(context);
-                        }
-
-                        return Column(
-                          children: [
-                            // Header
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.group,
-                                    color: AppColors.primaryColor,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'My Fellowships',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.textPrimary,
-                                    ),
-                                  ),
-                                  const Spacer(),
-                                  OutlinedButton.icon(
-                                    onPressed: () =>
-                                        _navigateToJoinFellowships(context),
-                                    icon: const Icon(
-                                      Icons.add_circle_outline,
-                                      size: 16,
-                                    ),
-                                    label: const Text('Join'),
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: AppColors.primaryColor,
-                                      side: const BorderSide(
-                                        color: AppColors.primaryColor,
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 6,
-                                      ),
-                                      minimumSize: Size.zero,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Fellowship List
-                            Expanded(
-                              child: ListView.builder(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16.0,
+                      return Column(
+                        children: [
+                          // Header
+                          Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.group,
+                                  color: AppColors.primaryColor,
+                                  size: 28,
                                 ),
-                                itemCount: state.fellowships.length,
-                                itemBuilder: (context, index) {
-                                  final fellowship = state.fellowships[index];
-                                  return Padding(
-                                    padding: const EdgeInsets.only(
-                                      bottom: 16.0,
+                                const SizedBox(width: 12),
+                                const Text(
+                                  'My Fellowships',
+                                  style: TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                                const Spacer(),
+                                OutlinedButton.icon(
+                                  onPressed: () =>
+                                      _navigateToJoinFellowships(context),
+                                  icon: const Icon(
+                                    Icons.add_circle_outline,
+                                    size: 16,
+                                  ),
+                                  label: const Text('Join'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primaryColor,
+                                    side: const BorderSide(
+                                      color: AppColors.primaryColor,
                                     ),
-                                    child: FellowshipCard(
-                                      fellowship: fellowship,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
                                     ),
-                                  );
-                                },
-                              ),
+                                    minimumSize: Size.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        );
-                      }
+                          ),
 
-                      // Initial state or other states
-                      return _buildEmptyState(context);
-                    },
-                  ),
+                          // Fellowship List
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              itemCount: state.fellowships.length,
+                              itemBuilder: (context, index) {
+                                final fellowship = state.fellowships[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16.0),
+                                  child: FellowshipCard(fellowship: fellowship),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
+                    // Initial state or other states
+                    return _buildEmptyState(context);
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () => _navigateToCreateFellowship(context),
-          backgroundColor: AppColors.primaryColor,
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _navigateToCreateFellowship(context),
+        backgroundColor: AppColors.primaryColor,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
     );
   }
@@ -246,8 +242,8 @@ class FellowshipsPage extends StatelessWidget {
       MaterialPageRoute(
         builder: (newContext) => MultiBlocProvider(
           providers: [
-            BlocProvider(create: (context) => sl<FellowshipBloc>()),
-            BlocProvider(create: (context) => sl<AuthBloc>()),
+            BlocProvider.value(value: context.read<FellowshipBloc>()),
+            BlocProvider.value(value: context.read<AuthBloc>()),
           ],
           child: const CreateFellowshipPage(),
         ),

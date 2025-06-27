@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/notifications/notifications_page.dart';
 import 'package:critchat/features/profile/profile_page.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
+import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 
 class AppTopBar extends StatelessWidget {
   final Color? backgroundColor;
@@ -73,11 +77,12 @@ class AppTopBar extends StatelessWidget {
 
           // Search Bar
           Expanded(
+            flex: 3,
             child: GestureDetector(
               onTap: () => _onSearchTap(context),
               child: Container(
                 height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
@@ -86,20 +91,49 @@ class AppTopBar extends StatelessWidget {
                     width: 1,
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.white70, size: 20),
-                    SizedBox(width: 8),
-                    Text(
-                      'Search CritChat...',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                    const Icon(Icons.search, color: Colors.white70, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        MediaQuery.of(context).size.width > 350
+                            ? 'Search CritChat...'
+                            : 'Search...',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 16,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
           ),
-          const SizedBox(width: 16),
+
+          const SizedBox(width: 8),
+          // XP Progress Widget - constrained to avoid overflow
+          BlocBuilder<AuthBloc, AuthState>(
+            builder: (context, state) {
+              if (state is AuthAuthenticated) {
+                final gamificationService = sl<GamificationService>();
+                return StreamBuilder<XpEntity>(
+                  stream: gamificationService.getCurrentUserXpStream(),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasData) {
+                      return _buildMiniXpWidget(snapshot.data!);
+                    }
+                    return const SizedBox.shrink();
+                  },
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+
+          const SizedBox(width: 8),
 
           // Notifications Button
           GestureDetector(
@@ -119,6 +153,52 @@ class AppTopBar extends StatelessWidget {
                 Icons.notifications_outlined,
                 color: Colors.white,
                 size: 24,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiniXpWidget(XpEntity xpEntity) {
+    return Container(
+      width: 50, // Fixed width to prevent overflow
+      height: 24, // Fixed height
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            '${xpEntity.currentLevel}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 10,
+            ),
+          ),
+          const SizedBox(width: 3),
+          Expanded(
+            child: Container(
+              height: 2,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(1),
+              ),
+              child: FractionallySizedBox(
+                alignment: Alignment.centerLeft,
+                widthFactor: xpEntity.progressToNextLevel,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(1),
+                  ),
+                ),
               ),
             ),
           ),

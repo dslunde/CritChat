@@ -10,6 +10,9 @@ import 'package:critchat/features/fellowships/domain/usecases/remove_member_usec
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 
 class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   final GetFellowshipsUseCase getFellowshipsUseCase;
@@ -68,6 +71,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
         joinCode: event.joinCode,
       );
 
+      // Award XP for creating fellowship
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.createFellowship);
+        debugPrint('✅ Awarded fellowship creation XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award fellowship creation XP: $e');
+      }
+
       emit(FellowshipCreated(fellowship));
     } catch (e) {
       debugPrint('Error creating fellowship: $e');
@@ -87,6 +99,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for inviting friend
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardXp(XpRewardType.inviteFriend);
+          debugPrint('✅ Awarded friend invite XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award friend invite XP: $e');
+        }
+
         emit(FriendInvited());
         // Reload fellowships to show updated member count
         add(GetFellowships());
@@ -182,6 +203,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for joining fellowship
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardXp(XpRewardType.joinFellowship);
+          debugPrint('✅ Awarded fellowship join XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award fellowship join XP: $e');
+        }
+
         emit(const FellowshipJoined('Successfully joined fellowship!'));
         // Reload fellowships to show the newly joined fellowship
         add(GetFellowships());
@@ -242,6 +272,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for joining fellowship
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardXp(XpRewardType.joinFellowship);
+          debugPrint('✅ Awarded fellowship join XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award fellowship join XP: $e');
+        }
+
         emit(const FellowshipJoined('Successfully joined fellowship!'));
       } else {
         emit(const FellowshipError('Failed to join fellowship'));

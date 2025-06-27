@@ -9,6 +9,8 @@ import 'package:critchat/features/auth/domain/usecases/get_auth_state_changes_us
 import 'package:critchat/features/auth/domain/usecases/complete_onboarding_usecase.dart';
 import 'package:critchat/features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
 import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -121,6 +123,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         // Don't block authentication for this
       }
 
+      // Initialize user XP if not already initialized
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.initializeUserXp(user.id);
+        debugPrint('✅ Initialized XP for user: ${user.id}');
+      } catch (e) {
+        debugPrint('⚠️ Failed to initialize user XP: $e');
+        // Don't block authentication for this
+      }
+
       debugPrint('🔍 AuthStateChanged: Emitting AuthAuthenticated');
       emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
     } else {
@@ -156,6 +168,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('🔍 SignUp: Calling _signUp...');
       await _signUp(email: event.email, password: event.password);
       debugPrint('🔍 SignUp: _signUp completed successfully');
+
+      // Award XP for signing up
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.signUp);
+        debugPrint('✅ Awarded sign-up XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award sign-up XP: $e');
+      }
+
       // The auth state stream will handle the state change automatically
     } catch (e) {
       debugPrint('🚨 SignUp: ERROR - ${e.toString()}');
@@ -193,6 +215,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         preferredSystems: event.preferredSystems,
         experienceLevel: event.experienceLevel,
       );
+
+      // Award XP for completing profile
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.completeProfile);
+        debugPrint('✅ Awarded complete profile XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award complete profile XP: $e');
+      }
 
       emit(AuthAuthenticated(user: updatedUser, needsOnboarding: false));
     } catch (e) {
