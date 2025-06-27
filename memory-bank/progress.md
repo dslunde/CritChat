@@ -584,6 +584,32 @@ With the join fellowship system complete, focus on chat improvements:
 
 ## Current Session Achievements ✅
 
+### AuthBloc Dependency Injection & Test Fixes - COMPLETE ✅
+
+#### ✅ AuthBloc Architecture Refactoring
+- **Dependency Injection Fix**: Refactored AuthBloc to inject GamificationService as constructor dependency
+- **Service Locator Removal**: Eliminated direct `sl<GamificationService>()` usage in bloc methods
+- **Clean Architecture**: AuthBloc now follows proper dependency injection principles
+- **Test Compatibility**: All dependencies are now mockable for comprehensive testing
+
+#### ✅ Test Suite Fixes
+- **GamificationService Mocking**: Added MockGamificationService with proper setup
+- **Fallback Value Registration**: Added `registerFallbackValue(XpRewardType.signUp)` for enum testing
+- **Mock Behavior Setup**: Configured default mock behaviors for `initializeUserXp` and `awardXp`
+- **State Expectation Updates**: Updated test expectations to match `AuthOnboardingSuccess` state
+- **All Tests Passing**: 77/77 tests now pass without dependency injection errors
+
+#### ✅ Dependency Injection Container Updates
+- **AuthBloc Registration**: Updated DI container to provide GamificationService to AuthBloc
+- **Constructor Updates**: Modified AuthBloc factory to include gamificationService parameter
+- **Consistent Pattern**: Maintains consistent dependency injection pattern across all BLoCs
+
+#### ✅ Documentation & Knowledge Management
+- **AuthBloc Guide**: Created comprehensive `auth_bloc_guide.md` in memory bank
+- **Common Patterns**: Documented state flow patterns, testing strategies, and best practices
+- **Pitfall Prevention**: Detailed common issues and solutions for future development
+- **Testing Templates**: Provided reusable test setup patterns and mock configurations
+
 ### Join Fellowship Feature - COMPLETE ✅
 
 #### ✅ Complete Join Fellowship System Implementation
