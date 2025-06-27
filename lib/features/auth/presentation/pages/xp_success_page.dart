@@ -44,10 +44,10 @@ class _XpSuccessPageState extends State<XpSuccessPage>
 
     _controller.forward();
 
-    // Wait 3 seconds then trigger auth check to continue to onboarding
+    // Wait 3 seconds then continue to the main app
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        context.read<AuthBloc>().add(const AuthXpShown());
+        context.read<AuthBloc>().add(const AuthOnboardingSuccessShown());
       }
     });
   }
@@ -127,7 +127,7 @@ class _XpSuccessPageState extends State<XpSuccessPage>
               const FadeTransition(
                 opacity: AlwaysStoppedAnimation(1.0),
                 child: Text(
-                  'Let\'s set up your profile! ⚡',
+                  'Let the adventures begin! 🚀',
                   style: TextStyle(
                     fontSize: 16,
                     color: AppColors.textSecondary,
@@ -146,7 +146,7 @@ class _XpSuccessPageState extends State<XpSuccessPage>
               const SizedBox(height: 16),
 
               const Text(
-                'Preparing your profile setup...',
+                'Taking you into the app...',
                 style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),

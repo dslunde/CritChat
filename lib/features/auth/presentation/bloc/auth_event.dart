@@ -58,6 +58,10 @@ class AuthOnboardingCompleted extends AuthEvent {
   ];
 }
 
+class AuthOnboardingSuccessShown extends AuthEvent {
+  const AuthOnboardingSuccessShown();
+}
+
 class AuthStateChanged extends AuthEvent {
   const AuthStateChanged(this.user);
 
@@ -65,8 +69,4 @@ class AuthStateChanged extends AuthEvent {
 
   @override
   List<Object?> get props => [user];
-}
-
-class AuthXpShown extends AuthEvent {
-  const AuthXpShown();
 }

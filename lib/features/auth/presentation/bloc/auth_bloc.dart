@@ -35,7 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthOnboardingCompleted>(_onOnboardingCompleted);
     on<AuthStateChanged>(_onAuthStateChanged);
-    on<AuthXpShown>(_onXpShown);
+    on<AuthOnboardingSuccessShown>(_onOnboardingSuccessShown);
 
     // Listen to auth state changes - this is now the single source of truth
     _authStateSubscription = _getAuthStateChanges().listen(
@@ -43,7 +43,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         debugPrint(
           '🔍 Firebase Stream: User changed - ${user != null ? 'User exists' : 'No user'} (Current state: ${state.runtimeType})',
         );
-        // Use the dedicated event for auth state changes
         add(AuthStateChanged(user));
       },
       onError: (error) {
@@ -60,8 +59,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final GetAuthStateChangesUseCase _getAuthStateChanges;
   final CompleteOnboardingUseCase _completeOnboarding;
   StreamSubscription? _authStateSubscription;
-  bool _isSigningUp = false;
-  bool _isSigningOut = false;
 
   @override
   Future<void> close() {
@@ -73,7 +70,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStarted event,
     Emitter<AuthState> emit,
   ) async {
-    // Only emit loading if we're not already in a loading state
     if (state is! AuthLoading) {
       emit(const AuthLoading());
     }
@@ -107,13 +103,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) async {
-    // Don't override sign-out state
-    if (_isSigningOut && event.user == null) {
-      debugPrint('🔍 AuthStateChanged: Ignoring null user while signing out');
+    if (state is AuthSigningOut && event.user == null) {
+      debugPrint('🔍 AuthStateChanged: Ignoring null user during sign-out');
       return;
     }
 
-    // This is now the single source of truth for auth state changes
     final user = event.user;
 
     if (user != null) {
@@ -122,56 +116,29 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           user.experienceLevel == null ||
           user.preferredSystems.isEmpty;
 
-      // If user just signed up (needs onboarding) and we were in the sign-up flow
-      if (_isSigningUp && needsOnboarding) {
-        debugPrint(
-          '🔍 AuthStateChanged: Fresh sign-up detected, showing XP success',
-        );
-        _isSigningUp = false;
-
-        // Award XP for signing up
-        try {
-          final gamificationService = sl<GamificationService>();
-          await gamificationService.awardXp(XpRewardType.signUp);
-          debugPrint('✅ Awarded sign-up XP');
-        } catch (e) {
-          debugPrint('⚠️ Failed to award sign-up XP: $e');
-        }
-
-        emit(
-          const AuthSignUpSuccess(
-            xpAmount: 10,
-            message: 'Welcome to CritChat!',
-          ),
-        );
-        return;
-      }
-
-      // Sync user's fellowship memberships to Realtime Database for security rules
       try {
         final fellowshipDataSource = sl<FellowshipFirestoreDataSource>();
         await fellowshipDataSource.syncUserFellowshipMemberships(user.id);
         debugPrint('✅ Synced fellowship memberships for user: ${user.id}');
       } catch (e) {
         debugPrint('⚠️ Failed to sync fellowship memberships: $e');
-        // Don't block authentication for this
       }
 
-      // Initialize user XP if not already initialized
       try {
         final gamificationService = sl<GamificationService>();
         await gamificationService.initializeUserXp(user.id);
         debugPrint('✅ Initialized XP for user: ${user.id}');
       } catch (e) {
         debugPrint('⚠️ Failed to initialize user XP: $e');
-        // Don't block authentication for this
       }
 
       debugPrint('🔍 AuthStateChanged: Emitting AuthAuthenticated');
       emit(AuthAuthenticated(user: user, needsOnboarding: needsOnboarding));
     } else {
-      debugPrint('🔍 AuthStateChanged: Emitting AuthUnauthenticated');
-      emit(const AuthUnauthenticated());
+      if (state is! AuthSigningOut) {
+        debugPrint('🔍 AuthStateChanged: Emitting AuthUnauthenticated');
+        emit(const AuthUnauthenticated());
+      }
     }
   }
 
@@ -185,7 +152,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       debugPrint('🔍 SignIn: Calling _signIn...');
       await _signIn(email: event.email, password: event.password);
       debugPrint('🔍 SignIn: _signIn completed successfully');
-      // The auth state stream will handle the state change automatically
     } catch (e) {
       debugPrint('🚨 SignIn: ERROR - ${e.toString()}');
       emit(AuthError(message: e.toString()));
@@ -197,16 +163,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     debugPrint('🔍 SignUp: Starting sign-up process');
-    _isSigningUp = true;
     emit(const AuthLoading());
     try {
       debugPrint('🔍 SignUp: Calling _signUp...');
       await _signUp(email: event.email, password: event.password);
       debugPrint('🔍 SignUp: _signUp completed successfully');
-      // The auth state stream will detect the new user and handle XP/success state
     } catch (e) {
       debugPrint('🚨 SignUp: ERROR - ${e.toString()}');
-      _isSigningUp = false;
       emit(AuthError(message: e.toString()));
     }
   }
@@ -216,15 +179,9 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
-      _isSigningOut = true;
       emit(const AuthSigningOut());
       await _signOut();
-      // After sign-out completes, reset the flag and let auth stream handle the rest
-      Future.delayed(const Duration(seconds: 3), () {
-        _isSigningOut = false;
-      });
     } catch (e) {
-      _isSigningOut = false;
       emit(AuthError(message: e.toString()));
     }
   }
@@ -234,12 +191,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     if (state is! AuthAuthenticated) return;
-
     final currentState = state as AuthAuthenticated;
+
     emit(const AuthLoading());
 
     try {
-      final updatedUser = await _completeOnboarding(
+      // First, complete the onboarding process and update the user
+      await _completeOnboarding(
         userId: currentState.user.id,
         displayName: event.displayName,
         bio: event.bio,
@@ -247,46 +205,43 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         experienceLevel: event.experienceLevel,
       );
 
-      // Award XP for completing profile
+      final gamificationService = sl<GamificationService>();
+      int totalXpAwarded = 0;
+
+      // Award XP for Sign Up
       try {
-        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.signUp);
+        totalXpAwarded += 10;
+        debugPrint('✅ Awarded sign-up XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award sign-up XP: $e');
+      }
+
+      // Award XP for Completing Profile
+      try {
         await gamificationService.awardXp(XpRewardType.completeProfile);
+        totalXpAwarded += 25;
         debugPrint('✅ Awarded complete profile XP');
       } catch (e) {
         debugPrint('⚠️ Failed to award complete profile XP: $e');
       }
 
-      emit(AuthAuthenticated(user: updatedUser, needsOnboarding: false));
+      emit(
+        AuthOnboardingSuccess(
+          xpAmount: totalXpAwarded,
+          message: 'Your profile is all set!',
+        ),
+      );
     } catch (e) {
       emit(AuthError(message: e.toString()));
     }
   }
 
-  Future<void> _onXpShown(AuthXpShown event, Emitter<AuthState> emit) async {
-    debugPrint('🔍 XpShown: Transitioning from XP success to normal auth flow');
-    // Reset the signing up flag and proceed to normal auth flow
-    _isSigningUp = false;
-
-    try {
-      final currentUser = await _getCurrentUser();
-      if (currentUser != null) {
-        final needsOnboarding =
-            currentUser.displayName == null ||
-            currentUser.experienceLevel == null ||
-            currentUser.preferredSystems.isEmpty;
-
-        emit(
-          AuthAuthenticated(
-            user: currentUser,
-            needsOnboarding: needsOnboarding,
-          ),
-        );
-      } else {
-        emit(const AuthUnauthenticated());
-      }
-    } catch (e) {
-      debugPrint('🚨 XpShown: ERROR - ${e.toString()}');
-      emit(AuthError(message: e.toString()));
-    }
+  Future<void> _onOnboardingSuccessShown(
+    AuthOnboardingSuccessShown event,
+    Emitter<AuthState> emit,
+  ) async {
+    debugPrint('🔍 OnboardingSuccessShown: Transitioning to main app');
+    add(const AuthStarted());
   }
 }

@@ -34,8 +34,8 @@ class AuthSigningOut extends AuthState {
   const AuthSigningOut();
 }
 
-class AuthSignUpSuccess extends AuthState {
-  const AuthSignUpSuccess({required this.xpAmount, required this.message});
+class AuthOnboardingSuccess extends AuthState {
+  const AuthOnboardingSuccess({required this.xpAmount, required this.message});
 
   final int xpAmount;
   final String message;

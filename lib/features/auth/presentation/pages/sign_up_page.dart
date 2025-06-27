@@ -98,6 +98,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   backgroundColor: AppColors.errorColor,
                 ),
               );
+            } else if (state is AuthAuthenticated) {
+              // Pop the sign-up page on successful authentication
+              Navigator.of(context).pop();
             }
           },
           child: SingleChildScrollView(

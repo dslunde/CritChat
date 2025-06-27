@@ -67,7 +67,7 @@ class AuthWrapper extends StatelessWidget {
               child: const MainNavigation(),
             );
           }
-        } else if (state is AuthSignUpSuccess) {
+        } else if (state is AuthOnboardingSuccess) {
           return BlocProvider.value(
             value: context.read<AuthBloc>(),
             child: XpSuccessPage(
