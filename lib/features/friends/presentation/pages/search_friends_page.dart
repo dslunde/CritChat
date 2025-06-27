@@ -75,8 +75,8 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
     }
   }
 
-  void _sendFriendRequest(FriendEntity user) {
-    context.read<FriendsBloc>().add(AddFriend(user.id));
+  void _sendFriendRequest(FriendEntity user, BuildContext blocContext) {
+    blocContext.read<FriendsBloc>().add(AddFriend(user.id));
   }
 
   @override
@@ -190,7 +190,7 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
                 ),
 
                 // Results
-                Expanded(child: _buildSearchResults()),
+                Expanded(child: _buildSearchResults(context)),
               ],
             ),
           ),
@@ -199,7 +199,7 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
     );
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults(BuildContext blocContext) {
     if (_isSearching) {
       return const Center(
         child: Column(
@@ -377,7 +377,7 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
 
                 // Add Friend Button
                 ElevatedButton.icon(
-                  onPressed: () => _sendFriendRequest(user),
+                  onPressed: () => _sendFriendRequest(user, blocContext),
                   icon: const Icon(Icons.person_add, size: 18),
                   label: const Text('Add'),
                   style: ElevatedButton.styleFrom(
