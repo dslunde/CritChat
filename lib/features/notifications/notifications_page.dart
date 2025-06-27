@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'presentation/bloc/notifications_bloc.dart';
 import 'presentation/bloc/notifications_event.dart';
@@ -19,6 +21,12 @@ class NotificationsPage extends StatelessWidget {
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
+          // Debug button to create test notification
+          IconButton(
+            icon: const Icon(Icons.bug_report),
+            tooltip: 'Create test notification',
+            onPressed: () => _createTestNotification(context),
+          ),
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
               if (state is NotificationsLoaded && state.unreadCount > 0) {
@@ -162,6 +170,62 @@ class NotificationsPage extends StatelessWidget {
         },
       ),
     );
+  }
+
+  void _createTestNotification(BuildContext context) async {
+    try {
+      // Import the dependencies we need
+      final auth = FirebaseAuth.instance;
+      final database = FirebaseDatabase.instance;
+
+      final currentUser = auth.currentUser;
+      if (currentUser == null) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('User not authenticated')));
+        return;
+      }
+
+      // Create a test notification for the current user
+      final notificationId = database.ref('notifications').push().key!;
+      final testNotification = {
+        'userId': currentUser.uid,
+        'senderId': 'test_sender',
+        'type': 'systemMessage',
+        'title': 'Test Notification',
+        'message': 'This is a test notification created at ${DateTime.now()}',
+        'data': null,
+        'isRead': false,
+        'isActioned': false,
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+      };
+
+      print('🧪 Creating test notification:');
+      print('   ID: $notificationId');
+      print('   Path: notifications/${currentUser.uid}/$notificationId');
+      print('   Data: $testNotification');
+
+      await database
+          .ref('notifications/${currentUser.uid}/$notificationId')
+          .set(testNotification);
+
+      print('✅ Test notification created successfully');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Test notification created!'),
+          backgroundColor: AppColors.successColor,
+        ),
+      );
+    } catch (e) {
+      print('❌ Failed to create test notification: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to create test notification: $e'),
+          backgroundColor: AppColors.errorColor,
+        ),
+      );
+    }
   }
 }
 

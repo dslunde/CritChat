@@ -75,28 +75,50 @@ class NotificationsRealtimeDataSourceImpl implements NotificationsDataSource {
   Stream<List<NotificationModel>> watchNotifications() {
     final currentUserId = _currentUserId;
     if (currentUserId == null) {
+      debugPrint('🚫 No current user for notification watching');
       return Stream.value([]);
     }
 
-    return _database
-        .ref('notifications/$currentUserId')
-        .orderByChild('createdAt')
-        .onValue
-        .map((event) {
-          final data = event.snapshot.value as Map<dynamic, dynamic>?;
-          if (data == null) return <NotificationModel>[];
+    final path = 'notifications/$currentUserId';
+    debugPrint('👀 Starting to watch notifications at path: $path');
 
-          final List<NotificationModel> notifications = [];
-          data.forEach((key, value) {
-            if (value is Map<dynamic, dynamic>) {
-              notifications.add(NotificationModel.fromRealtimeJson(value, key));
-            }
-          });
+    return _database.ref(path).orderByChild('createdAt').onValue.map((event) {
+      debugPrint('📡 Received notification data event');
+      final data = event.snapshot.value as Map<dynamic, dynamic>?;
+      debugPrint('📡 Raw data: $data');
 
-          // Sort by creation date (newest first)
-          notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-          return notifications.take(50).toList();
-        });
+      if (data == null) {
+        debugPrint('📡 No notification data found');
+        return <NotificationModel>[];
+      }
+
+      debugPrint('📡 Processing ${data.length} notifications');
+      final List<NotificationModel> notifications = [];
+      data.forEach((key, value) {
+        debugPrint('📡 Processing notification $key: $value');
+        if (value is Map<dynamic, dynamic>) {
+          try {
+            final notification = NotificationModel.fromRealtimeJson(value, key);
+            notifications.add(notification);
+            debugPrint(
+              '✅ Successfully parsed notification: ${notification.title}',
+            );
+          } catch (e) {
+            debugPrint('❌ Failed to parse notification $key: $e');
+          }
+        } else {
+          debugPrint(
+            '⚠️ Invalid notification data type for $key: ${value.runtimeType}',
+          );
+        }
+      });
+
+      // Sort by creation date (newest first)
+      notifications.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      final result = notifications.take(50).toList();
+      debugPrint('📡 Returning ${result.length} notifications');
+      return result;
+    });
   }
 
   @override
@@ -183,11 +205,27 @@ class NotificationsRealtimeDataSourceImpl implements NotificationsDataSource {
   @override
   Future<void> createNotification(NotificationModel notification) async {
     try {
-      await _database
-          .ref('notifications/${notification.userId}/${notification.id}')
-          .set(notification.toRealtimeJson());
+      final path = 'notifications/${notification.userId}/${notification.id}';
+      final data = notification.toRealtimeJson();
 
-      debugPrint('✅ Created notification in Realtime DB: ${notification.id}');
+      debugPrint('🔔 Creating notification:');
+      debugPrint('   Path: $path');
+      debugPrint('   Data: $data');
+      debugPrint('   Current User: ${_currentUserId}');
+      debugPrint('   Target User: ${notification.userId}');
+
+      await _database.ref(path).set(data);
+
+      debugPrint(
+        '✅ Successfully created notification in Realtime DB: ${notification.id}',
+      );
+
+      // Verify it was created
+      final verifySnapshot = await _database.ref(path).get();
+      debugPrint('🔍 Verification - exists: ${verifySnapshot.exists}');
+      if (verifySnapshot.exists) {
+        debugPrint('🔍 Verification - data: ${verifySnapshot.value}');
+      }
     } catch (e) {
       debugPrint('❌ Failed to create notification: $e');
       throw Exception('Failed to create notification: $e');

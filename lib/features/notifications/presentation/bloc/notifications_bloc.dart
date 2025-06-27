@@ -19,8 +19,12 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }) : _repository = repository,
        _indicatorService = indicatorService,
        super(const NotificationsInitial()) {
+    debugPrint('🔔 NotificationsBloc created and initialized');
     on<LoadNotifications>(_onLoadNotifications);
-    on<WatchNotifications>(_onWatchNotifications);
+    on<WatchNotifications>((event, emit) async {
+      debugPrint('🔔 WatchNotifications event received');
+      await _onWatchNotifications(event, emit);
+    });
     on<MarkAsRead>(_onMarkAsRead);
     on<MarkAllAsRead>(_onMarkAllAsRead);
     on<DeleteNotification>(_onDeleteNotification);
@@ -70,32 +74,47 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     Emitter<NotificationsState> emit,
   ) async {
     try {
+      debugPrint('🔔 Starting to watch notifications...');
       await _notificationsSubscription?.cancel();
 
       await emit.forEach<List<NotificationEntity>>(
         _repository.watchNotifications(),
         onData: (notifications) {
-          // Use add() to trigger a separate load event for async operations
-          add(const LoadNotifications());
+          debugPrint('🔔 BLoC received ${notifications.length} notifications');
+          for (final notification in notifications) {
+            debugPrint('   - ${notification.title}: ${notification.message}');
+          }
+
+          // Update indicator service immediately
+          final unreadCount = notifications.where((n) => !n.isRead).length;
+          debugPrint(
+            '🔔 Updating indicator service with $unreadCount unread notifications',
+          );
+          _indicatorService.updateUnreadNotifications(unreadCount);
 
           if (notifications.isEmpty) {
+            debugPrint('🔔 Emitting NotificationsEmpty');
             return const NotificationsEmpty();
           } else {
-            // We'll get the exact count in LoadNotifications handler
+            debugPrint(
+              '🔔 Emitting NotificationsLoaded with ${notifications.length} notifications',
+            );
             return NotificationsLoaded(
               notifications: notifications,
-              unreadCount: notifications.where((n) => !n.isRead).length,
+              unreadCount: unreadCount,
             );
           }
         },
         onError: (error, stackTrace) {
+          debugPrint('🚨 BLoC watch error: $error');
+          debugPrint('🚨 Stack trace: $stackTrace');
           return NotificationsError(
             'Real-time notifications error: ${error.toString()}',
           );
         },
       );
     } catch (e) {
-      debugPrint('Error watching notifications: $e');
+      debugPrint('🚨 Error watching notifications: $e');
       emit(
         NotificationsError('Failed to watch notifications: ${e.toString()}'),
       );
