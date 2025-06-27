@@ -7,9 +7,9 @@ import 'package:critchat/core/gamification/gamification_service.dart';
 import 'package:critchat/core/services/notification_indicator_service.dart';
 import 'package:critchat/core/widgets/notification_indicator.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:critchat/features/camera/presentation/pages/camera_page.dart';
 import 'package:critchat/features/lfg/lfg_page.dart';
 import 'package:critchat/features/friends/friends_page.dart';
-import 'package:critchat/features/home/home_page.dart';
 import 'package:critchat/features/fellowships/presentation/pages/fellowships_page.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/profile/for_me_page.dart';
@@ -83,7 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
           final List<Widget> pages = [
             BlocProvider.value(value: authBloc, child: const LfgPage()),
             BlocProvider.value(value: authBloc, child: const FriendsPage()),
-            BlocProvider.value(value: authBloc, child: const HomePage()),
+            const CameraPage(),
             const FellowshipsPage(),
             BlocProvider.value(value: authBloc, child: const ForMePage()),
           ];

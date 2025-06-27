@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>CritChat needs access to your camera to share photos and videos of your epic moments.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CritChat needs access to your microphone to record videos with sound.</string>
 </dict>
 </plist>
