@@ -85,7 +85,7 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
 
       if (fellowshipDoc.exists) {
         final data = fellowshipDoc.data();
-        final members = List<String>.from(data?['members'] ?? []);
+        final members = List<String>.from(data?['memberIds'] ?? []);
         // Remove creator from recipients
         members.remove(creatorId);
         return members;
@@ -411,6 +411,53 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
       await _database
           .ref('polls/$fellowshipId/$pollId/status')
           .set(PollStatus.closed.name);
+
+      // Create notifications for fellowship members about the poll closure
+      try {
+        final creatorName = await _getUserDisplayName(currentUser.uid);
+        final members = await _getFellowshipMembers(
+          fellowshipId.substring(11), // Remove "fellowship_" prefix
+          currentUser.uid,
+        );
+
+        // Get fellowship name
+        final fellowshipDoc = await _firestore
+            .collection('fellowships')
+            .doc(fellowshipId.substring(11))
+            .get();
+
+        final fellowshipName = fellowshipDoc.data()?['name'] ?? 'Fellowship';
+        final pollTitle = pollData['title'] ?? 'Poll';
+
+        // Create notification for each member
+        for (final memberId in members) {
+          final notification = NotificationEntity(
+            id: _database.ref('notifications').push().key!,
+            userId: memberId,
+            senderId: currentUser.uid,
+            type: NotificationType.fellowshipMessage,
+            title: 'Poll Closed',
+            message:
+                '$creatorName closed the poll "$pollTitle" in $fellowshipName',
+            data: {
+              'pollId': pollId,
+              'fellowshipId': fellowshipId.substring(11),
+              'fellowshipName': fellowshipName,
+              'contentType': 'pollClosed',
+            },
+            isRead: false,
+            isActioned: false,
+            createdAt: DateTime.now(),
+          );
+
+          await _notificationsRepository.createNotification(notification);
+        }
+        debugPrint(
+          '✅ Created poll closure notifications for ${members.length} members',
+        );
+      } catch (e) {
+        debugPrint('⚠️ Failed to create poll closure notifications: $e');
+      }
     } catch (e) {
       throw Exception('Failed to close poll: $e');
     }

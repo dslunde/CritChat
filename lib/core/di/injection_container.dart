@@ -224,9 +224,7 @@ void _initNotifications() {
 
   // Services
   sl.registerLazySingleton(
-    () =>
-        NotificationIndicatorService(notificationsRepository: sl())
-          ..initialize(),
+    () => NotificationIndicatorService(notificationsRepository: sl()),
   );
 
   // BLoC

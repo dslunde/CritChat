@@ -123,7 +123,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
 
       if (fellowshipDoc.exists) {
         final data = fellowshipDoc.data();
-        final members = List<String>.from(data?['members'] ?? []);
+        final members = List<String>.from(data?['memberIds'] ?? []);
         // Remove sender from recipients
         members.remove(senderId);
         return members;

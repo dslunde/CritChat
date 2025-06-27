@@ -77,31 +77,63 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       debugPrint('🔔 Starting to watch notifications...');
       await _notificationsSubscription?.cancel();
 
+      // Initialize the indicator service now that auth is ready
+      debugPrint('🔔 Initializing notification indicator service...');
+      await _indicatorService.initialize();
+      debugPrint('🔔 Notification indicator service initialized');
+
       await emit.forEach<List<NotificationEntity>>(
         _repository.watchNotifications(),
         onData: (notifications) {
           debugPrint('🔔 BLoC received ${notifications.length} notifications');
+
+          // --- Categorization Logic ---
+          int totalUnread = 0;
+          int friendUnread = 0;
+          int fellowshipUnread = 0;
+
           for (final notification in notifications) {
-            debugPrint('   - ${notification.title}: ${notification.message}');
+            if (!notification.isRead) {
+              totalUnread++;
+              switch (notification.type) {
+                case NotificationType.directMessage:
+                case NotificationType.friendRequest:
+                case NotificationType.friendRequestAccepted:
+                  friendUnread++;
+                  break;
+                case NotificationType.fellowshipMessage:
+                case NotificationType.fellowshipInvite:
+                case NotificationType.fellowshipJoined:
+                case NotificationType.fellowshipCreated:
+                  fellowshipUnread++;
+                  break;
+                default:
+                  // Handles system messages and any future types
+                  break;
+              }
+            }
           }
 
-          // Update indicator service immediately
-          final unreadCount = notifications.where((n) => !n.isRead).length;
           debugPrint(
-            '🔔 Updating indicator service with $unreadCount unread notifications',
+            '📊 Categorized Unread Counts: Total=$totalUnread, Friends=$friendUnread, Fellowships=$fellowshipUnread',
           );
-          _indicatorService.updateUnreadNotifications(unreadCount);
+
+          // Update all relevant indicator service streams
+          _indicatorService.updateUnreadNotifications(totalUnread);
+          _indicatorService.updateUnreadFriendMessages(friendUnread);
+          _indicatorService.updateUnreadFellowshipMessages(fellowshipUnread);
+          // --- End Categorization Logic ---
 
           if (notifications.isEmpty) {
             debugPrint('🔔 Emitting NotificationsEmpty');
             return const NotificationsEmpty();
           } else {
             debugPrint(
-              '🔔 Emitting NotificationsLoaded with ${notifications.length} notifications',
+              '🔔 Emitting NotificationsLoaded with ${notifications.length} notifications and $totalUnread unread',
             );
             return NotificationsLoaded(
               notifications: notifications,
-              unreadCount: unreadCount,
+              unreadCount: totalUnread,
             );
           }
         },
