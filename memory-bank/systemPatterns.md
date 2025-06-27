@@ -79,6 +79,7 @@ Firestore is the primary database for structured, persistent data.
   - Metadata: data object for additional context, timestamps
   - Types: friendRequest, friendRequestAccepted, fellowshipInvite, fellowshipJoined, fellowshipMessage, directMessage, fellowshipCreated, systemMessage
   - Real-time streaming with Firestore snapshots
+  - **See**: `memory-bank/notifications.md` for a full breakdown of the implementation.
 
 - **`posts`**: Holds media and text updates linked to a specific group. These are persistent posts, unlike stories.
 - **`stories`**: Manages ephemeral content that expires after 24 hours. Each document is linked to a group.
