@@ -13,6 +13,8 @@ import 'package:critchat/features/auth/domain/usecases/complete_onboarding_useca
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_event.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 
 // Mock classes
 class MockGetCurrentUserUseCase extends Mock implements GetCurrentUserUseCase {}
@@ -29,6 +31,8 @@ class MockGetAuthStateChangesUseCase extends Mock
 class MockCompleteOnboardingUseCase extends Mock
     implements CompleteOnboardingUseCase {}
 
+class MockGamificationService extends Mock implements GamificationService {}
+
 void main() {
   late MockGetCurrentUserUseCase mockGetCurrentUserUseCase;
   late MockSignInUseCase mockSignInUseCase;
@@ -36,7 +40,12 @@ void main() {
   late MockSignOutUseCase mockSignOutUseCase;
   late MockGetAuthStateChangesUseCase mockGetAuthStateChangesUseCase;
   late MockCompleteOnboardingUseCase mockCompleteOnboardingUseCase;
+  late MockGamificationService mockGamificationService;
   late StreamController<UserEntity?> authStateController;
+
+  setUpAll(() {
+    registerFallbackValue(XpRewardType.signUp);
+  });
 
   const testUser = UserEntity(
     id: 'test-id',
@@ -68,6 +77,7 @@ void main() {
       signOut: mockSignOutUseCase,
       getAuthStateChanges: mockGetAuthStateChangesUseCase,
       completeOnboarding: mockCompleteOnboardingUseCase,
+      gamificationService: mockGamificationService,
     );
   }
 
@@ -78,11 +88,18 @@ void main() {
     mockSignOutUseCase = MockSignOutUseCase();
     mockGetAuthStateChangesUseCase = MockGetAuthStateChangesUseCase();
     mockCompleteOnboardingUseCase = MockCompleteOnboardingUseCase();
+    mockGamificationService = MockGamificationService();
     authStateController = StreamController<UserEntity?>.broadcast();
 
     when(
       () => mockGetAuthStateChangesUseCase(),
     ).thenAnswer((_) => authStateController.stream);
+
+    // Setup default mock behavior for gamification service
+    when(
+      () => mockGamificationService.initializeUserXp(any()),
+    ).thenAnswer((_) async => null);
+    when(() => mockGamificationService.awardXp(any())).thenAnswer((_) async {});
   });
 
   tearDown(() {
@@ -349,6 +366,12 @@ void main() {
               experienceLevel: any(named: 'experienceLevel'),
             ),
           ).thenAnswer((_) async => updatedUser);
+
+          // Mock the gamification service calls
+          when(
+            () => mockGamificationService.awardXp(any()),
+          ).thenAnswer((_) async {});
+
           return createAuthBloc();
         },
         seed: () => const AuthAuthenticated(
@@ -365,7 +388,10 @@ void main() {
         ),
         expect: () => [
           const AuthLoading(),
-          const AuthAuthenticated(user: updatedUser, needsOnboarding: false),
+          const AuthOnboardingSuccess(
+            xpAmount: 35,
+            message: 'Your profile is all set!',
+          ),
         ],
         verify: (_) {
           verify(

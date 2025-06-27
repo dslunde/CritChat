@@ -19,7 +19,6 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
   final GamificationRepository _repository;
 
   StreamSubscription<XpEntity>? _xpStreamSubscription;
-  XpEntity? _previousXpState;
 
   GamificationBloc({
     required GetUserXpUseCase getUserXpUseCase,
@@ -67,7 +66,6 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
     try {
       // Store previous state to check for level up
       final previousXp = await _getUserXpUseCase(event.userId);
-      _previousXpState = previousXp;
 
       final newXpEntity = await _awardXpUseCase(
         event.userId,
@@ -209,7 +207,6 @@ class GamificationBloc extends Bloc<GamificationEvent, GamificationState> {
     try {
       // Store previous state to check for level up
       final previousXp = await _getUserXpUseCase(event.userId);
-      _previousXpState = previousXp;
 
       final newXpEntity = await _repository.batchAwardXp(
         event.userId,

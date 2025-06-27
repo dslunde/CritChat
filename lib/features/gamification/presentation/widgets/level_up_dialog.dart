@@ -72,7 +72,7 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                   border: Border.all(color: AppColors.primaryColor, width: 2),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryColor.withOpacity(0.3),
+                      color: AppColors.primaryColor.withValues(alpha: 0.3),
                       blurRadius: 20,
                       spreadRadius: 2,
                     ),
@@ -90,7 +90,9 @@ class _LevelUpDialogState extends State<LevelUpDialog>
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primaryColor.withOpacity(0.3),
+                            color: AppColors.primaryColor.withValues(
+                              alpha: 0.3,
+                            ),
                             blurRadius: 15,
                             spreadRadius: 2,
                           ),
@@ -209,24 +211,6 @@ class _LevelUpDialogState extends State<LevelUpDialog>
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
-      ),
-    );
-  }
-
-  /// Show level up dialog
-  static void show(
-    BuildContext context, {
-    required XpEntity xpEntity,
-    required int previousLevel,
-    required int xpGained,
-  }) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => LevelUpDialog(
-        xpEntity: xpEntity,
-        previousLevel: previousLevel,
-        xpGained: xpGained,
       ),
     );
   }

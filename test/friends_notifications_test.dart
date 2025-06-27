@@ -7,6 +7,8 @@ import 'package:mocktail/mocktail.dart';
 
 import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
+import 'package:critchat/features/friends/domain/usecases/add_friend_usecase.dart';
+import 'package:critchat/features/friends/domain/usecases/remove_friend_usecase.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_state.dart';
@@ -19,6 +21,10 @@ import 'package:critchat/features/notifications/presentation/bloc/notifications_
 
 // Mock classes
 class MockGetFriendsUseCase extends Mock implements GetFriendsUseCase {}
+
+class MockAddFriendUseCase extends Mock implements AddFriendUseCase {}
+
+class MockRemoveFriendUseCase extends Mock implements RemoveFriendUseCase {}
 
 class MockNotificationsRepository extends Mock
     implements NotificationsRepository {}
@@ -83,7 +89,11 @@ void main() {
       mockGetFriendsUseCase = MockGetFriendsUseCase();
       mockNotificationsRepository = MockNotificationsRepository();
 
-      friendsBloc = FriendsBloc(getFriendsUseCase: mockGetFriendsUseCase);
+      friendsBloc = FriendsBloc(
+        getFriendsUseCase: mockGetFriendsUseCase,
+        addFriendUseCase: MockAddFriendUseCase(),
+        removeFriendUseCase: MockRemoveFriendUseCase(),
+      );
       notificationsBloc = NotificationsBloc(
         repository: mockNotificationsRepository,
       );

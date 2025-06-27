@@ -8,7 +8,6 @@ import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/notifications/notifications_page.dart';
 import 'package:critchat/features/profile/profile_page.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
-import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 
 class AppTopBar extends StatelessWidget {
   final Color? backgroundColor;

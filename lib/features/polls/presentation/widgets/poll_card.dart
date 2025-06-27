@@ -478,7 +478,7 @@ class _PollCardState extends State<PollCard>
               ],
             ),
           );
-        }).toList(),
+        }),
       ],
     );
   }

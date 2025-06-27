@@ -69,25 +69,48 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final currentUser = _auth.currentUser;
       if (currentUser == null) return [];
 
-      // Search by display name (case insensitive)
-      final querySnapshot = await _firestore
+      // Get current user's friends list to exclude them from search results
+      final currentUserDoc = await _firestore
           .collection('users')
-          .where('displayName', isGreaterThanOrEqualTo: query)
-          .where('displayName', isLessThan: '${query}z')
-          .limit(20)
+          .doc(currentUser.uid)
           .get();
 
+      final currentUserFriends = <String>{};
+      if (currentUserDoc.exists) {
+        final userData = currentUserDoc.data()!;
+        final friendIds = List<String>.from(userData['friends'] ?? []);
+        currentUserFriends.addAll(friendIds);
+      }
+
+      // Get all users and filter client-side for case insensitive search
+      // This approach works better than trying to do case insensitive queries in Firestore
+      final querySnapshot = await _firestore
+          .collection('users')
+          .where('displayName', isNotEqualTo: null)
+          .limit(100) // Get a larger batch to filter from
+          .get();
+
+      final lowerQuery = query.toLowerCase();
       final List<FriendModel> users = [];
+
       for (final doc in querySnapshot.docs) {
-        // Don't include current user in search results
-        if (doc.id != currentUser.uid) {
-          final userModel = UserModel.fromJson(doc.data(), doc.id);
-          final friendModel = FriendModel.fromUserModel(userModel);
-          users.add(friendModel);
+        // Don't include current user or existing friends in search results
+        if (doc.id != currentUser.uid && !currentUserFriends.contains(doc.id)) {
+          final data = doc.data();
+          final displayName = data['displayName'] as String?;
+
+          // Case insensitive search
+          if (displayName != null &&
+              displayName.toLowerCase().contains(lowerQuery)) {
+            final userModel = UserModel.fromJson(data, doc.id);
+            final friendModel = FriendModel.fromUserModel(userModel);
+            users.add(friendModel);
+          }
         }
       }
 
-      return users;
+      // Limit results to 20 after filtering
+      return users.take(20).toList();
     } catch (e) {
       throw Exception('Failed to search users: $e');
     }

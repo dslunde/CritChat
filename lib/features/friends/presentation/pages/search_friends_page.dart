@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
 import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_state.dart';
 
 class SearchFriendsPage extends StatefulWidget {
   const SearchFriendsPage({super.key});
@@ -71,122 +75,131 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
     }
   }
 
-  void _sendFriendRequest(FriendEntity user) async {
-    try {
-      final friendsRepo = sl<FriendsRepository>();
-      await friendsRepo.addFriend(user.id);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Friend request sent to ${user.displayName}!'),
-            backgroundColor: AppColors.successColor,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to send friend request: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
+  void _sendFriendRequest(FriendEntity user, BuildContext blocContext) {
+    blocContext.read<FriendsBloc>().add(AddFriend(user.id));
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('Find Friends'),
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(
-              color: AppColors.surfaceColor,
-              border: Border(bottom: BorderSide(color: AppColors.dividerColor)),
+    return BlocProvider(
+      create: (context) => sl<FriendsBloc>(),
+      child: Builder(
+        builder: (context) => BlocListener<FriendsBloc, FriendsState>(
+          listener: (context, state) {
+            if (state is FriendRequestSent) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Friend request sent!'),
+                  backgroundColor: AppColors.successColor,
+                ),
+              );
+            } else if (state is FriendsError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.errorColor,
+                ),
+              );
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.backgroundColor,
+            appBar: AppBar(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              iconTheme: const IconThemeData(color: Colors.white),
+              title: const Text('Find Friends'),
+              elevation: 0,
             ),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              decoration: InputDecoration(
-                hintText: 'Search for friends by name...',
-                hintStyle: const TextStyle(color: AppColors.textHint),
-                prefixIcon: const Icon(
-                  Icons.search,
-                  color: AppColors.primaryColor,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.clear,
-                          color: AppColors.textSecondary,
+            body: Column(
+              children: [
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceColor,
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.dividerColor),
+                    ),
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    decoration: InputDecoration(
+                      hintText: 'Search for friends by name...',
+                      hintStyle: const TextStyle(color: AppColors.textHint),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.primaryColor,
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.clear,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                _performSearch('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.dividerColor,
                         ),
-                        onPressed: () {
-                          _searchController.clear();
-                          _performSearch('');
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.dividerColor),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: AppColors.dividerColor),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: AppColors.primaryColor,
-                    width: 2,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.dividerColor,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.backgroundColor,
+                    ),
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    onChanged: (value) {
+                      setState(() {}); // Refresh to show/hide clear button
+                      if (value.trim().isNotEmpty) {
+                        // Debounce search
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          if (_searchController.text.trim() == value.trim()) {
+                            _performSearch(value);
+                          }
+                        });
+                      } else {
+                        _performSearch('');
+                      }
+                    },
+                    onSubmitted: _performSearch,
+                    textInputAction: TextInputAction.search,
                   ),
                 ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                filled: true,
-                fillColor: AppColors.backgroundColor,
-              ),
-              style: const TextStyle(color: AppColors.textPrimary),
-              onChanged: (value) {
-                setState(() {}); // Refresh to show/hide clear button
-                if (value.trim().isNotEmpty) {
-                  // Debounce search
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    if (_searchController.text.trim() == value.trim()) {
-                      _performSearch(value);
-                    }
-                  });
-                } else {
-                  _performSearch('');
-                }
-              },
-              onSubmitted: _performSearch,
-              textInputAction: TextInputAction.search,
+
+                // Results
+                Expanded(child: _buildSearchResults(context)),
+              ],
             ),
           ),
-
-          // Results
-          Expanded(child: _buildSearchResults()),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSearchResults() {
+  Widget _buildSearchResults(BuildContext blocContext) {
     if (_isSearching) {
       return const Center(
         child: Column(
@@ -364,7 +377,7 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
 
                 // Add Friend Button
                 ElevatedButton.icon(
-                  onPressed: () => _sendFriendRequest(user),
+                  onPressed: () => _sendFriendRequest(user, blocContext),
                   icon: const Icon(Icons.person_add, size: 18),
                   label: const Text('Add'),
                   style: ElevatedButton.styleFrom(

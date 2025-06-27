@@ -34,6 +34,16 @@ class AuthSigningOut extends AuthState {
   const AuthSigningOut();
 }
 
+class AuthOnboardingSuccess extends AuthState {
+  const AuthOnboardingSuccess({required this.xpAmount, required this.message});
+
+  final int xpAmount;
+  final String message;
+
+  @override
+  List<Object?> get props => [xpAmount, message];
+}
+
 class AuthError extends AuthState {
   const AuthError({required this.message});
 

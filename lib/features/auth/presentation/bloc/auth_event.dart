@@ -58,6 +58,10 @@ class AuthOnboardingCompleted extends AuthEvent {
   ];
 }
 
+class AuthOnboardingSuccessShown extends AuthEvent {
+  const AuthOnboardingSuccessShown();
+}
+
 class AuthStateChanged extends AuthEvent {
   const AuthStateChanged(this.user);
 

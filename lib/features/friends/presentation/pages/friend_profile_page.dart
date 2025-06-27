@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
+import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/friends/domain/entities/friend_entity.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_event.dart';
+import 'package:critchat/features/friends/presentation/bloc/friends_state.dart';
 import 'chat_page.dart';
 
 class FriendProfilePage extends StatelessWidget {
@@ -10,200 +15,275 @@ class FriendProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
-        foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text(friend.displayName),
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Profile Header
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(24),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryColor,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
+    return BlocProvider(
+      create: (context) => sl<FriendsBloc>(),
+      child: BlocListener<FriendsBloc, FriendsState>(
+        listener: (context, state) {
+          if (state is FriendsLoaded) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Friend removed successfully'),
+                backgroundColor: AppColors.successColor,
               ),
-              child: Column(
-                children: [
-                  // Profile Picture
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: friend.isOnline
-                            ? AppColors.successColor
-                            : Colors.white70,
-                        width: 3,
-                      ),
-                    ),
-                    child: friend.photoUrl != null
-                        ? ClipOval(
-                            child: Image.network(
-                              friend.photoUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(
-                                    Icons.person,
-                                    color: Colors.white,
-                                    size: 48,
-                                  ),
-                            ),
-                          )
-                        : const Icon(
-                            Icons.person,
-                            color: Colors.white,
-                            size: 48,
-                          ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Name and Status
-                  Text(
-                    friend.displayName,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+            );
+            Navigator.of(context).pop();
+          } else if (state is FriendsError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: AppColors.errorColor,
+              ),
+            );
+          }
+        },
+        child: Scaffold(
+          backgroundColor: AppColors.backgroundColor,
+          appBar: AppBar(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: Text(friend.displayName),
+            elevation: 0,
+          ),
+          body: SingleChildScrollView(
+            child: Column(
+              children: [
+                // Profile Header
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(24),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryColor,
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(24),
+                      bottomRight: Radius.circular(24),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                  child: Column(
                     children: [
+                      // Profile Picture
                       Container(
-                        width: 10,
-                        height: 10,
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          color: friend.isOnline
-                              ? AppColors.successColor
-                              : Colors.white70,
+                          color: Colors.white.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
+                          border: Border.all(
+                            color: friend.isOnline
+                                ? AppColors.successColor
+                                : Colors.white70,
+                            width: 3,
+                          ),
+                        ),
+                        child: friend.photoUrl != null
+                            ? ClipOval(
+                                child: Image.network(
+                                  friend.photoUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                        size: 48,
+                                      ),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.person,
+                                color: Colors.white,
+                                size: 48,
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Name and Status
+                      Text(
+                        friend.displayName,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      Text(
-                        friend.isOnline ? 'Online' : _getLastSeenText(),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          color: Colors.white70,
-                        ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: BoxDecoration(
+                              color: friend.isOnline
+                                  ? AppColors.successColor
+                                  : Colors.white70,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            friend.isOnline ? 'Online' : _getLastSeenText(),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
-            ),
+                ),
 
-            const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-            // Profile Details
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Bio Section
-                  if (friend.bio != null && friend.bio!.isNotEmpty) ...[
-                    _buildSectionTitle('About'),
-                    _buildInfoCard(
-                      icon: Icons.person_outline,
-                      content: friend.bio!,
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Experience Level
-                  if (friend.experienceLevel != null) ...[
-                    _buildSectionTitle('Experience Level'),
-                    _buildInfoCard(
-                      icon: Icons.star_outline,
-                      content: _formatExperienceLevel(friend.experienceLevel!),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // Preferred Systems
-                  if (friend.preferredSystems.isNotEmpty) ...[
-                    _buildSectionTitle('Preferred TTRPG Systems'),
-                    _buildInfoCard(
-                      icon: Icons.games_outlined,
-                      content: friend.preferredSystems.join(', '),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-
-                  // XP Stats
-                  _buildSectionTitle('Adventure Stats'),
-                  _buildInfoCard(
-                    icon: Icons.emoji_events_outlined,
-                    content: '${friend.totalXp} Total XP',
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // Action Buttons
-                  Row(
+                // Profile Details
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
+                      // Bio Section
+                      if (friend.bio != null && friend.bio!.isNotEmpty) ...[
+                        _buildSectionTitle('About'),
+                        _buildInfoCard(
+                          icon: Icons.person_outline,
+                          content: friend.bio!,
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Experience Level
+                      if (friend.experienceLevel != null) ...[
+                        _buildSectionTitle('Experience Level'),
+                        _buildInfoCard(
+                          icon: Icons.star_outline,
+                          content: _formatExperienceLevel(
+                            friend.experienceLevel!,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // Preferred Systems
+                      if (friend.preferredSystems.isNotEmpty) ...[
+                        _buildSectionTitle('Preferred TTRPG Systems'),
+                        _buildInfoCard(
+                          icon: Icons.games_outlined,
+                          content: friend.preferredSystems.join(', '),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+
+                      // XP Stats
+                      _buildSectionTitle('Adventure Stats'),
+                      _buildInfoCard(
+                        icon: Icons.emoji_events_outlined,
+                        content: '${friend.totalXp} Total XP',
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () => _navigateToChat(context),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.chat_bubble_outline),
+                              label: const Text('Message'),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Snap feature coming soon!'),
+                                    backgroundColor: AppColors.primaryColor,
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.secondaryColor,
+                                foregroundColor: AppColors.primaryColor,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              icon: const Icon(Icons.camera_alt_outlined),
+                              label: const Text('Snap'),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      // Remove Friend Button
+                      SizedBox(
+                        width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () => _navigateToChat(context),
+                          onPressed: () => _showRemoveFriendDialog(context),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryColor,
+                            backgroundColor: AppColors.errorColor,
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          icon: const Icon(Icons.chat_bubble_outline),
-                          label: const Text('Message'),
+                          icon: const Icon(Icons.person_remove_outlined),
+                          label: const Text('Remove Friend'),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Snap feature coming soon!'),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.secondaryColor,
-                            foregroundColor: AppColors.primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: const Icon(Icons.camera_alt_outlined),
-                          label: const Text('Snap'),
-                        ),
-                      ),
+
+                      const SizedBox(height: 32),
                     ],
                   ),
-
-                  const SizedBox(height: 32),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  void _showRemoveFriendDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Remove Friend'),
+        content: Text(
+          'Are you sure you want to remove ${friend.displayName} from your friends list? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              context.read<FriendsBloc>().add(RemoveFriend(friend.id));
+            },
+            style: TextButton.styleFrom(foregroundColor: AppColors.errorColor),
+            child: const Text('Remove'),
+          ),
+        ],
       ),
     );
   }
