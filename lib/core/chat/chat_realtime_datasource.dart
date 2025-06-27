@@ -2,6 +2,8 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 class Message {
   final String id;
@@ -61,14 +63,17 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
   final FirebaseDatabase _database;
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;
+  final NotificationsRepository _notificationsRepository;
 
   ChatRealtimeDataSourceImpl({
     FirebaseDatabase? database,
     FirebaseAuth? auth,
     FirebaseFirestore? firestore,
+    required NotificationsRepository notificationsRepository,
   }) : _database = database ?? FirebaseDatabase.instance,
        _auth = auth ?? FirebaseAuth.instance,
-       _firestore = firestore ?? FirebaseFirestore.instance;
+       _firestore = firestore ?? FirebaseFirestore.instance,
+       _notificationsRepository = notificationsRepository;
 
   /// Helper method to get user display name from Firestore
   Future<String> _getUserDisplayName(String userId) async {
@@ -91,6 +96,42 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
       debugPrint('Failed to get user display name: $e');
       return 'User';
     }
+  }
+
+  /// Helper method to extract recipient ID from chat ID
+  String? _getRecipientIdFromChatId(String chatId, String senderId) {
+    if (chatId.startsWith('direct_')) {
+      // Direct chat format: "direct_userId1_userId2"
+      final parts = chatId.substring(7).split('_'); // Remove "direct_" prefix
+      if (parts.length == 2) {
+        return parts[0] == senderId ? parts[1] : parts[0];
+      }
+    }
+    return null;
+  }
+
+  /// Helper method to get fellowship members for group notifications
+  Future<List<String>> _getFellowshipMembers(
+    String fellowshipId,
+    String senderId,
+  ) async {
+    try {
+      final fellowshipDoc = await _firestore
+          .collection('fellowships')
+          .doc(fellowshipId)
+          .get();
+
+      if (fellowshipDoc.exists) {
+        final data = fellowshipDoc.data();
+        final members = List<String>.from(data?['memberIds'] ?? []);
+        // Remove sender from recipients
+        members.remove(senderId);
+        return members;
+      }
+    } catch (e) {
+      debugPrint('Failed to get fellowship members: $e');
+    }
+    return [];
   }
 
   @override
@@ -123,10 +164,12 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
       if (currentUser == null) throw Exception('User not authenticated');
 
       final messageRef = _database.ref('chats/$chatId/messages').push();
+      final senderName = await _getUserDisplayName(currentUser.uid);
+
       final message = Message(
         id: messageRef.key!,
         senderId: currentUser.uid,
-        senderName: await _getUserDisplayName(currentUser.uid),
+        senderName: senderName,
         senderPhotoUrl: currentUser.photoURL ?? '',
         content: content,
         timestamp: DateTime.now(),
@@ -143,6 +186,84 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
         'lastMessageTimestamp': DateTime.now().millisecondsSinceEpoch,
         'updatedAt': DateTime.now().millisecondsSinceEpoch,
       });
+
+      // Create notifications based on chat type
+      if (chatId.startsWith('direct_')) {
+        // Direct message notification
+        final recipientId = _getRecipientIdFromChatId(chatId, currentUser.uid);
+        if (recipientId != null) {
+          try {
+            final notification = NotificationEntity(
+              id: _database.ref('notifications').push().key!,
+              userId: recipientId,
+              senderId: currentUser.uid,
+              type: NotificationType.directMessage,
+              title: 'New Message',
+              message:
+                  '$senderName: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
+              data: {'chatId': chatId, 'messageId': message.id},
+              isRead: false,
+              isActioned: false,
+              createdAt: DateTime.now(),
+            );
+
+            await _notificationsRepository.createNotification(notification);
+            debugPrint('✅ Created direct message notification');
+          } catch (e) {
+            debugPrint('⚠️ Failed to create direct message notification: $e');
+          }
+        }
+      } else if (chatId.startsWith('fellowship_')) {
+        // Fellowship message notification
+        final fellowshipId = chatId.substring(
+          11,
+        ); // Remove "fellowship_" prefix
+        try {
+          final members = await _getFellowshipMembers(
+            fellowshipId,
+            currentUser.uid,
+          );
+
+          // Get fellowship name
+          final fellowshipDoc = await _firestore
+              .collection('fellowships')
+              .doc(fellowshipId)
+              .get();
+
+          final fellowshipName = fellowshipDoc.data()?['name'] ?? 'Fellowship';
+
+          // Create notification for each member
+          for (final memberId in members) {
+            final notification = NotificationEntity(
+              id: _database.ref('notifications').push().key!,
+              userId: memberId,
+              senderId: currentUser.uid,
+              type: NotificationType.fellowshipMessage,
+              title: 'Fellowship Message',
+              message:
+                  '$senderName in $fellowshipName: ${content.length > 50 ? '${content.substring(0, 50)}...' : content}',
+              data: {
+                'chatId': chatId,
+                'messageId': message.id,
+                'fellowshipId': fellowshipId,
+                'fellowshipName': fellowshipName,
+              },
+              isRead: false,
+              isActioned: false,
+              createdAt: DateTime.now(),
+            );
+
+            await _notificationsRepository.createNotification(notification);
+          }
+          debugPrint(
+            '✅ Created fellowship message notifications for ${members.length} members',
+          );
+        } catch (e) {
+          debugPrint(
+            '⚠️ Failed to create fellowship message notifications: $e',
+          );
+        }
+      }
     } catch (e) {
       throw Exception('Failed to send message: $e');
     }

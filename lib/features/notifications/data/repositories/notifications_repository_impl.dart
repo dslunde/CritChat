@@ -4,7 +4,7 @@ import 'package:critchat/features/notifications/data/datasources/notifications_f
 import 'package:critchat/features/notifications/data/models/notification_model.dart';
 
 class NotificationsRepositoryImpl implements NotificationsRepository {
-  final NotificationsFirestoreDataSource _dataSource;
+  final NotificationsDataSource _dataSource;
 
   NotificationsRepositoryImpl(this._dataSource);
 
@@ -16,6 +16,11 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
   @override
   Future<void> markAsRead(String notificationId) async {
     await _dataSource.markAsRead(notificationId);
+  }
+
+  @override
+  Future<void> markAsActioned(String notificationId) async {
+    await _dataSource.markAsActioned(notificationId);
   }
 
   @override

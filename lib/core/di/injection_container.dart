@@ -43,6 +43,7 @@ import 'package:critchat/features/notifications/data/datasources/notifications_f
 import 'package:critchat/features/notifications/data/repositories/notifications_repository_impl.dart';
 import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
 
 // Chat
 import 'package:critchat/core/chat/chat_realtime_datasource.dart';
@@ -143,7 +144,12 @@ void _initAuth() {
 void _initFriends() {
   // Data sources
   sl.registerLazySingleton<FriendsFirestoreDataSource>(
-    () => FriendsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+    () => FriendsFirestoreDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+      database: sl(),
+      notificationsRepository: sl(),
+    ),
   );
 
   // Repositories
@@ -203,8 +209,12 @@ void _initFellowships() {
 
 void _initNotifications() {
   // Data sources
-  sl.registerLazySingleton<NotificationsFirestoreDataSource>(
-    () => NotificationsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  sl.registerLazySingleton<NotificationsDataSource>(
+    () => NotificationsRealtimeDataSourceImpl(
+      database: sl(),
+      auth: sl(),
+      firestore: sl(),
+    ),
   );
 
   // Repositories
@@ -212,23 +222,38 @@ void _initNotifications() {
     () => NotificationsRepositoryImpl(sl()),
   );
 
+  // Services
+  sl.registerLazySingleton(
+    () => NotificationIndicatorService(notificationsRepository: sl()),
+  );
+
   // BLoC
-  sl.registerFactory(() => NotificationsBloc(repository: sl()));
+  sl.registerFactory(
+    () => NotificationsBloc(repository: sl(), indicatorService: sl()),
+  );
 }
 
 void _initChat() {
   // Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
-    () =>
-        ChatRealtimeDataSourceImpl(database: sl(), auth: sl(), firestore: sl()),
+    () => ChatRealtimeDataSourceImpl(
+      database: sl(),
+      auth: sl(),
+      firestore: sl(),
+      notificationsRepository: sl(),
+    ),
   );
 }
 
 void _initPolls() {
   // Data sources
   sl.registerLazySingleton<PollRealtimeDataSource>(
-    () =>
-        PollRealtimeDataSourceImpl(database: sl(), auth: sl(), firestore: sl()),
+    () => PollRealtimeDataSourceImpl(
+      database: sl(),
+      auth: sl(),
+      firestore: sl(),
+      notificationsRepository: sl(),
+    ),
   );
 
   // Repositories

@@ -10,6 +10,7 @@ class NotificationModel extends NotificationEntity {
     required super.message,
     super.data,
     required super.isRead,
+    required super.isActioned,
     required super.createdAt,
     super.readAt,
   });
@@ -27,6 +28,7 @@ class NotificationModel extends NotificationEntity {
       message: json['message'] as String,
       data: json['data'] as Map<String, dynamic>?,
       isRead: json['isRead'] as bool? ?? false,
+      isActioned: json['isActioned'] as bool? ?? false,
       createdAt: DateTime.parse(json['createdAt'] as String),
       readAt: json['readAt'] != null
           ? DateTime.parse(json['readAt'] as String)
@@ -43,8 +45,51 @@ class NotificationModel extends NotificationEntity {
       'message': message,
       'data': data,
       'isRead': isRead,
+      'isActioned': isActioned,
       'createdAt': createdAt.toIso8601String(),
       'readAt': readAt?.toIso8601String(),
+    };
+  }
+
+  // Realtime Database methods (use milliseconds instead of ISO strings)
+  factory NotificationModel.fromRealtimeJson(
+    Map<dynamic, dynamic> json,
+    String id,
+  ) {
+    return NotificationModel(
+      id: id,
+      userId: json['userId'] as String,
+      senderId: json['senderId'] as String,
+      type: NotificationType.values.firstWhere(
+        (type) => type.name == json['type'],
+        orElse: () => NotificationType.systemMessage,
+      ),
+      title: json['title'] as String,
+      message: json['message'] as String,
+      data: json['data'] != null
+          ? Map<String, dynamic>.from(json['data'] as Map)
+          : null,
+      isRead: json['isRead'] as bool? ?? false,
+      isActioned: json['isActioned'] as bool? ?? false,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
+      readAt: json['readAt'] != null
+          ? DateTime.fromMillisecondsSinceEpoch(json['readAt'] as int)
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toRealtimeJson() {
+    return {
+      'userId': userId,
+      'senderId': senderId,
+      'type': type.name,
+      'title': title,
+      'message': message,
+      'data': data,
+      'isRead': isRead,
+      'isActioned': isActioned,
+      'createdAt': createdAt.millisecondsSinceEpoch,
+      'readAt': readAt?.millisecondsSinceEpoch,
     };
   }
 
@@ -58,6 +103,7 @@ class NotificationModel extends NotificationEntity {
       message: entity.message,
       data: entity.data,
       isRead: entity.isRead,
+      isActioned: entity.isActioned,
       createdAt: entity.createdAt,
       readAt: entity.readAt,
     );
@@ -73,6 +119,7 @@ class NotificationModel extends NotificationEntity {
     String? message,
     Map<String, dynamic>? data,
     bool? isRead,
+    bool? isActioned,
     DateTime? createdAt,
     DateTime? readAt,
   }) {
@@ -85,6 +132,7 @@ class NotificationModel extends NotificationEntity {
       message: message ?? this.message,
       data: data ?? this.data,
       isRead: isRead ?? this.isRead,
+      isActioned: isActioned ?? this.isActioned,
       createdAt: createdAt ?? this.createdAt,
       readAt: readAt ?? this.readAt,
     );
@@ -106,6 +154,7 @@ class NotificationModel extends NotificationEntity {
       message: '$senderName wants to be your friend',
       data: {'friendRequestId': id},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }
@@ -127,6 +176,7 @@ class NotificationModel extends NotificationEntity {
       message: '$senderName invited you to join "$fellowshipName"',
       data: {'fellowshipId': fellowshipId, 'fellowshipName': fellowshipName},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }
@@ -160,6 +210,7 @@ class NotificationModel extends NotificationEntity {
               'fellowshipName': fellowshipName,
             },
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
   }

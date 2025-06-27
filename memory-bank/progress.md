@@ -1,10 +1,21 @@
 # Progress: CritChat
 
-## Current Status: Gamification System Complete - Production Ready ✅
+## Current Status: Notification System Overhaul Complete ✅
 
-The project has successfully implemented a comprehensive gamification system that awards XP (Experience Points) for all user actions throughout the app. The system features exponential level progression, beautiful UI integration, real-time updates, and global level-up celebrations. Additionally, critical BLoC provider architecture issues in the fellowship creation workflow have been resolved.
+The project has successfully implemented a comprehensive, real-time notification system using Firebase Realtime Database. This includes real-time red dot indicators, actionable notifications for invites, and full coverage for friend, fellowship, and poll-related events. All known bugs, including notification creation failures and indicator logic flaws, have been resolved.
 
 ## What Works
+
+### ✅ Real-time Notification System (COMPLETE)
+- **Firebase Realtime Database Migration**: Entire notification backend migrated from Firestore to RTDB for instant, low-latency updates.
+- **Global Notification Watching**: The `NotificationsBloc` now watches for notifications globally upon user authentication, ensuring indicators are always up-to-date without needing to visit the notifications page.
+- **Categorized Red Dot Indicators**: The system now correctly categorizes unread notifications (Friends, Fellowships) and updates the red dot indicators on the corresponding navigation tabs in real-time.
+- **Comprehensive Notification Coverage**:
+  - **Friend Events**: Notifications are created for direct messages, friend requests, and friend request acceptances.
+  - **Fellowship Events**: Notifications are created for fellowship messages, fellowship invites, and poll creation/closure.
+- **Actionable Notifications**: Invite notifications (friend requests, fellowship invites) correctly show/hide action buttons based on whether they have been actioned.
+- **Read State Visualization**: Read notifications are faded to visually distinguish them from unread notifications.
+- **Robust Error Handling & Debugging**: The system includes comprehensive debug logging and has resolved previous issues related to race conditions, database permissions, and incorrect BLoC logic.
 
 ### ✅ Comprehensive Gamification System Implementation (COMPLETE)
 - **Complete XP System**: Full experience point system with exponential level progression

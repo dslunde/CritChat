@@ -8,6 +8,7 @@ class NotificationEntity {
   final Map<String, dynamic>?
   data; // additional data like fellowship ID, friend request ID, etc.
   final bool isRead;
+  final bool isActioned; // true if user has accepted/declined invite
   final DateTime createdAt;
   final DateTime? readAt;
 
@@ -20,6 +21,7 @@ class NotificationEntity {
     required this.message,
     this.data,
     required this.isRead,
+    required this.isActioned,
     required this.createdAt,
     this.readAt,
   });
@@ -33,6 +35,7 @@ class NotificationEntity {
     String? message,
     Map<String, dynamic>? data,
     bool? isRead,
+    bool? isActioned,
     DateTime? createdAt,
     DateTime? readAt,
   }) {
@@ -45,6 +48,7 @@ class NotificationEntity {
       message: message ?? this.message,
       data: data ?? this.data,
       isRead: isRead ?? this.isRead,
+      isActioned: isActioned ?? this.isActioned,
       createdAt: createdAt ?? this.createdAt,
       readAt: readAt ?? this.readAt,
     );

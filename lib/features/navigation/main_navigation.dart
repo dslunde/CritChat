@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
+import 'package:critchat/core/widgets/notification_indicator.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/lfg/lfg_page.dart';
 import 'package:critchat/features/friends/friends_page.dart';
@@ -15,6 +17,8 @@ import 'package:critchat/features/gamification/presentation/bloc/gamification_bl
 import 'package:critchat/features/gamification/presentation/bloc/gamification_state.dart';
 import 'package:critchat/features/gamification/presentation/widgets/level_up_dialog.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
+import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'package:critchat/features/notifications/presentation/bloc/notifications_event.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -26,10 +30,12 @@ class MainNavigation extends StatefulWidget {
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 2; // Start with Camera (home) page
   Timer? _levelUpCheckTimer;
+  late NotificationIndicatorService _notificationService;
 
   @override
   void initState() {
     super.initState();
+    _notificationService = sl<NotificationIndicatorService>();
     // Check for level-ups every 2 seconds
     _levelUpCheckTimer = Timer.periodic(
       const Duration(seconds: 2),
@@ -67,6 +73,10 @@ class _MainNavigationState extends State<MainNavigation> {
       providers: [
         BlocProvider(create: (context) => sl<GamificationBloc>()),
         BlocProvider(create: (context) => sl<FellowshipBloc>()),
+        BlocProvider(
+          create: (context) =>
+              sl<NotificationsBloc>()..add(const WatchNotifications()),
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -127,30 +137,58 @@ class _MainNavigationState extends State<MainNavigation> {
                   showUnselectedLabels: false,
                   elevation: 0,
                   iconSize: 28,
-                  items: const [
+                  items: [
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.group_add_outlined),
-                      activeIcon: Icon(Icons.group_add),
+                      icon: StreamNotificationIndicator(
+                        countStream: _notificationService.unreadLfgStream,
+                        child: const Icon(Icons.group_add_outlined),
+                      ),
+                      activeIcon: StreamNotificationIndicator(
+                        countStream: _notificationService.unreadLfgStream,
+                        child: const Icon(Icons.group_add),
+                      ),
                       label: 'LFG',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.people_outline),
-                      activeIcon: Icon(Icons.people),
+                      icon: StreamNotificationIndicator(
+                        countStream:
+                            _notificationService.unreadFriendMessagesStream,
+                        child: const Icon(Icons.people_outline),
+                      ),
+                      activeIcon: StreamNotificationIndicator(
+                        countStream:
+                            _notificationService.unreadFriendMessagesStream,
+                        child: const Icon(Icons.people),
+                      ),
                       label: 'Friends',
                     ),
-                    BottomNavigationBarItem(
+                    const BottomNavigationBarItem(
                       icon: Icon(Icons.camera_alt_outlined),
                       activeIcon: Icon(Icons.camera_alt),
                       label: 'Camera',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.groups_outlined),
-                      activeIcon: Icon(Icons.groups),
+                      icon: StreamNotificationIndicator(
+                        countStream:
+                            _notificationService.unreadFellowshipMessagesStream,
+                        child: const Icon(Icons.groups_outlined),
+                      ),
+                      activeIcon: StreamNotificationIndicator(
+                        countStream:
+                            _notificationService.unreadFellowshipMessagesStream,
+                        child: const Icon(Icons.groups),
+                      ),
                       label: 'Fellowships',
                     ),
                     BottomNavigationBarItem(
-                      icon: Icon(Icons.person_outline),
-                      activeIcon: Icon(Icons.person),
+                      icon: StreamNotificationIndicator(
+                        countStream: _notificationService.unreadForMeStream,
+                        child: const Icon(Icons.person_outline),
+                      ),
+                      activeIcon: StreamNotificationIndicator(
+                        countStream: _notificationService.unreadForMeStream,
+                        child: const Icon(Icons.person),
+                      ),
                       label: 'For Me',
                     ),
                   ],

@@ -18,6 +18,7 @@ import 'package:critchat/features/notifications/domain/repositories/notification
 import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_event.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_state.dart';
+import 'package:critchat/core/services/notification_indicator_service.dart';
 
 // Mock classes
 class MockGetFriendsUseCase extends Mock implements GetFriendsUseCase {}
@@ -28,6 +29,9 @@ class MockRemoveFriendUseCase extends Mock implements RemoveFriendUseCase {}
 
 class MockNotificationsRepository extends Mock
     implements NotificationsRepository {}
+
+class MockNotificationIndicatorService extends Mock
+    implements NotificationIndicatorService {}
 
 void main() {
   group('Friends and Notifications Comprehensive Tests', () {
@@ -70,6 +74,7 @@ void main() {
       message: 'Friend One wants to be your friend',
       data: {'senderId': 'friend1'},
       isRead: false,
+      isActioned: false,
       createdAt: DateTime.now(),
     );
 
@@ -82,6 +87,7 @@ void main() {
       message: 'You have been invited to join Adventure Guild',
       data: {'fellowshipId': 'fellowship1'},
       isRead: true,
+      isActioned: false,
       createdAt: DateTime.now().subtract(const Duration(hours: 1)),
     );
 
@@ -96,6 +102,7 @@ void main() {
       );
       notificationsBloc = NotificationsBloc(
         repository: mockNotificationsRepository,
+        indicatorService: MockNotificationIndicatorService(),
       );
 
       // Setup default mock responses
@@ -245,8 +252,24 @@ void main() {
     });
 
     group('Notifications BLoC Tests', () {
+      setUp(() {
+        registerFallbackValue(const LoadNotifications());
+        registerFallbackValue(
+          const AcceptFriendRequest(
+            notificationId: 'notif1',
+            senderId: 'friend1',
+          ),
+        );
+        registerFallbackValue(
+          const DeclineFriendRequest(
+            notificationId: 'notif1',
+            senderId: 'friend1',
+          ),
+        );
+      });
+
       test('initial state should be NotificationsInitial', () {
-        expect(notificationsBloc.state, equals(const NotificationsInitial()));
+        expect(notificationsBloc.state, const NotificationsInitial());
       });
 
       blocTest<NotificationsBloc, NotificationsState>(
@@ -309,10 +332,10 @@ void main() {
         'should handle AcceptFriendRequest correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.acceptFriendRequest(
-              'notif1',
-              'friend1',
-            ),
+            () => mockNotificationsRepository.acceptFriendRequest(any(), any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockNotificationsRepository.markAsActioned(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
@@ -344,10 +367,11 @@ void main() {
         'should handle DeclineFriendRequest correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.declineFriendRequest(
-              'notif1',
-              'friend1',
-            ),
+            () =>
+                mockNotificationsRepository.declineFriendRequest(any(), any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockNotificationsRepository.markAsActioned(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
@@ -421,7 +445,7 @@ void main() {
         'should handle DeleteNotification correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.deleteNotification('notif1'),
+            () => mockNotificationsRepository.deleteNotification(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
@@ -571,6 +595,7 @@ void main() {
             'senderEmail': testFriend1.email,
           },
           isRead: false,
+          isActioned: false,
           createdAt: DateTime.now(),
         );
 

@@ -3,6 +3,7 @@ import 'package:critchat/features/notifications/domain/entities/notification_ent
 abstract class NotificationsRepository {
   Future<List<NotificationEntity>> getNotifications();
   Future<void> markAsRead(String notificationId);
+  Future<void> markAsActioned(String notificationId);
   Future<void> markAllAsRead();
   Future<void> deleteNotification(String notificationId);
   Future<void> createNotification(NotificationEntity notification);
