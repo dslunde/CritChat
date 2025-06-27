@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/chat/chat_realtime_datasource.dart';
 import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
@@ -62,6 +65,16 @@ class _FellowshipChatPageWithPollsState
 
     try {
       await _chatDataSource.sendMessage(_chatId, content);
+
+      // Award XP for sending a message
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.sendMessage);
+        debugPrint('✅ Awarded message send XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award message send XP: $e');
+      }
+
       _scrollToBottom();
     } catch (e) {
       if (mounted) {

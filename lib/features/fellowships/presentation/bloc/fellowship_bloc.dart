@@ -12,6 +12,7 @@ import 'package:critchat/features/fellowships/presentation/bloc/fellowship_event
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_state.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 
 class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
   final GetFellowshipsUseCase getFellowshipsUseCase;
@@ -73,7 +74,7 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       // Award XP for creating fellowship
       try {
         final gamificationService = sl<GamificationService>();
-        await gamificationService.awardFellowshipCreated(fellowship.id);
+        await gamificationService.awardXp(XpRewardType.createFellowship);
         debugPrint('✅ Awarded fellowship creation XP');
       } catch (e) {
         debugPrint('⚠️ Failed to award fellowship creation XP: $e');
@@ -98,6 +99,15 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
       );
 
       if (success) {
+        // Award XP for inviting friend
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardXp(XpRewardType.inviteFriend);
+          debugPrint('✅ Awarded friend invite XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award friend invite XP: $e');
+        }
+
         emit(FriendInvited());
         // Reload fellowships to show updated member count
         add(GetFellowships());
@@ -196,7 +206,7 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
         // Award XP for joining fellowship
         try {
           final gamificationService = sl<GamificationService>();
-          await gamificationService.awardFellowshipJoined('fellowship_by_code');
+          await gamificationService.awardXp(XpRewardType.joinFellowship);
           debugPrint('✅ Awarded fellowship join XP');
         } catch (e) {
           debugPrint('⚠️ Failed to award fellowship join XP: $e');
@@ -265,7 +275,7 @@ class FellowshipBloc extends Bloc<FellowshipEvent, FellowshipState> {
         // Award XP for joining fellowship
         try {
           final gamificationService = sl<GamificationService>();
-          await gamificationService.awardFellowshipJoined(event.fellowshipId);
+          await gamificationService.awardXp(XpRewardType.joinFellowship);
           debugPrint('✅ Awarded fellowship join XP');
         } catch (e) {
           debugPrint('⚠️ Failed to award fellowship join XP: $e');

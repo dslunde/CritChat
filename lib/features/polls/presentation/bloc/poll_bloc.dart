@@ -9,6 +9,9 @@ import 'package:critchat/features/polls/domain/usecases/add_custom_option_usecas
 import 'package:critchat/features/polls/domain/repositories/poll_repository.dart';
 import 'package:critchat/features/polls/presentation/bloc/poll_event.dart';
 import 'package:critchat/features/polls/presentation/bloc/poll_state.dart';
+import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 
 class PollBloc extends Bloc<PollEvent, PollState> {
   final CreatePollUseCase createPollUseCase;
@@ -112,6 +115,15 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         initialOptions: event.initialOptions,
       );
 
+      // Award XP for creating poll
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.createPoll);
+        debugPrint('✅ Awarded poll creation XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award poll creation XP: $e');
+      }
+
       // Emit success with current polls list
       emit(PollCreated(poll: poll, polls: _lastPolls));
     } catch (e) {
@@ -137,6 +149,15 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         optionIds: event.optionIds,
         fellowshipId: event.fellowshipId,
       );
+
+      // Award XP for voting on poll
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.voteOnPoll);
+        debugPrint('✅ Awarded poll vote XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award poll vote XP: $e');
+      }
 
       debugPrint('✅ BLoC: Vote use case completed successfully');
       emit(
@@ -167,6 +188,15 @@ class PollBloc extends Bloc<PollEvent, PollState> {
         pollId: event.pollId,
         optionText: event.optionText,
       );
+
+      // Award XP for adding custom option
+      try {
+        final gamificationService = sl<GamificationService>();
+        await gamificationService.awardXp(XpRewardType.addCustomOption);
+        debugPrint('✅ Awarded custom option XP');
+      } catch (e) {
+        debugPrint('⚠️ Failed to award custom option XP: $e');
+      }
 
       emit(
         PollOptionAdded(

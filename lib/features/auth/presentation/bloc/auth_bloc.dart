@@ -10,6 +10,7 @@ import 'package:critchat/features/auth/domain/usecases/complete_onboarding_useca
 import 'package:critchat/features/fellowships/data/datasources/fellowship_firestore_datasource.dart';
 import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
+import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -171,7 +172,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Award XP for signing up
       try {
         final gamificationService = sl<GamificationService>();
-        await gamificationService.awardSignUp();
+        await gamificationService.awardXp(XpRewardType.signUp);
         debugPrint('✅ Awarded sign-up XP');
       } catch (e) {
         debugPrint('⚠️ Failed to award sign-up XP: $e');
@@ -218,7 +219,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Award XP for completing profile
       try {
         final gamificationService = sl<GamificationService>();
-        await gamificationService.awardProfileCompleted();
+        await gamificationService.awardXp(XpRewardType.completeProfile);
         debugPrint('✅ Awarded complete profile XP');
       } catch (e) {
         debugPrint('⚠️ Failed to award complete profile XP: $e');
