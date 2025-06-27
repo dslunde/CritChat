@@ -252,8 +252,24 @@ void main() {
     });
 
     group('Notifications BLoC Tests', () {
+      setUp(() {
+        registerFallbackValue(const LoadNotifications());
+        registerFallbackValue(
+          const AcceptFriendRequest(
+            notificationId: 'notif1',
+            senderId: 'friend1',
+          ),
+        );
+        registerFallbackValue(
+          const DeclineFriendRequest(
+            notificationId: 'notif1',
+            senderId: 'friend1',
+          ),
+        );
+      });
+
       test('initial state should be NotificationsInitial', () {
-        expect(notificationsBloc.state, equals(const NotificationsInitial()));
+        expect(notificationsBloc.state, const NotificationsInitial());
       });
 
       blocTest<NotificationsBloc, NotificationsState>(
@@ -316,10 +332,10 @@ void main() {
         'should handle AcceptFriendRequest correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.acceptFriendRequest(
-              'notif1',
-              'friend1',
-            ),
+            () => mockNotificationsRepository.acceptFriendRequest(any(), any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockNotificationsRepository.markAsActioned(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
@@ -351,10 +367,11 @@ void main() {
         'should handle DeclineFriendRequest correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.declineFriendRequest(
-              'notif1',
-              'friend1',
-            ),
+            () =>
+                mockNotificationsRepository.declineFriendRequest(any(), any()),
+          ).thenAnswer((_) async {});
+          when(
+            () => mockNotificationsRepository.markAsActioned(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
@@ -428,7 +445,7 @@ void main() {
         'should handle DeleteNotification correctly',
         build: () {
           when(
-            () => mockNotificationsRepository.deleteNotification('notif1'),
+            () => mockNotificationsRepository.deleteNotification(any()),
           ).thenAnswer((_) async {});
           when(
             () => mockNotificationsRepository.getNotifications(),
