@@ -1,4 +1,5 @@
 import 'package:camera/camera.dart';
+import 'package:critchat/core/widgets/app_top_bar.dart';
 import 'package:critchat/features/camera/presentation/pages/preview_page.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -24,11 +25,17 @@ class _CameraPageState extends State<CameraPage> {
 
   Future<void> _requestCameraPermission() async {
     final status = await Permission.camera.request();
-    setState(() {
-      _isPermissionGranted = status == PermissionStatus.granted;
-    });
-    if (_isPermissionGranted) {
+    if (status == PermissionStatus.granted) {
+      setState(() {
+        _isPermissionGranted = true;
+      });
       _initializeCamera();
+    } else if (status == PermissionStatus.permanentlyDenied) {
+      await openAppSettings();
+    } else {
+      setState(() {
+        _isPermissionGranted = false;
+      });
     }
   }
 
@@ -99,6 +106,12 @@ class _CameraPageState extends State<CameraPage> {
             children: <Widget>[
               CameraPreview(_controller!),
               _buildControlsOverlay(),
+              const Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: AppTopBar(backgroundColor: Colors.transparent),
+              ),
             ],
           );
         } else {
