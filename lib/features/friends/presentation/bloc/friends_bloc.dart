@@ -1,13 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
+import 'package:critchat/features/friends/domain/usecases/remove_friend_usecase.dart';
 import 'friends_event.dart';
 import 'friends_state.dart';
 
 class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
   final GetFriendsUseCase getFriendsUseCase;
+  final RemoveFriendUseCase removeFriendUseCase;
 
-  FriendsBloc({required this.getFriendsUseCase})
-    : super(const FriendsInitial()) {
+  FriendsBloc({
+    required this.getFriendsUseCase,
+    required this.removeFriendUseCase,
+  }) : super(const FriendsInitial()) {
     on<LoadFriends>(_onLoadFriends);
     on<RefreshFriends>(_onRefreshFriends);
     on<SearchFriends>(_onSearchFriends);
@@ -66,7 +70,18 @@ class FriendsBloc extends Bloc<FriendsEvent, FriendsState> {
     RemoveFriend event,
     Emitter<FriendsState> emit,
   ) async {
-    // TODO: Implement remove friend functionality
-    // For now, just show a snackbar or do nothing
+    try {
+      await removeFriendUseCase(event.friendId);
+
+      // Reload friends list to reflect the change
+      final friends = await getFriendsUseCase();
+      if (friends.isEmpty) {
+        emit(const FriendsEmpty());
+      } else {
+        emit(FriendsLoaded(friends));
+      }
+    } catch (e) {
+      emit(FriendsError('Failed to remove friend: ${e.toString()}'));
+    }
   }
 }
