@@ -69,6 +69,19 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final currentUser = _auth.currentUser;
       if (currentUser == null) return [];
 
+      // Get current user's friends list to exclude them from search results
+      final currentUserDoc = await _firestore
+          .collection('users')
+          .doc(currentUser.uid)
+          .get();
+
+      final currentUserFriends = <String>{};
+      if (currentUserDoc.exists) {
+        final userData = currentUserDoc.data()!;
+        final friendIds = List<String>.from(userData['friends'] ?? []);
+        currentUserFriends.addAll(friendIds);
+      }
+
       // Get all users and filter client-side for case insensitive search
       // This approach works better than trying to do case insensitive queries in Firestore
       final querySnapshot = await _firestore
@@ -81,8 +94,8 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final List<FriendModel> users = [];
 
       for (final doc in querySnapshot.docs) {
-        // Don't include current user in search results
-        if (doc.id != currentUser.uid) {
+        // Don't include current user or existing friends in search results
+        if (doc.id != currentUser.uid && !currentUserFriends.contains(doc.id)) {
           final data = doc.data();
           final displayName = data['displayName'] as String?;
 
