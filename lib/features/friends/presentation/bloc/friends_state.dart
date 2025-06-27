@@ -47,3 +47,12 @@ class FriendsSearchResults extends FriendsState {
   @override
   List<Object?> get props => [results, query];
 }
+
+class FriendRequestSent extends FriendsState {
+  final String friendId;
+
+  const FriendRequestSent({required this.friendId});
+
+  @override
+  List<Object?> get props => [friendId];
+}

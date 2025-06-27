@@ -22,6 +22,7 @@ import 'package:critchat/features/friends/data/datasources/friends_firestore_dat
 import 'package:critchat/features/friends/data/repositories/friends_repository_impl.dart';
 import 'package:critchat/features/friends/domain/repositories/friends_repository.dart';
 import 'package:critchat/features/friends/domain/usecases/get_friends_usecase.dart';
+import 'package:critchat/features/friends/domain/usecases/add_friend_usecase.dart';
 import 'package:critchat/features/friends/domain/usecases/remove_friend_usecase.dart';
 import 'package:critchat/features/friends/presentation/bloc/friends_bloc.dart';
 
@@ -151,11 +152,16 @@ void _initFriends() {
 
   // Use cases
   sl.registerLazySingleton(() => GetFriendsUseCase(sl()));
+  sl.registerLazySingleton(() => AddFriendUseCase(sl()));
   sl.registerLazySingleton(() => RemoveFriendUseCase(sl()));
 
   // BLoC
   sl.registerFactory(
-    () => FriendsBloc(getFriendsUseCase: sl(), removeFriendUseCase: sl()),
+    () => FriendsBloc(
+      getFriendsUseCase: sl(),
+      addFriendUseCase: sl(),
+      removeFriendUseCase: sl(),
+    ),
   );
 }
 
