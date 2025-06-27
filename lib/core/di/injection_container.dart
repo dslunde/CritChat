@@ -144,7 +144,12 @@ void _initAuth() {
 void _initFriends() {
   // Data sources
   sl.registerLazySingleton<FriendsFirestoreDataSource>(
-    () => FriendsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+    () => FriendsFirestoreDataSourceImpl(
+      firestore: sl(),
+      auth: sl(),
+      database: sl(),
+      notificationsRepository: sl(),
+    ),
   );
 
   // Repositories
@@ -204,8 +209,12 @@ void _initFellowships() {
 
 void _initNotifications() {
   // Data sources
-  sl.registerLazySingleton<NotificationsFirestoreDataSource>(
-    () => NotificationsFirestoreDataSourceImpl(firestore: sl(), auth: sl()),
+  sl.registerLazySingleton<NotificationsDataSource>(
+    () => NotificationsRealtimeDataSourceImpl(
+      database: sl(),
+      auth: sl(),
+      firestore: sl(),
+    ),
   );
 
   // Repositories

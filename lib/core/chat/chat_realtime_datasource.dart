@@ -194,7 +194,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
         if (recipientId != null) {
           try {
             final notification = NotificationEntity(
-              id: _firestore.collection('notifications').doc().id,
+              id: _database.ref('notifications').push().key!,
               userId: recipientId,
               senderId: currentUser.uid,
               type: NotificationType.directMessage,
@@ -235,7 +235,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
           // Create notification for each member
           for (final memberId in members) {
             final notification = NotificationEntity(
-              id: _firestore.collection('notifications').doc().id,
+              id: _database.ref('notifications').push().key!,
               userId: memberId,
               senderId: currentUser.uid,
               type: NotificationType.fellowshipMessage,

@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:critchat/features/friends/data/models/friend_model.dart';
 import 'package:critchat/features/auth/data/models/user_model.dart';
+import 'package:critchat/features/notifications/domain/repositories/notifications_repository.dart';
+import 'package:critchat/features/notifications/domain/entities/notification_entity.dart';
 
 abstract class FriendsFirestoreDataSource {
   Future<List<FriendModel>> getFriends();
@@ -14,12 +17,18 @@ abstract class FriendsFirestoreDataSource {
 class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
+  final FirebaseDatabase _database;
+  final NotificationsRepository _notificationsRepository;
 
   FriendsFirestoreDataSourceImpl({
     FirebaseFirestore? firestore,
     FirebaseAuth? auth,
+    FirebaseDatabase? database,
+    required NotificationsRepository notificationsRepository,
   }) : _firestore = firestore ?? FirebaseFirestore.instance,
-       _auth = auth ?? FirebaseAuth.instance;
+       _auth = auth ?? FirebaseAuth.instance,
+       _database = database ?? FirebaseDatabase.instance,
+       _notificationsRepository = notificationsRepository;
 
   @override
   Future<List<FriendModel>> getFriends() async {
@@ -131,21 +140,21 @@ class FriendsFirestoreDataSourceImpl implements FriendsFirestoreDataSource {
       final currentUserData = currentUserDoc.data();
       final currentUserName = currentUserData?['displayName'] ?? 'Someone';
 
-      // Create friend request notification (NOT auto-accepting)
-      final notificationId = _firestore.collection('notifications').doc().id;
+      // Create friend request notification using NotificationsRepository
+      final notification = NotificationEntity(
+        id: _database.ref('notifications').push().key!,
+        userId: friendId,
+        senderId: currentUser.uid,
+        type: NotificationType.friendRequest,
+        title: 'Friend Request',
+        message: '$currentUserName wants to be your friend',
+        data: {'senderId': currentUser.uid},
+        isRead: false,
+        isActioned: false,
+        createdAt: DateTime.now(),
+      );
 
-      // Only create the notification - do NOT add as friends yet
-      await _firestore.collection('notifications').doc(notificationId).set({
-        'userId': friendId,
-        'senderId': currentUser.uid,
-        'type': 'friendRequest', // Proper friend request type
-        'title': 'Friend Request',
-        'message': '$currentUserName wants to be your friend',
-        'data': {'senderId': currentUser.uid},
-        'isRead': false,
-        'isActioned': false,
-        'createdAt': DateTime.now().toIso8601String(),
-      });
+      await _notificationsRepository.createNotification(notification);
     } catch (e) {
       throw Exception('Failed to send friend request: $e');
     }

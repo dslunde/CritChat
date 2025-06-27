@@ -8,6 +8,7 @@ import 'package:critchat/core/widgets/notification_indicator.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/notifications/notifications_page.dart';
+import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:critchat/features/profile/profile_page.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 
@@ -30,9 +31,17 @@ class AppTopBar extends StatelessWidget {
   }
 
   void _navigateToNotifications(BuildContext context) {
+    // Get the NotificationsBloc instance before navigation
+    final notificationsBloc = context.read<NotificationsBloc>();
+
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const NotificationsPage()),
+      MaterialPageRoute(
+        builder: (context) => BlocProvider.value(
+          value: notificationsBloc,
+          child: const NotificationsPage(),
+        ),
+      ),
     );
   }
 

@@ -4,7 +4,7 @@ import 'package:critchat/features/notifications/data/datasources/notifications_f
 import 'package:critchat/features/notifications/data/models/notification_model.dart';
 
 class NotificationsRepositoryImpl implements NotificationsRepository {
-  final NotificationsFirestoreDataSource _dataSource;
+  final NotificationsDataSource _dataSource;
 
   NotificationsRepositoryImpl(this._dataSource);
 

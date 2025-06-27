@@ -208,7 +208,7 @@ class PollRealtimeDataSourceImpl implements PollRealtimeDataSource {
         // Create notification for each member
         for (final memberId in members) {
           final notification = NotificationEntity(
-            id: _firestore.collection('notifications').doc().id,
+            id: _database.ref('notifications').push().key!,
             userId: memberId,
             senderId: currentUser.uid,
             type: NotificationType
