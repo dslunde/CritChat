@@ -4,6 +4,19 @@ import 'package:critchat/core/di/injection_container.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/gamification/domain/repositories/gamification_repository.dart';
 
+/// Data class for level up information
+class LevelUpData {
+  final XpEntity updatedXp;
+  final int previousLevel;
+  final int xpGained;
+
+  const LevelUpData({
+    required this.updatedXp,
+    required this.previousLevel,
+    required this.xpGained,
+  });
+}
+
 /// Core service for gamification functionality
 /// This is the main interface other features should use to interact with XP system
 class GamificationService {
@@ -14,11 +27,24 @@ class GamificationService {
   late final GamificationRepository _repository;
   late final FirebaseAuth _auth;
 
+  // Level up tracking
+  LevelUpData? _lastLevelUp;
+
   /// Initialize the service with dependencies
   void initialize() {
     _repository = sl<GamificationRepository>();
     _auth = sl<FirebaseAuth>();
   }
+
+  /// Get and clear the last level up data (for showing level up dialog)
+  LevelUpData? getAndClearLevelUp() {
+    final levelUp = _lastLevelUp;
+    _lastLevelUp = null;
+    return levelUp;
+  }
+
+  /// Check if there's a pending level up to show
+  bool get hasPendingLevelUp => _lastLevelUp != null;
 
   /// Award XP to the current user for a specific action
   /// Returns the updated XP entity, or null if user is not authenticated
@@ -33,6 +59,10 @@ class GamificationService {
         return null;
       }
 
+      // Get current XP data to check for level up
+      final previousXp = await _repository.getUserXp(currentUser.uid);
+      final previousLevel = previousXp.currentLevel;
+
       debugPrint(
         'Awarding ${rewardType.xpAmount} XP for ${rewardType.description}',
       );
@@ -46,6 +76,19 @@ class GamificationService {
       debugPrint(
         'XP awarded successfully. Total XP: ${updatedXp.totalXp}, Level: ${updatedXp.currentLevel}',
       );
+
+      // Check for level up
+      if (updatedXp.currentLevel > previousLevel) {
+        debugPrint(
+          '🎉 LEVEL UP! User leveled up from $previousLevel to ${updatedXp.currentLevel}',
+        );
+        // Store level up data for UI to display
+        _lastLevelUp = LevelUpData(
+          updatedXp: updatedXp,
+          previousLevel: previousLevel,
+          xpGained: rewardType.xpAmount,
+        );
+      }
 
       return updatedXp;
     } catch (e) {

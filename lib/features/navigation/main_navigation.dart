@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/di/injection_container.dart';
+import 'package:critchat/core/gamification/gamification_service.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/lfg/lfg_page.dart';
 import 'package:critchat/features/friends/friends_page.dart';
@@ -22,6 +24,38 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 2; // Start with Camera (home) page
+  Timer? _levelUpCheckTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Check for level-ups every 2 seconds
+    _levelUpCheckTimer = Timer.periodic(
+      const Duration(seconds: 2),
+      (_) => _checkForLevelUps(),
+    );
+  }
+
+  @override
+  void dispose() {
+    _levelUpCheckTimer?.cancel();
+    super.dispose();
+  }
+
+  void _checkForLevelUps() {
+    final gamificationService = sl<GamificationService>();
+    if (gamificationService.hasPendingLevelUp) {
+      final levelUpData = gamificationService.getAndClearLevelUp();
+      if (levelUpData != null && mounted) {
+        _showLevelUpDialog(
+          context,
+          levelUpData.updatedXp,
+          levelUpData.previousLevel,
+          levelUpData.xpGained,
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,6 +78,7 @@ class _MainNavigationState extends State<MainNavigation> {
             _showLevelUpDialog(
               context,
               state.xpEntity,
+              state.xpEntity.currentLevel - 1, // Calculate previous level
               state.rewardType.xpAmount,
             );
           } else if (state is BatchXpAwarded && state.leveledUp) {
@@ -51,7 +86,12 @@ class _MainNavigationState extends State<MainNavigation> {
               0,
               (sum, reward) => sum + reward.xpAmount,
             );
-            _showLevelUpDialog(context, state.xpEntity, totalXp);
+            _showLevelUpDialog(
+              context,
+              state.xpEntity,
+              state.xpEntity.currentLevel - 1, // Calculate previous level
+              totalXp,
+            );
           }
         },
         child: Scaffold(
@@ -118,6 +158,7 @@ class _MainNavigationState extends State<MainNavigation> {
   void _showLevelUpDialog(
     BuildContext context,
     XpEntity xpEntity,
+    int previousLevel,
     int xpGained,
   ) {
     showDialog(
@@ -125,7 +166,7 @@ class _MainNavigationState extends State<MainNavigation> {
       barrierDismissible: false,
       builder: (context) => LevelUpDialog(
         xpEntity: xpEntity,
-        previousLevel: xpEntity.currentLevel - 1,
+        previousLevel: previousLevel,
         xpGained: xpGained,
       ),
     );
