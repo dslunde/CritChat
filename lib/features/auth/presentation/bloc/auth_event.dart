@@ -66,3 +66,7 @@ class AuthStateChanged extends AuthEvent {
   @override
   List<Object?> get props => [user];
 }
+
+class AuthXpShown extends AuthEvent {
+  const AuthXpShown();
+}

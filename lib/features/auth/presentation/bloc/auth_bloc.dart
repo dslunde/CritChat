@@ -35,6 +35,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<AuthSignOutRequested>(_onSignOutRequested);
     on<AuthOnboardingCompleted>(_onOnboardingCompleted);
     on<AuthStateChanged>(_onAuthStateChanged);
+    on<AuthXpShown>(_onXpShown);
 
     // Listen to auth state changes - this is now the single source of truth
     _authStateSubscription = _getAuthStateChanges().listen(
@@ -59,6 +60,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final GetAuthStateChangesUseCase _getAuthStateChanges;
   final CompleteOnboardingUseCase _completeOnboarding;
   StreamSubscription? _authStateSubscription;
+  bool _isSigningUp = false;
+  bool _isSigningOut = false;
 
   @override
   Future<void> close() {
@@ -104,6 +107,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthStateChanged event,
     Emitter<AuthState> emit,
   ) async {
+    // Don't override sign-out state
+    if (_isSigningOut && event.user == null) {
+      debugPrint('🔍 AuthStateChanged: Ignoring null user while signing out');
+      return;
+    }
+
     // This is now the single source of truth for auth state changes
     final user = event.user;
 
@@ -112,6 +121,31 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           user.displayName == null ||
           user.experienceLevel == null ||
           user.preferredSystems.isEmpty;
+
+      // If user just signed up (needs onboarding) and we were in the sign-up flow
+      if (_isSigningUp && needsOnboarding) {
+        debugPrint(
+          '🔍 AuthStateChanged: Fresh sign-up detected, showing XP success',
+        );
+        _isSigningUp = false;
+
+        // Award XP for signing up
+        try {
+          final gamificationService = sl<GamificationService>();
+          await gamificationService.awardXp(XpRewardType.signUp);
+          debugPrint('✅ Awarded sign-up XP');
+        } catch (e) {
+          debugPrint('⚠️ Failed to award sign-up XP: $e');
+        }
+
+        emit(
+          const AuthSignUpSuccess(
+            xpAmount: 10,
+            message: 'Welcome to CritChat!',
+          ),
+        );
+        return;
+      }
 
       // Sync user's fellowship memberships to Realtime Database for security rules
       try {
@@ -163,24 +197,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     debugPrint('🔍 SignUp: Starting sign-up process');
+    _isSigningUp = true;
     emit(const AuthLoading());
     try {
       debugPrint('🔍 SignUp: Calling _signUp...');
       await _signUp(email: event.email, password: event.password);
       debugPrint('🔍 SignUp: _signUp completed successfully');
-
-      // Award XP for signing up
-      try {
-        final gamificationService = sl<GamificationService>();
-        await gamificationService.awardXp(XpRewardType.signUp);
-        debugPrint('✅ Awarded sign-up XP');
-      } catch (e) {
-        debugPrint('⚠️ Failed to award sign-up XP: $e');
-      }
-
-      // The auth state stream will handle the state change automatically
+      // The auth state stream will detect the new user and handle XP/success state
     } catch (e) {
       debugPrint('🚨 SignUp: ERROR - ${e.toString()}');
+      _isSigningUp = false;
       emit(AuthError(message: e.toString()));
     }
   }
@@ -190,10 +216,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     Emitter<AuthState> emit,
   ) async {
     try {
+      _isSigningOut = true;
       emit(const AuthSigningOut());
       await _signOut();
-      // The goodbye page will handle the transition back to login
+      // After sign-out completes, reset the flag and let auth stream handle the rest
+      Future.delayed(const Duration(seconds: 3), () {
+        _isSigningOut = false;
+      });
     } catch (e) {
+      _isSigningOut = false;
       emit(AuthError(message: e.toString()));
     }
   }
@@ -227,6 +258,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
       emit(AuthAuthenticated(user: updatedUser, needsOnboarding: false));
     } catch (e) {
+      emit(AuthError(message: e.toString()));
+    }
+  }
+
+  Future<void> _onXpShown(AuthXpShown event, Emitter<AuthState> emit) async {
+    debugPrint('🔍 XpShown: Transitioning from XP success to normal auth flow');
+    // Reset the signing up flag and proceed to normal auth flow
+    _isSigningUp = false;
+
+    try {
+      final currentUser = await _getCurrentUser();
+      if (currentUser != null) {
+        final needsOnboarding =
+            currentUser.displayName == null ||
+            currentUser.experienceLevel == null ||
+            currentUser.preferredSystems.isEmpty;
+
+        emit(
+          AuthAuthenticated(
+            user: currentUser,
+            needsOnboarding: needsOnboarding,
+          ),
+        );
+      } else {
+        emit(const AuthUnauthenticated());
+      }
+    } catch (e) {
+      debugPrint('🚨 XpShown: ERROR - ${e.toString()}');
       emit(AuthError(message: e.toString()));
     }
   }

@@ -83,114 +83,116 @@ class _SearchFriendsPageState extends State<SearchFriendsPage> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<FriendsBloc>(),
-      child: BlocListener<FriendsBloc, FriendsState>(
-        listener: (context, state) {
-          if (state is FriendRequestSent) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Friend request sent!'),
-                backgroundColor: AppColors.successColor,
-              ),
-            );
-          } else if (state is FriendsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.errorColor,
-              ),
-            );
-          }
-        },
-        child: Scaffold(
-          backgroundColor: AppColors.backgroundColor,
-          appBar: AppBar(
-            backgroundColor: AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            iconTheme: const IconThemeData(color: Colors.white),
-            title: const Text('Find Friends'),
-            elevation: 0,
-          ),
-          body: Column(
-            children: [
-              // Search Bar
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: AppColors.surfaceColor,
-                  border: Border(
-                    bottom: BorderSide(color: AppColors.dividerColor),
-                  ),
+      child: Builder(
+        builder: (context) => BlocListener<FriendsBloc, FriendsState>(
+          listener: (context, state) {
+            if (state is FriendRequestSent) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Friend request sent!'),
+                  backgroundColor: AppColors.successColor,
                 ),
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _searchFocusNode,
-                  decoration: InputDecoration(
-                    hintText: 'Search for friends by name...',
-                    hintStyle: const TextStyle(color: AppColors.textHint),
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: AppColors.primaryColor,
+              );
+            } else if (state is FriendsError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.errorColor,
+                ),
+              );
+            }
+          },
+          child: Scaffold(
+            backgroundColor: AppColors.backgroundColor,
+            appBar: AppBar(
+              backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
+              iconTheme: const IconThemeData(color: Colors.white),
+              title: const Text('Find Friends'),
+              elevation: 0,
+            ),
+            body: Column(
+              children: [
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: const BoxDecoration(
+                    color: AppColors.surfaceColor,
+                    border: Border(
+                      bottom: BorderSide(color: AppColors.dividerColor),
                     ),
-                    suffixIcon: _searchController.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(
-                              Icons.clear,
-                              color: AppColors.textSecondary,
-                            ),
-                            onPressed: () {
-                              _searchController.clear();
-                              _performSearch('');
-                            },
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.dividerColor,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: AppColors.dividerColor,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    focusNode: _searchFocusNode,
+                    decoration: InputDecoration(
+                      hintText: 'Search for friends by name...',
+                      hintStyle: const TextStyle(color: AppColors.textHint),
+                      prefixIcon: const Icon(
+                        Icons.search,
                         color: AppColors.primaryColor,
-                        width: 2,
                       ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(
+                                Icons.clear,
+                                color: AppColors.textSecondary,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                                _performSearch('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.dividerColor,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.dividerColor,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppColors.primaryColor,
+                          width: 2,
+                        ),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      filled: true,
+                      fillColor: AppColors.backgroundColor,
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                    filled: true,
-                    fillColor: AppColors.backgroundColor,
+                    style: const TextStyle(color: AppColors.textPrimary),
+                    onChanged: (value) {
+                      setState(() {}); // Refresh to show/hide clear button
+                      if (value.trim().isNotEmpty) {
+                        // Debounce search
+                        Future.delayed(const Duration(milliseconds: 500), () {
+                          if (_searchController.text.trim() == value.trim()) {
+                            _performSearch(value);
+                          }
+                        });
+                      } else {
+                        _performSearch('');
+                      }
+                    },
+                    onSubmitted: _performSearch,
+                    textInputAction: TextInputAction.search,
                   ),
-                  style: const TextStyle(color: AppColors.textPrimary),
-                  onChanged: (value) {
-                    setState(() {}); // Refresh to show/hide clear button
-                    if (value.trim().isNotEmpty) {
-                      // Debounce search
-                      Future.delayed(const Duration(milliseconds: 500), () {
-                        if (_searchController.text.trim() == value.trim()) {
-                          _performSearch(value);
-                        }
-                      });
-                    } else {
-                      _performSearch('');
-                    }
-                  },
-                  onSubmitted: _performSearch,
-                  textInputAction: TextInputAction.search,
                 ),
-              ),
 
-              // Results
-              Expanded(child: _buildSearchResults()),
-            ],
+                // Results
+                Expanded(child: _buildSearchResults()),
+              ],
+            ),
           ),
         ),
       ),

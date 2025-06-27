@@ -11,6 +11,7 @@ import 'features/auth/presentation/bloc/auth_state.dart';
 import 'features/auth/presentation/pages/sign_in_page.dart';
 import 'features/auth/presentation/pages/onboarding_page.dart';
 import 'features/auth/presentation/pages/goodbye_page.dart';
+import 'features/auth/presentation/pages/xp_success_page.dart';
 import 'features/navigation/main_navigation.dart';
 
 void main() async {
@@ -66,6 +67,14 @@ class AuthWrapper extends StatelessWidget {
               child: const MainNavigation(),
             );
           }
+        } else if (state is AuthSignUpSuccess) {
+          return BlocProvider.value(
+            value: context.read<AuthBloc>(),
+            child: XpSuccessPage(
+              xpAmount: state.xpAmount,
+              message: state.message,
+            ),
+          );
         } else if (state is AuthSigningOut) {
           return BlocProvider.value(
             value: context.read<AuthBloc>(),
