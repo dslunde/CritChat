@@ -1,4 +1,3 @@
-import 'dart:math' as math;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 

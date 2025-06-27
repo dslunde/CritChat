@@ -253,7 +253,7 @@ class GamificationFirestoreDataSourceImpl
       // Calculate total XP to award
       final totalXpToAward = rewardTypes.fold<int>(
         0,
-        (sum, type) => sum + type.xpAmount,
+        (total, type) => total + type.xpAmount,
       );
       final newTotalXp = currentXp.totalXp + totalXpToAward;
 

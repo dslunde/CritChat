@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:critchat/core/constants/app_colors.dart';
 import 'package:critchat/core/chat/chat_realtime_datasource.dart';
