@@ -21,7 +21,7 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _checkAndInitializeCamera();
+    _requestPermissionsOnLaunch();
   }
 
   @override
@@ -35,16 +35,10 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     debugPrint("[CameraPage] App lifecycle state changed to: $state");
 
-    // When the app is resumed, re-initialize the camera to regain control.
     if (state == AppLifecycleState.resumed) {
-      debugPrint("[CameraPage] App has resumed. Re-initializing camera.");
-      if (_controller == null) {
-        _checkAndInitializeCamera();
-      }
-    }
-    // If the app is paused, hidden, or inactive, dispose of the camera controller
-    // to release the hardware resource.
-    else if (state == AppLifecycleState.inactive ||
+      debugPrint("[CameraPage] App has resumed. Checking status without requesting.");
+      _checkPermissionsOnResume();
+    } else if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.hidden) {
       if (_controller != null) {
@@ -60,13 +54,16 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _checkAndInitializeCamera() async {
-    debugPrint("[CameraPage] Checking camera permission status...");
-    final status = await Permission.camera.status;
-    debugPrint("[CameraPage] Initial permission status: $status");
+  Future<void> _requestPermissionsOnLaunch() async {
+    debugPrint("[CameraPage] Requesting initial permissions...");
+    Map<Permission, PermissionStatus> statuses = await [
+      Permission.camera,
+      Permission.microphone,
+    ].request();
+    debugPrint("[CameraPage] Camera status: ${statuses[Permission.camera]}");
 
-    if (status == PermissionStatus.granted) {
-      debugPrint("[CameraPage] Permission is granted. Initializing camera.");
+    if (statuses[Permission.camera] == PermissionStatus.granted) {
+      debugPrint("[CameraPage] Permission granted on launch. Initializing camera.");
       if (mounted) {
         setState(() {
           _isPermissionGranted = true;
@@ -74,26 +71,30 @@ class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
         _initializeCamera();
       }
     } else {
-      debugPrint("[CameraPage] Permission not granted. Requesting permission...");
-      // Request permission if it hasn't been determined yet
-      final newStatus = await Permission.camera.request();
-      debugPrint("[CameraPage] Status after request: $newStatus");
-      if (newStatus == PermissionStatus.granted) {
-        debugPrint("[CameraPage] Permission granted after request. Initializing camera.");
-        if (mounted) {
-          setState(() {
-            _isPermissionGranted = true;
-          });
-          _initializeCamera();
-        }
-      } else {
-        debugPrint("[CameraPage] Permission denied after request.");
-        if (mounted) {
-          setState(() {
-            _isPermissionGranted = false;
-          });
-        }
+      debugPrint("[CameraPage] Permission denied on launch.");
+      if (mounted) {
+        setState(() {
+          _isPermissionGranted = false;
+        });
       }
+    }
+  }
+
+  Future<void> _checkPermissionsOnResume() async {
+    debugPrint("[CameraPage] Checking status on resume...");
+    final status = await Permission.camera.status;
+    debugPrint("[CameraPage] Status on resume: $status");
+
+    if (status == PermissionStatus.granted && !_isPermissionGranted) {
+      debugPrint("[CameraPage] Permission was granted in settings. Initializing camera.");
+      if (mounted) {
+        setState(() {
+          _isPermissionGranted = true;
+        });
+        _initializeCamera();
+      }
+    } else {
+      debugPrint("[CameraPage] Permission still not granted.");
     }
   }
 
