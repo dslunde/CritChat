@@ -11,7 +11,7 @@ class CameraPage extends StatefulWidget {
   State<CameraPage> createState() => _CameraPageState();
 }
 
-class _CameraPageState extends State<CameraPage> {
+class _CameraPageState extends State<CameraPage> with WidgetsBindingObserver {
   CameraController? _controller;
   List<CameraDescription>? _cameras;
   bool _isPermissionGranted = false;
@@ -20,23 +20,86 @@ class _CameraPageState extends State<CameraPage> {
   @override
   void initState() {
     super.initState();
-    _requestCameraPermission();
+    WidgetsBinding.instance.addObserver(this);
+    _checkAndInitializeCamera();
   }
 
-  Future<void> _requestCameraPermission() async {
-    final status = await Permission.camera.request();
-    if (status == PermissionStatus.granted) {
-      setState(() {
-        _isPermissionGranted = true;
-      });
-      _initializeCamera();
-    } else if (status == PermissionStatus.permanentlyDenied) {
-      await openAppSettings();
-    } else {
-      setState(() {
-        _isPermissionGranted = false;
-      });
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    debugPrint("[CameraPage] App lifecycle state changed to: $state");
+
+    // When the app is resumed, re-initialize the camera to regain control.
+    if (state == AppLifecycleState.resumed) {
+      debugPrint("[CameraPage] App has resumed. Re-initializing camera.");
+      if (_controller == null) {
+        _checkAndInitializeCamera();
+      }
     }
+    // If the app is paused, hidden, or inactive, dispose of the camera controller
+    // to release the hardware resource.
+    else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.hidden) {
+      if (_controller != null) {
+        debugPrint("[CameraPage] App is not active. Disposing camera controller.");
+        _controller!.dispose();
+        if (mounted) {
+          setState(() {
+            _initCameraControllerFuture = null;
+            _controller = null;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _checkAndInitializeCamera() async {
+    debugPrint("[CameraPage] Checking camera permission status...");
+    final status = await Permission.camera.status;
+    debugPrint("[CameraPage] Initial permission status: $status");
+
+    if (status == PermissionStatus.granted) {
+      debugPrint("[CameraPage] Permission is granted. Initializing camera.");
+      if (mounted) {
+        setState(() {
+          _isPermissionGranted = true;
+        });
+        _initializeCamera();
+      }
+    } else {
+      debugPrint("[CameraPage] Permission not granted. Requesting permission...");
+      // Request permission if it hasn't been determined yet
+      final newStatus = await Permission.camera.request();
+      debugPrint("[CameraPage] Status after request: $newStatus");
+      if (newStatus == PermissionStatus.granted) {
+        debugPrint("[CameraPage] Permission granted after request. Initializing camera.");
+        if (mounted) {
+          setState(() {
+            _isPermissionGranted = true;
+          });
+          _initializeCamera();
+        }
+      } else {
+        debugPrint("[CameraPage] Permission denied after request.");
+        if (mounted) {
+          setState(() {
+            _isPermissionGranted = false;
+          });
+        }
+      }
+    }
+  }
+
+  Future<void> _openPermissionSettings() async {
+    debugPrint("[CameraPage] 'Open Settings' button tapped. Calling openAppSettings().");
+    await openAppSettings();
   }
 
   Future<void> _initializeCamera() async {
@@ -60,12 +123,6 @@ class _CameraPageState extends State<CameraPage> {
   }
 
   @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
@@ -80,15 +137,28 @@ class _CameraPageState extends State<CameraPage> {
   Widget _buildBody() {
     if (!_isPermissionGranted) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text('Camera permission denied.'),
-            ElevatedButton(
-              onPressed: _requestCameraPermission,
-              child: const Text('Grant Permission'),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                'Camera Permission Required',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'To capture your epic TTRPG moments, CritChat needs access to your camera. Please grant permission in your device settings.',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _openPermissionSettings,
+                child: const Text('Open Settings'),
+              ),
+            ],
+          ),
         ),
       );
     }
