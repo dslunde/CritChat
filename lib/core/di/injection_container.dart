@@ -69,6 +69,18 @@ import 'package:critchat/features/gamification/domain/usecases/initialize_user_x
 import 'package:critchat/features/gamification/presentation/bloc/gamification_bloc.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
 
+// Characters
+import 'package:critchat/features/characters/data/datasources/character_firestore_datasource.dart';
+import 'package:critchat/features/characters/data/repositories/character_repository_impl.dart';
+import 'package:critchat/features/characters/domain/repositories/character_repository.dart';
+import 'package:critchat/features/characters/domain/usecases/create_character_usecase.dart';
+import 'package:critchat/features/characters/domain/usecases/get_user_character_usecase.dart';
+import 'package:critchat/features/characters/domain/usecases/update_character_usecase.dart';
+import 'package:critchat/features/characters/presentation/bloc/character_bloc.dart';
+
+// RAG
+import 'package:critchat/core/rag/rag_service.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
@@ -80,6 +92,8 @@ Future<void> init() async {
   _initFriends();
   _initFellowships();
   _initNotifications();
+  _initCharacters();
+  _initRag();
   _initChat();
   _initPolls();
   _initGamification();
@@ -233,6 +247,40 @@ void _initNotifications() {
   );
 }
 
+void _initCharacters() {
+  // Data sources
+  sl.registerLazySingleton<CharacterFirestoreDataSource>(
+    () => CharacterFirestoreDataSourceImpl(firestore: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<CharacterRepository>(
+    () => CharacterRepositoryImpl(dataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreateCharacterUseCase(repository: sl()));
+  sl.registerLazySingleton(() => GetUserCharacterUseCase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateCharacterUseCase(repository: sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => CharacterBloc(
+      createCharacterUseCase: sl(),
+      getUserCharacterUseCase: sl(),
+      updateCharacterUseCase: sl(),
+      ragService: sl(),
+    ),
+  );
+}
+
+void _initRag() {
+  // RAG Service
+  sl.registerLazySingleton<RagService>(
+    () => RagServiceImpl(),
+  );
+}
+
 void _initChat() {
   // Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
@@ -241,6 +289,8 @@ void _initChat() {
       auth: sl(),
       firestore: sl(),
       notificationsRepository: sl(),
+      characterRepository: sl(),
+      ragService: sl(),
     ),
   );
 }
