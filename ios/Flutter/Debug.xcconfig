@@ -1,2 +1,7 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
+
+// Fix for Xcode 16.4+ clang 17 compatibility
+OTHER_CFLAGS = $(inherited) -Wno-error=unknown-warning-option -Wno-error=unused-command-line-argument-hard-error-in-future
+GCC_WARN_INHIBIT_ALL_WARNINGS = YES
+WARNING_CFLAGS = -Wno-everything
