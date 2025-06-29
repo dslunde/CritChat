@@ -365,11 +365,17 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isMe)
-            Padding(
-              padding: const EdgeInsets.only(left: 40, bottom: 4),
-              child: Row(
-                children: [
+          // Show sender name and character indicator for all messages
+          Padding(
+            padding: EdgeInsets.only(
+              left: isMe ? 40 : 40, 
+              right: isMe ? 0 : 40,
+              bottom: 4,
+            ),
+            child: Row(
+              mainAxisAlignment: isMe ? MainAxisAlignment.end : MainAxisAlignment.start,
+              children: [
+                if (!isMe) ...[
                   Text(
                     message.senderName,
                     style: const TextStyle(
@@ -411,9 +417,51 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                       ),
                     ),
                   ],
+                ] else if (isCharacterMessage) ...[
+                  // Show character indicator for sender's own messages
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.5),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.auto_awesome,
+                          size: 10,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          'as ${message.characterName}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'You',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                 ],
-              ),
+              ],
             ),
+          ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -470,7 +518,9 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                   ),
                   decoration: BoxDecoration(
                     color: isMe
-                        ? AppColors.primaryColor
+                        ? (isCharacterMessage 
+                            ? const Color(0xFF7B1FA2) // Purple for sender's character messages
+                            : AppColors.primaryColor)
                         : isCharacterMessage
                             ? const Color(0xFFF3E5F5) // Light purple for character messages
                             : AppColors.surfaceColor,
@@ -482,14 +532,17 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                           ? const Radius.circular(4)
                           : const Radius.circular(16),
                     ),
-                    border: !isMe
+                    border: isCharacterMessage
                         ? Border.all(
-                            color: isCharacterMessage 
-                                ? const Color(0xFF9C27B0).withOpacity(0.3)
-                                : AppColors.borderColor, 
-                            width: isCharacterMessage ? 2 : 1,
+                            color: const Color(0xFF9C27B0).withOpacity(0.3),
+                            width: 2,
                           )
-                        : null,
+                        : (!isMe
+                            ? Border.all(
+                                color: AppColors.borderColor,
+                                width: 1,
+                              )
+                            : null),
                     gradient: isCharacterMessage && !isMe
                         ? LinearGradient(
                             colors: [
@@ -516,14 +569,18 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                               ),
                             ),
                           ),
-                          if (isCharacterMessage && !isMe) ...[
+                          if (isCharacterMessage) ...[
                             const SizedBox(width: 8),
                             Tooltip(
-                              message: 'AI-generated character response',
+                              message: isMe 
+                                  ? 'Your character message'
+                                  : 'AI-generated character response',
                               child: Icon(
-                                Icons.psychology,
+                                isMe ? Icons.auto_awesome : Icons.psychology,
                                 size: 16,
-                                color: const Color(0xFF9C27B0).withOpacity(0.7),
+                                color: isMe 
+                                    ? Colors.white.withOpacity(0.7)
+                                    : const Color(0xFF9C27B0).withOpacity(0.7),
                               ),
                             ),
                           ],
@@ -558,7 +615,27 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                   ),
                 ),
               ),
-              if (isMe) const SizedBox(width: 40),
+              if (isMe) ...[
+                const SizedBox(width: 8),
+                // Show character avatar for sender's character messages
+                if (isCharacterMessage)
+                  Container(
+                    width: 32,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF7B1FA2),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF9C27B0), width: 2),
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome,
+                      color: Colors.white,
+                      size: 16,
+                    ),
+                  )
+                else
+                  const SizedBox(width: 32),
+              ],
             ],
           ),
         ],
