@@ -41,6 +41,12 @@ class LfgRepositoryImpl implements LfgRepository {
     try {
       final posts = await _dataSource.getActiveLfgPosts() as List<LfgPostModel>;
       
+      // If no posts returned (empty collection or Firestore issues), return empty list
+      if (posts.isEmpty) {
+        debugPrint('📭 No LFG posts found, returning empty list');
+        return [];
+      }
+      
       // Filter out current user's posts
       final othersPosts = posts.where((post) => post.userId != currentUserId).toList();
       
@@ -62,6 +68,12 @@ class LfgRepositoryImpl implements LfgRepository {
       return othersPosts;
     } catch (e) {
       debugPrint('❌ Failed to get active LFG posts: $e');
+      
+      // For specific Firestore errors, let them bubble up for the BLoC to handle gracefully
+      if (e.toString().contains('index') || e.toString().contains('failed-precondition')) {
+        rethrow; // Let BLoC handle this as empty state
+      }
+      
       throw Exception('Failed to get active LFG posts: $e');
     }
   }

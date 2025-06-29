@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:critchat/features/lfg/data/models/lfg_post_model.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class LfgFirestoreDataSource {
   Future<List<LfgPostModel>> getActiveLfgPosts();
@@ -37,7 +38,25 @@ class LfgFirestoreDataSourceImpl implements LfgFirestoreDataSource {
           .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      throw Exception('Failed to get active LFG posts: $e');
+      // If index is missing or other Firestore errors, try a simpler query
+      try {
+        final querySnapshot = await _firestore
+            .collection(_collection)
+            .where('isClosed', isEqualTo: false)
+            .get();
+
+        final posts = querySnapshot.docs
+            .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
+            .toList();
+        
+        // Sort in memory if we can't sort in Firestore
+        posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        return posts;
+      } catch (fallbackError) {
+        // If even the simple query fails, return empty list for graceful degradation
+        debugPrint('⚠️ Firestore query failed, returning empty list: $fallbackError');
+        return [];
+      }
     }
   }
 
@@ -162,7 +181,20 @@ class LfgFirestoreDataSourceImpl implements LfgFirestoreDataSource {
               .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
               .toList());
     } catch (e) {
-      throw Exception('Failed to get LFG posts stream: $e');
+      // Fallback to simpler stream if index is missing
+      debugPrint('⚠️ Using fallback stream query due to: $e');
+      return _firestore
+          .collection(_collection)
+          .where('isClosed', isEqualTo: false)
+          .snapshots()
+          .map((snapshot) {
+            final posts = snapshot.docs
+                .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
+                .toList();
+            // Sort in memory
+            posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            return posts;
+          });
     }
   }
 

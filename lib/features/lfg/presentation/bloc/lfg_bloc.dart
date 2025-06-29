@@ -62,7 +62,14 @@ class LfgBloc extends Bloc<LfgEvent, LfgState> {
       emit(LfgPostsLoaded(posts));
     } catch (e) {
       debugPrint('❌ Failed to load LFG posts: $e');
-      emit(LfgError('Failed to load LFG posts: ${e.toString()}'));
+      // For Firestore index errors and other infrastructure issues,
+      // show empty state instead of error to improve user experience
+      if (e.toString().contains('index') || e.toString().contains('failed-precondition')) {
+        debugPrint('🔧 Firestore index missing, showing empty state for better UX');
+        emit(const LfgPostsLoaded([])); // Show empty state instead of error
+      } else {
+        emit(LfgError('Failed to load LFG posts: ${e.toString()}'));
+      }
     }
   }
 
@@ -225,7 +232,13 @@ class LfgBloc extends Bloc<LfgEvent, LfgState> {
       emit(LfgPostsLoaded(posts));
     } catch (e) {
       debugPrint('❌ Failed to refresh LFG feed: $e');
-      emit(LfgError('Failed to refresh feed: ${e.toString()}'));
+      // For infrastructure issues, show empty state instead of error
+      if (e.toString().contains('index') || e.toString().contains('failed-precondition')) {
+        debugPrint('🔧 Firestore index missing, showing empty state for better UX');
+        emit(const LfgPostsLoaded([])); // Show empty state instead of error
+      } else {
+        emit(LfgError('Failed to refresh feed: ${e.toString()}'));
+      }
     }
   }
 } 

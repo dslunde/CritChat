@@ -140,49 +140,110 @@ class _LfgPageState extends State<LfgPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.group_add,
-              size: 80,
-              color: AppColors.primaryColor.withOpacity(0.7),
+            // Adventure-themed icon
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primaryColor.withValues(alpha: 0.1),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+              ),
+              child: Icon(
+                Icons.explore,
+                size: 60,
+                color: AppColors.primaryColor,
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
+            
+            // Main message
             const Text(
-              'Looking for Group',
+              'No Calls To Adventure Here!',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 28,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
+            
+            // Subtitle
             const Text(
-              'No active LFG posts yet. Create your first Call to Adventure to find fellow players!',
+              'Would you like to make one?',
+              style: TextStyle(
+                fontSize: 18,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            
+            // Description
+            const Text(
+              'Start your journey by creating the first post.\nLet other adventurers know what epic quest awaits!',
               style: TextStyle(
                 fontSize: 16,
                 color: AppColors.textSecondary,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
-            ElevatedButton.icon(
-              onPressed: _navigateToCreatePost,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
+            const SizedBox(height: 48),
+            
+            // Prominent "Make the Call" button
+            Container(
+              width: double.infinity,
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: ElevatedButton(
+                onPressed: _navigateToCreatePost,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 20,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                  shadowColor: AppColors.primaryColor.withValues(alpha: 0.3),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.campaign,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Make the Call',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              icon: const Icon(Icons.add),
-              label: const Text(
-                'Create Your First Post',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            ),
+            const SizedBox(height: 16),
+            
+            // Secondary helpful text
+            Text(
+              'Your adventure starts here! 🎲',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary.withValues(alpha: 0.8),
+                fontStyle: FontStyle.italic,
               ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
