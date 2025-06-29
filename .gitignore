@@ -114,6 +114,19 @@ app.*.symbols
 # Base64 Files
 *.b64
 
+# Environment and configuration files
+.env
+.env.local
+.env.production
+.env.development
+local_config_with_keys.dart
+**/api_keys.dart
+**/*_keys.dart
+
+# API Keys and secrets (security protection)
+**/lib/config/local_config.dart.bak
+**/lib/config/production_config.dart
+
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3

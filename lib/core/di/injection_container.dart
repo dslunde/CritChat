@@ -81,6 +81,7 @@ import 'package:critchat/features/characters/presentation/bloc/character_bloc.da
 // RAG & Vector Database
 import 'package:critchat/core/rag/rag_service.dart';
 import 'package:critchat/core/config/rag_config.dart';
+import 'package:critchat/core/config/app_config.dart';
 import 'package:critchat/core/embeddings/embedding_service.dart';
 import 'package:critchat/core/vector_db/weaviate_service.dart';
 import 'package:critchat/core/llm/llm_service.dart';
@@ -308,12 +309,11 @@ void _initCharacters() {
 }
 
 void _initRagConfig() {
-  // RAG Configuration
+  // RAG Configuration - now uses centralized AppConfig
   sl.registerLazySingleton<RagConfig>(
     () {
-      // For development, we'll use development config with mock services
-      // In production, this would be configured based on environment
-      final config = RagConfig.development();
+      AppConfig.logConfiguration();
+      final config = AppConfig.getRagConfig();
       config.logConfiguration();
       return config;
     },
