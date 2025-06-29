@@ -18,11 +18,12 @@ import 'config/local_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await di.init();
   
-  // Set up local configuration for RAG testing
+  // Set up local configuration for RAG testing BEFORE dependency injection
   // See config/local_config.dart for setup instructions
   await LocalConfig.setup();
+  
+  await di.init();
   
   runApp(const CritChatApp());
 }
