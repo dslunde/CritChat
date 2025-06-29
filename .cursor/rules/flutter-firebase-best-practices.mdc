@@ -1,0 +1,39 @@
+---
+description: Firebase, Authentication, CI/CD, Storage, Architcture, Backend, Functions, Analytics, App Check, Android, iOS
+globs: 
+alwaysApply: false
+---
+---
+description: >
+  Robust, scalable, secure mobile-app guidelines for Flutter (Dart 3) +
+  Firebase (Auth, Firestore, Functions, Storage, Analytics, App Check).
+  Cross-platform: Android & iOS.
+globs:
+  - "lib/**"
+  - "functions/**"
+alwaysApply: false      # flip to true if you want it in every prompt
+---
+## Architecture
+- Follow **Clean Architecture**: `presentation/`, `domain/`, `data/`; feature folders live under `lib/features/<feature>/`.
+- Use **Riverpod 2** (preferred) or **Bloc Cubit** for state management; avoid `setState` outside one-shot UI tweaks.
+- Generate immutable models with **freezed** + **json_serializable**; repositories expose domain entities, *never* raw DTOs.
+- Platform channels live in `platform_interface` packages; gate with `Platform.isAndroid / isIOS`.
+## Security
+- Enforce Firebase **App Check** (Play Integrity on Android, DeviceCheck on iOS) and **Auth** on every request.
+- Store secrets only via `flutter_secure_storage`; never ship tokens in code or SharedPreferences.
+- Cloud Functions must validate `context.auth.uid` & role claims.
+- Firestore & Storage access must comply with `@firestore.rules` (see referenced file).
+## Performance & Scalability
+- Enable Firestore offline persistence & unlimited cache (`Settings.CACHE_SIZE_UNLIMITED`).
+- Paginate with **query cursors** (`startAfterDocument`, `limit`) and create composite indexes for hot queries.
+- Delegate heavy/long-running tasks to Cloud Functions (type-safe via `firebase_functions_interop` or Callable Functions).
+- Push critical updates through **Firebase Cloud Messaging**; drive UI with `StreamBuilder` + throttled listeners.
+## Coding Standards
+- Run `dart format --set-exit-if-changed .`, `dart fix --apply`, and `flutter analyze` on every PR.
+- Follow **Effective Dart** naming––lowerCamelCase for vars/funcs, UpperCamelCase for types.
+- Keep widget build methods pure and ≤200 LOC; factor sub-widgets in `/widgets/` with const constructors.
+## Testing & CI/CD
+- ≥80 % unit-test coverage via `flutter_test` + `mocktail`, integration tests with `flutter_driver` or `integration_test`.
+- Automate lint+test+build+deploy with GitHub Actions or Codemagic; distribute alpha/beta via **Firebase App Distribution**.
+- Run automated device tests in **Firebase Test Lab** for common Android/iOS form factors.
+@firestore.rules

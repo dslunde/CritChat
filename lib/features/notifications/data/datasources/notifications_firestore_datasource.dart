@@ -211,7 +211,7 @@ class NotificationsRealtimeDataSourceImpl implements NotificationsDataSource {
       debugPrint('🔔 Creating notification:');
       debugPrint('   Path: $path');
       debugPrint('   Data: $data');
-      debugPrint('   Current User: ${_currentUserId}');
+      debugPrint('   Current User: $_currentUserId');
       debugPrint('   Target User: ${notification.userId}');
 
       await _database.ref(path).set(data);

@@ -69,23 +69,71 @@ import 'package:critchat/features/gamification/domain/usecases/initialize_user_x
 import 'package:critchat/features/gamification/presentation/bloc/gamification_bloc.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
 
+// Characters
+import 'package:critchat/features/characters/data/datasources/character_firestore_datasource.dart';
+import 'package:critchat/features/characters/data/repositories/character_repository_impl.dart';
+import 'package:critchat/features/characters/domain/repositories/character_repository.dart';
+import 'package:critchat/features/characters/domain/usecases/create_character_usecase.dart';
+import 'package:critchat/features/characters/domain/usecases/get_user_character_usecase.dart';
+import 'package:critchat/features/characters/domain/usecases/update_character_usecase.dart';
+import 'package:critchat/features/characters/presentation/bloc/character_bloc.dart';
+
+// RAG & Vector Database
+import 'package:critchat/core/rag/rag_service.dart';
+import 'package:critchat/core/config/rag_config.dart';
+import 'package:critchat/core/config/app_config.dart';
+import 'package:critchat/core/embeddings/embedding_service.dart';
+import 'package:critchat/core/vector_db/weaviate_service.dart';
+import 'package:critchat/core/llm/llm_service.dart';
+import 'package:critchat/features/characters/domain/repositories/character_memory_repository.dart';
+import 'package:critchat/features/characters/domain/usecases/store_character_memory_usecase.dart';
+import 'package:critchat/features/characters/domain/usecases/search_character_memories_usecase.dart';
+import 'package:critchat/features/characters/data/datasources/character_memory_weaviate_datasource.dart';
+import 'package:critchat/features/characters/data/datasources/character_memory_mock_datasource.dart';
+import 'package:critchat/features/characters/data/repositories/character_memory_repository_impl.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> init() async {
   // External dependencies
   _initExternalDependencies();
 
+  // Core infrastructure (must come first)
+  _initRagConfig();
+  _initRagInfrastructure();
+  
   // Feature modules
   _initAuth();
   _initFriends();
   _initFellowships();
   _initNotifications();
+  _initCharacters();
+  _initCharacterMemory();
+  _initRag();
   _initChat();
   _initPolls();
   _initGamification();
 
+  // Initialize Weaviate schema if available
+  await _initializeWeaviateSchema();
+
   // Initialize fellowship memberships for Realtime Database security rules
   await _initializeFellowshipMemberships();
+}
+
+Future<void> _initializeWeaviateSchema() async {
+  try {
+    final weaviateService = sl.isRegistered<WeaviateService>() ? sl<WeaviateService>() : null;
+    if (weaviateService != null) {
+      debugPrint('🔧 Initializing Weaviate schema...');
+      await weaviateService.initializeSchema();
+      debugPrint('✅ Weaviate schema initialized successfully');
+    }
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('⚠️ Failed to initialize Weaviate schema: $e');
+    debugPrint('   Vector database features may not work properly');
+  }
 }
 
 Future<void> _initializeFellowshipMemberships() async {
@@ -233,6 +281,161 @@ void _initNotifications() {
   );
 }
 
+void _initCharacters() {
+  // Data sources
+  sl.registerLazySingleton<CharacterFirestoreDataSource>(
+    () => CharacterFirestoreDataSourceImpl(firestore: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<CharacterRepository>(
+    () => CharacterRepositoryImpl(dataSource: sl()),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreateCharacterUseCase(repository: sl()));
+  sl.registerLazySingleton(() => GetUserCharacterUseCase(repository: sl()));
+  sl.registerLazySingleton(() => UpdateCharacterUseCase(repository: sl()));
+
+  // BLoC
+  sl.registerFactory(
+    () => CharacterBloc(
+      createCharacterUseCase: sl(),
+      getUserCharacterUseCase: sl(),
+      updateCharacterUseCase: sl(),
+      ragService: sl(),
+    ),
+  );
+}
+
+void _initRagConfig() {
+  // RAG Configuration - now uses centralized AppConfig
+  sl.registerLazySingleton<RagConfig>(
+    () {
+      AppConfig.logConfiguration();
+      final config = AppConfig.getRagConfig();
+      config.logConfiguration();
+      return config;
+    },
+  );
+}
+
+void _initRagInfrastructure() {
+  final config = sl<RagConfig>();
+
+  // Embedding Service
+  sl.registerLazySingleton<EmbeddingService>(() {
+    if (config.useMockServices || !config.hasOpenAiKey) {
+      debugPrint('🔧 Using mock embedding service');
+      return MockEmbeddingService();
+    } else {
+      debugPrint('🔧 Using OpenAI embedding service');
+      return OpenAIEmbeddingService(apiKey: config.openAiApiKey);
+    }
+  });
+
+  // LLM Service
+  sl.registerLazySingleton<LlmService>(() {
+    if (config.useMockServices || !config.hasOpenAiKey) {
+      debugPrint('🔧 Using mock LLM service');
+      return MockLlmService();
+    } else {
+      debugPrint('🔧 Using OpenAI LLM service');
+      return OpenAILlmService(apiKey: config.openAiApiKey);
+    }
+  });
+
+  // Weaviate Service (if configured or using mocks)
+  if (config.hasWeaviateConfig || config.useMockServices) {
+    sl.registerLazySingleton<WeaviateService>(() {
+      if (config.useMockServices || !config.hasWeaviateConfig) {
+        debugPrint('🔧 Using mock Weaviate service');
+        // For mock mode, use a simple configuration
+        return WeaviateService(
+          config: const WeaviateConfig(url: 'mock://localhost:8080'),
+        );
+      } else {
+        debugPrint('🔧 Using real Weaviate vector database');
+        return WeaviateService(config: config.weaviateConfig!);
+      }
+    });
+  }
+}
+
+void _initCharacterMemory() {
+  final config = sl<RagConfig>();
+
+  // Character Memory Data Source (only if we have Weaviate or using mocks)
+  if (config.hasWeaviateConfig || config.useMockServices) {
+    sl.registerLazySingleton<CharacterMemoryWeaviateDataSource>(() {
+      if (config.useMockServices || !config.hasWeaviateConfig) {
+        debugPrint('🔧 Using mock character memory data source');
+        return CharacterMemoryMockDataSourceImpl();
+      } else {
+        debugPrint('🔧 Using Weaviate character memory data source');
+        return CharacterMemoryWeaviateDataSourceImpl(
+          weaviateService: sl<WeaviateService>(),
+          embeddingService: sl<EmbeddingService>(),
+        );
+      }
+    });
+
+    // Character Memory Repository
+    sl.registerLazySingleton<CharacterMemoryRepository>(
+      () => CharacterMemoryRepositoryImpl(dataSource: sl()),
+    );
+
+    // Character Memory Use Cases
+    sl.registerLazySingleton(() => StoreCharacterMemoryUseCase(
+      repository: sl(),
+      embeddingService: sl(),
+    ));
+    
+    sl.registerLazySingleton(() => SearchCharacterMemoriesUseCase(
+      repository: sl(),
+    ));
+  }
+}
+
+void _initRag() {
+  final config = sl<RagConfig>();
+
+  // RAG Service
+  sl.registerLazySingleton<RagService>(() {
+    if (!config.enableRag) {
+      debugPrint('🔧 RAG disabled, using simple responses only');
+      return RagServiceImpl();
+    }
+
+    CharacterMemoryRepository? memoryRepository;
+    LlmService? llmService;
+
+    // Try to get optional dependencies
+    try {
+      memoryRepository = sl<CharacterMemoryRepository>();
+    } catch (e) {
+      debugPrint('⚠️ Character memory repository not available');
+    }
+
+    try {
+      llmService = sl<LlmService>();
+    } catch (e) {
+      debugPrint('⚠️ LLM service not available');
+    }
+
+    if (memoryRepository != null && llmService != null) {
+      debugPrint('🔧 Using enhanced RAG service with vector database and LLM');
+    } else {
+      debugPrint('🔧 Using basic RAG service (some components unavailable)');
+    }
+
+    return RagServiceImpl(
+      memoryRepository: memoryRepository,
+      llmService: llmService,
+    );
+  });
+}
+
 void _initChat() {
   // Data sources
   sl.registerLazySingleton<ChatRealtimeDataSource>(
@@ -241,6 +444,8 @@ void _initChat() {
       auth: sl(),
       firestore: sl(),
       notificationsRepository: sl(),
+      characterRepository: sl(),
+      ragService: sl(),
     ),
   );
 }

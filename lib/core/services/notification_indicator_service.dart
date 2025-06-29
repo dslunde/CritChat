@@ -17,7 +17,7 @@ class NotificationIndicatorService {
   final StreamController<Map<String, int>>
   _unreadFellowshipMessagesMapController =
       StreamController<Map<String, int>>.broadcast();
-  final StreamController<int> _unreadForMeController =
+  final StreamController<int> _unreadCharactersController =
       StreamController<int>.broadcast();
   final StreamController<int> _unreadLfgController =
       StreamController<int>.broadcast();
@@ -28,7 +28,7 @@ class NotificationIndicatorService {
   int _unreadFellowshipMessages = 0;
   Map<String, int> _unreadFriendMessagesMap = {};
   Map<String, int> _unreadFellowshipMessagesMap = {};
-  int _unreadForMe = 0;
+  int _unreadCharacters = 0;
   int _unreadLfg = 0;
 
   NotificationIndicatorService({
@@ -46,7 +46,7 @@ class NotificationIndicatorService {
       _unreadFriendMessagesMapController.stream;
   Stream<Map<String, int>> get unreadFellowshipMessagesMapStream =>
       _unreadFellowshipMessagesMapController.stream;
-  Stream<int> get unreadForMeStream => _unreadForMeController.stream;
+  Stream<int> get unreadCharactersStream => _unreadCharactersController.stream;
   Stream<int> get unreadLfgStream => _unreadLfgController.stream;
 
   // Getters for current counts
@@ -56,7 +56,7 @@ class NotificationIndicatorService {
   Map<String, int> get unreadFriendMessagesMap => _unreadFriendMessagesMap;
   Map<String, int> get unreadFellowshipMessagesMap =>
       _unreadFellowshipMessagesMap;
-  int get unreadForMe => _unreadForMe;
+  int get unreadCharacters => _unreadCharacters;
   int get unreadLfg => _unreadLfg;
 
   // Methods to update counts
@@ -95,10 +95,10 @@ class NotificationIndicatorService {
     }
   }
 
-  void updateUnreadForMe(int count) {
-    if (_unreadForMe != count) {
-      _unreadForMe = count;
-      _unreadForMeController.add(count);
+  void updateUnreadCharacters(int count) {
+    if (_unreadCharacters != count) {
+      _unreadCharacters = count;
+      _unreadCharactersController.add(count);
     }
   }
 
@@ -157,7 +157,7 @@ class NotificationIndicatorService {
       updateUnreadFellowshipMessages(0);
       updateUnreadFriendMessagesMap({});
       updateUnreadFellowshipMessagesMap({});
-      updateUnreadForMe(0);
+      updateUnreadCharacters(0);
       updateUnreadLfg(0);
     } catch (e) {
       debugPrint('Error initializing notification indicator service: $e');
@@ -170,7 +170,7 @@ class NotificationIndicatorService {
     _unreadFellowshipMessagesController.close();
     _unreadFriendMessagesMapController.close();
     _unreadFellowshipMessagesMapController.close();
-    _unreadForMeController.close();
+    _unreadCharactersController.close();
     _unreadLfgController.close();
   }
 }

@@ -13,11 +13,18 @@ import 'features/auth/presentation/pages/onboarding_page.dart';
 import 'features/auth/presentation/pages/goodbye_page.dart';
 import 'features/auth/presentation/pages/xp_success_page.dart';
 import 'features/navigation/main_navigation.dart';
+import 'config/local_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  
+  // Set up local configuration for RAG testing BEFORE dependency injection
+  // See config/local_config.dart for setup instructions
+  await LocalConfig.setup();
+  
   await di.init();
+  
   runApp(const CritChatApp());
 }
 

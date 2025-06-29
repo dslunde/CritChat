@@ -330,4 +330,101 @@ Widget build(BuildContext context) {
 - Polls remain visible during all operations
 - No loading flicker during user interactions
 - Consistent data availability across state transitions
-- Better user experience with persistent UI 
+- Better user experience with persistent UI
+
+## RAG (Retrieval-Augmented Generation) System Architecture
+
+### Complete AI-Powered Character Interaction System
+The RAG system enables AI-powered character-based messaging using vector databases and large language models, following clean architecture principles throughout.
+
+### Domain Layer - Character Management
+- **CharacterEntity**: Core character model with personality, backstory, speech patterns, quotes, and AI indexing status
+- **CharacterMemoryEntity**: Vector-enabled memory storage with content, embeddings, metadata, and similarity scores
+- **CharacterRepository**: Interface for character CRUD operations with validation (one character per user)
+- **CharacterMemoryRepository**: Interface for memory storage, vectorization, and similarity search operations
+- **Use Cases**: 
+  - `CreateCharacterUseCase`: Character creation with comprehensive validation
+  - `GetUserCharacterUseCase`: Retrieve user's character with error handling
+  - `UpdateCharacterUseCase`: Character modification with validation
+  - `StoreCharacterMemoryUseCase`: Memory vectorization and storage
+  - `SearchCharacterMemoriesUseCase`: Vector similarity search with configurable limits
+
+### RAG Service Architecture
+- **RAG Service Interface**: Defines character response generation, memory indexing, and vector operations
+- **RAG Service Implementation**: Complete pipeline orchestrating embedding, vector search, and LLM generation
+- **Context Management**: Retrieves character profile + up to 10 relevant memories + recent chat history
+- **Response Generation**: Personality-driven LLM prompts ensuring character consistency
+
+### Vector Database Integration (Weaviate)
+- **WeaviateService**: Complete vector database integration with schema management
+- **Character Memory Schema**: Optimized vector storage for character memories with metadata
+- **Similarity Search**: Configurable threshold and limit-based memory retrieval
+- **Health Monitoring**: Service availability checking with graceful degradation
+- **Batch Operations**: Efficient bulk memory storage and retrieval
+
+### LLM Integration Architecture
+- **LlmService Interface**: Abstracts language model operations for character response generation
+- **OpenAI Integration**: GPT-4o-mini with personality-driven prompt engineering
+- **Context Window Management**: Optimal prompt construction using character + memories + context
+- **Mock LLM Service**: Development service with realistic response generation patterns
+
+### Embedding Service Architecture
+- **EmbeddingService Interface**: Text vectorization abstraction for memory storage
+- **OpenAI Embedding Integration**: text-embedding-3-small model for high-quality vectors
+- **Text Preprocessing**: Content optimization for embedding generation
+- **Mock Embedding Service**: Development service with realistic vector generation
+
+### @as Command System Architecture
+- **ChatCommandParser**: Advanced parsing for `@as <character> <message>` and quoted character names
+- **CommandValidator**: Comprehensive validation with helpful error messages and suggestions
+- **AsCommandData**: Structured command representation with character and message separation
+- **Integration Pipeline**: Command → Character Validation → Memory Retrieval → LLM Generation → Response
+
+### Enhanced Message Architecture
+- **Extended Message Class**: Added characterId, characterName, originalPrompt for character messages
+- **Message Type Identification**: Distinguishes AI-generated character messages from regular messages
+- **Notification Integration**: Special handling for character message notifications
+- **Real-time Integration**: Seamless integration with existing chat infrastructure
+
+### Configuration Management Architecture
+- **AppConfig**: Environment-based configuration with development overrides
+- **LocalConfig**: Development setup with secure API key management via .env.local
+- **Service Selection**: Automatic mock/real service selection based on configuration
+- **Security Patterns**: API keys never in code, template-based team onboarding
+
+### Character Memory UI Architecture
+- **CharacterMemoryWidget**: Seamless memory addition interface with expandable UI
+- **Content Type Inference**: Automatic categorization (session, journal, backstory, NPC interactions)
+- **Memory Display**: Recent memories with status indicators and availability checking
+- **Integration Pattern**: Embedded within character management flow for seamless UX
+
+### Production Deployment Patterns
+- **Environment Separation**: Clear development (mock) vs production (real AI) service modes
+- **Docker Integration**: Automated Weaviate deployment with setup scripts
+- **API Key Management**: Secure .env.local pattern with template files for team onboarding
+- **Health Monitoring**: Service availability checking with user-friendly status reporting
+- **Graceful Degradation**: Comprehensive fallbacks when AI services unavailable
+
+### RAG Data Flow Architecture
+```
+User Input: @as Gandalf Welcome to my realm!
+    ↓
+Command Parser: Extract character="Gandalf", message="Welcome to my realm!"
+    ↓
+Character Validation: Verify user owns character, character exists
+    ↓
+Memory Retrieval: Vector search for relevant memories (up to 10)
+    ↓
+Context Assembly: Character profile + memories + recent chat history
+    ↓
+LLM Generation: GPT-4o-mini with personality-driven prompt
+    ↓
+Response Delivery: Character message with metadata sent to chat
+```
+
+### Testing Patterns for RAG System
+- **Use Case Testing**: Isolated business logic testing with comprehensive validation scenarios
+- **Mock Service Testing**: Realistic AI service behavior simulation for development
+- **Integration Testing**: End-to-end RAG pipeline testing with actual vector operations
+- **Error Scenario Testing**: Comprehensive failure mode testing (AI unavailable, invalid characters, etc.)
+- **Performance Testing**: Vector search efficiency and LLM response time validation 
