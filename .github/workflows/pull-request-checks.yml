@@ -26,6 +26,16 @@ jobs:
         with:
           channel: 'stable'
 
+      # Create .env.local for CI testing
+      - name: Create test environment file
+        run: |
+          cat > .env.local << EOF
+          USE_PRODUCTION_AI=false
+          OPENAI_API_KEY=test_key_for_ci
+          WEAVIATE_URL=http://localhost:8080
+          WEAVIATE_API_KEY=test_key_for_ci
+          EOF
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
