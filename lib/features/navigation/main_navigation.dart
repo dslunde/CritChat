@@ -12,7 +12,7 @@ import 'package:critchat/features/friends/friends_page.dart';
 import 'package:critchat/features/home/home_page.dart';
 import 'package:critchat/features/fellowships/presentation/pages/fellowships_page.dart';
 import 'package:critchat/features/fellowships/presentation/bloc/fellowship_bloc.dart';
-import 'package:critchat/features/profile/for_me_page.dart';
+import 'package:critchat/features/profile/characters_page.dart';
 import 'package:critchat/features/gamification/presentation/bloc/gamification_bloc.dart';
 import 'package:critchat/features/gamification/presentation/bloc/gamification_state.dart';
 import 'package:critchat/features/gamification/presentation/widgets/level_up_dialog.dart';
@@ -85,7 +85,7 @@ class _MainNavigationState extends State<MainNavigation> {
             BlocProvider.value(value: authBloc, child: const FriendsPage()),
             BlocProvider.value(value: authBloc, child: const HomePage()),
             const FellowshipsPage(),
-            BlocProvider.value(value: authBloc, child: const ForMePage()),
+            BlocProvider.value(value: authBloc, child: const CharactersPage()),
           ];
 
           return BlocListener<GamificationBloc, GamificationState>(
@@ -182,14 +182,14 @@ class _MainNavigationState extends State<MainNavigation> {
                     ),
                     BottomNavigationBarItem(
                       icon: StreamNotificationIndicator(
-                        countStream: _notificationService.unreadForMeStream,
+                        countStream: _notificationService.unreadCharactersStream,
                         child: const Icon(Icons.person_outline),
                       ),
                       activeIcon: StreamNotificationIndicator(
-                        countStream: _notificationService.unreadForMeStream,
+                        countStream: _notificationService.unreadCharactersStream,
                         child: const Icon(Icons.person),
                       ),
-                      label: 'For Me',
+                      label: 'Characters',
                     ),
                   ],
                 ),

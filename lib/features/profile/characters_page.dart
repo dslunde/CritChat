@@ -14,14 +14,14 @@ import 'package:critchat/features/characters/domain/entities/character_entity.da
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 
-class ForMePage extends StatefulWidget {
-  const ForMePage({super.key});
+class CharactersPage extends StatefulWidget {
+  const CharactersPage({super.key});
 
   @override
-  State<ForMePage> createState() => _ForMePageState();
+  State<CharactersPage> createState() => _CharactersPageState();
 }
 
-class _ForMePageState extends State<ForMePage> {
+class _CharactersPageState extends State<CharactersPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
