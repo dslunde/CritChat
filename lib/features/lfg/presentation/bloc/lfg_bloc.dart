@@ -101,12 +101,7 @@ class LfgBloc extends Bloc<LfgEvent, LfgState> {
       // Award XP for creating LFG post
       try {
         final gamificationService = sl<GamificationService>();
-        await gamificationService.awardXp(
-          userId: event.userId,
-          xpEvent: XpEvent.lfgPostCreated,
-          amount: 5,
-          description: 'Created LFG post: ${event.gameSystem}',
-        );
+        await gamificationService.awardXp(XpRewardType.lfgPostCreated);
         debugPrint('✅ Awarded XP for LFG post creation');
       } catch (e) {
         debugPrint('⚠️ Failed to award XP for LFG post creation: $e');
@@ -190,12 +185,7 @@ class LfgBloc extends Bloc<LfgEvent, LfgState> {
       // Award XP for successful fellowship creation from LFG post
       try {
         final gamificationService = sl<GamificationService>();
-        await gamificationService.awardXp(
-          userId: fellowship.creatorId,
-          xpEvent: XpEvent.fellowshipCreated,
-          amount: 10,
-          description: 'Created fellowship from LFG post: ${fellowship.name}',
-        );
+        await gamificationService.awardXp(XpRewardType.createFellowship);
         debugPrint('✅ Awarded XP for fellowship creation from LFG post');
       } catch (e) {
         debugPrint('⚠️ Failed to award XP for fellowship creation: $e');

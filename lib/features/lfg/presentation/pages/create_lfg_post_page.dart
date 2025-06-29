@@ -411,7 +411,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
     }
 
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSuccess) {
+    if (authState is AuthAuthenticated) {
       context.read<LfgBloc>().add(
         CreateLfgPost(
           userId: authState.user.id,

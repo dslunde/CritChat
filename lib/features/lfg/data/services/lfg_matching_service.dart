@@ -24,7 +24,7 @@ class LfgMatchingService {
       if (_ragDataSource != null) {
         try {
           final semanticQuery = _buildSemanticQuery(userPost);
-          final ragResults = await _ragDataSource!.searchSimilarPosts(semanticQuery, posts.cast());
+          final ragResults = await _ragDataSource.searchSimilarPosts(semanticQuery, posts.cast());
           scoredPosts = ragResults.cast<LfgPostEntity>();
           debugPrint('✅ Applied semantic matching using RAG');
         } catch (e) {

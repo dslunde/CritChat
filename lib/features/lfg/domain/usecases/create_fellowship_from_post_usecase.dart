@@ -1,4 +1,4 @@
-import 'package:critchat/features/lfg/domain/entities/lfg_post_entity.dart';
+
 import 'package:critchat/features/lfg/domain/repositories/lfg_repository.dart';
 import 'package:critchat/features/fellowships/domain/entities/fellowship_entity.dart';
 import 'package:critchat/features/fellowships/domain/repositories/fellowship_repository.dart';

@@ -541,13 +541,12 @@ void _initLfg() {
   sl.registerLazySingleton<LfgFirestoreDataSource>(
     () => LfgFirestoreDataSourceImpl(
       firestore: sl(),
-      auth: sl(),
     ),
   );
 
   // RAG data source (optional - fallback to mock if Weaviate unavailable)
   final ragConfig = sl<RagConfig>();
-  if (ragConfig.isEnabled) {
+  if (ragConfig.enableRag && ragConfig.hasWeaviateConfig) {
     sl.registerLazySingleton<LfgRagDataSource>(
       () => LfgRagDataSourceImpl(
         weaviateService: sl(),
@@ -568,6 +567,7 @@ void _initLfg() {
   // Repositories
   sl.registerLazySingleton<LfgRepository>(
     () => LfgRepositoryImpl(
+      ragConfig: ragConfig,
       firestoreDataSource: sl(),
       ragDataSource: sl(),
       matchingService: sl(),

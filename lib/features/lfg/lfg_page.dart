@@ -9,7 +9,7 @@ import 'package:critchat/features/lfg/presentation/widgets/lfg_post_card.dart';
 import 'package:critchat/features/lfg/presentation/pages/create_lfg_post_page.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
-import 'package:critchat/core/di/injection_container.dart';
+
 
 class LfgPage extends StatefulWidget {
   const LfgPage({super.key});
@@ -27,7 +27,7 @@ class _LfgPageState extends State<LfgPage> {
 
   void _loadLfgPosts() {
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSuccess) {
+    if (authState is AuthAuthenticated) {
       context.read<LfgBloc>().add(LoadLfgPosts(currentUserId: authState.user.id));
     }
   }
@@ -203,7 +203,7 @@ class _LfgPageState extends State<LfgPage> {
 
   void _expressInterest(String postId) {
     final authState = context.read<AuthBloc>().state;
-    if (authState is AuthSuccess) {
+    if (authState is AuthAuthenticated) {
       context.read<LfgBloc>().add(
         ExpressInterest(
           postId: postId,
