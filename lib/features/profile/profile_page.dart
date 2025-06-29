@@ -10,7 +10,7 @@ import 'package:critchat/features/friends/presentation/pages/search_friends_page
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
 import 'package:critchat/features/fellowships/presentation/pages/join_fellowship_selection_page.dart';
-import 'package:critchat/features/lfg/lfg_page.dart';
+import 'package:critchat/features/navigation/main_navigation.dart';
 import 'package:critchat/features/gamification/presentation/pages/xp_explanation_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -295,9 +295,15 @@ class ProfilePage extends StatelessWidget {
   }
 
   void _navigateToLfg(BuildContext context) {
-    Navigator.of(context).push(
+    // Get the AuthBloc from current context to pass it to MainNavigation
+    final authBloc = context.read<AuthBloc>();
+    
+    Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (context) => const LfgPage(),
+        builder: (context) => BlocProvider.value(
+          value: authBloc,
+          child: const MainNavigation(initialIndex: 0), // LFG tab is at index 0
+        ),
       ),
     );
   }
