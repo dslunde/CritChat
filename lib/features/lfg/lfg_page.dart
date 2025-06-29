@@ -252,13 +252,17 @@ class _LfgPageState extends State<LfgPage> {
   }
 
   void _navigateToCreatePost() {
-    // Get the LfgBloc reference before navigation to avoid context issues
+    // Get both bloc references before navigation to avoid context issues
     final lfgBloc = context.read<LfgBloc>();
+    final authBloc = context.read<AuthBloc>();
     
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: lfgBloc,
+        builder: (context) => MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: lfgBloc),
+            BlocProvider.value(value: authBloc),
+          ],
           child: const CreateLfgPostPage(),
         ),
       ),

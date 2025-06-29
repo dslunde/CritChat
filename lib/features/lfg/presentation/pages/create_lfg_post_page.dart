@@ -391,6 +391,16 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
           ),
         ),
         const SizedBox(width: 12),
+        // "times /" text
+        const Text(
+          'times /',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(width: 12),
         // Unit dropdown
         Expanded(
           flex: 3,
