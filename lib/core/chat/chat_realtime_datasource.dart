@@ -251,7 +251,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
       throw Exception('Character service not available. Please try again later.');
     }
     
-    final userCharacter = await _characterRepository!.getCharacterByNameAndUser(
+    final userCharacter = await _characterRepository.getCharacterByNameAndUser(
       commandData.characterName,
       currentUser.uid,
     );
@@ -265,7 +265,7 @@ class ChatRealtimeDataSourceImpl implements ChatRealtimeDataSource {
     if (_ragService != null) {
       // Get recent chat context for better responses
       final recentMessages = await _getRecentMessages(chatId, 10);
-      characterResponse = await _ragService!.generateCharacterResponse(
+      characterResponse = await _ragService.generateCharacterResponse(
         character: userCharacter,
         userPrompt: commandData.message,
         recentContext: recentMessages,
