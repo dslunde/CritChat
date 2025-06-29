@@ -7,7 +7,7 @@ import 'package:critchat/core/config/app_config.dart';
 /// SAFE SETUP: This file reads API keys from .env.local (which is gitignored)
 /// 
 /// To test the RAG system with real AI:
-/// 1. Copy env.local.example to .env.local
+/// 1. Copy .env.local.example to .env.local
 /// 2. Edit .env.local with your OpenAI API key
 /// 3. Run: ./scripts/setup-weaviate.sh
 /// 4. Run: flutter run
@@ -77,7 +77,7 @@ class LocalConfig {
       debugPrint('🤖 To enable AI-powered character responses:');
       debugPrint('');
       debugPrint('   Step 1: Copy the example file');
-      debugPrint('   cp env.local.example .env.local');
+      debugPrint('   cp .env.local.example .env.local');
       debugPrint('');
       debugPrint('   Step 2: Edit .env.local with your OpenAI API key');
       debugPrint('   (Get one from: https://platform.openai.com/api-keys)');
@@ -100,7 +100,7 @@ class SetupInstructions {
 🔑 OpenAI API Key Setup:
 1. Go to https://platform.openai.com/api-keys
 2. Create a new API key
-3. Copy env.local.example to .env.local
+3. Copy .env.local.example to .env.local
 4. Edit .env.local with your actual API key
 5. Make sure you have credits in your OpenAI account
 ''';
