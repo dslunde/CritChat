@@ -27,6 +27,26 @@ class LfgRepositoryImpl implements LfgRepository {
        _matchingService = matchingService,
        _ragConfig = ragConfig;
 
+  /// Initialize the repository and its dependencies
+  Future<void> initialize() async {
+    try {
+      debugPrint('🔧 Initializing LFG Repository...');
+      
+      // Initialize RAG schema if RAG datasource is available
+      if (_ragDataSource != null) {
+        await _ragDataSource.initializeSchema();
+        debugPrint('✅ LFG RAG schema initialized');
+      } else {
+        debugPrint('ℹ️ No RAG datasource available, skipping schema initialization');
+      }
+      
+      debugPrint('✅ LFG Repository initialized successfully');
+    } catch (e) {
+      debugPrint('⚠️ Failed to initialize LFG Repository: $e');
+      // Don't throw - let the app continue without RAG functionality
+    }
+  }
+
   /// Get the appropriate datasource based on configuration
   dynamic get _dataSource {
     if (_ragConfig.useMockServices) {

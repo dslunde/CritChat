@@ -1,6 +1,7 @@
 import 'package:critchat/features/lfg/domain/entities/lfg_post_entity.dart';
 
 abstract class LfgRepository {
+  Future<void> initialize();
   Future<List<LfgPostEntity>> getActiveLfgPosts(String currentUserId);
   Future<List<LfgPostEntity>> getUserLfgPosts(String userId);
   Future<LfgPostEntity> createLfgPost(LfgPostEntity post);

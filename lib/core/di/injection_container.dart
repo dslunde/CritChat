@@ -133,6 +133,9 @@ Future<void> init() async {
   // Initialize Weaviate schema if available
   await _initializeWeaviateSchema();
 
+  // Initialize LFG repository if available
+  await _initializeLfgRepository();
+
   // Initialize fellowship memberships for Realtime Database security rules
   await _initializeFellowshipMemberships();
 }
@@ -149,6 +152,16 @@ Future<void> _initializeWeaviateSchema() async {
     // Log error but don't crash the app
     debugPrint('⚠️ Failed to initialize Weaviate schema: $e');
     debugPrint('   Vector database features may not work properly');
+  }
+}
+
+Future<void> _initializeLfgRepository() async {
+  try {
+    final lfgRepository = sl<LfgRepository>();
+    await lfgRepository.initialize();
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('Failed to initialize LFG repository: $e');
   }
 }
 
