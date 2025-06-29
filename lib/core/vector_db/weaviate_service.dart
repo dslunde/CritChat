@@ -24,6 +24,14 @@ class WeaviateService {
     http.Client? httpClient,
   }) : httpClient = httpClient ?? http.Client();
 
+  /// Format DateTime to RFC3339 string that Weaviate expects
+  String _formatDateTimeForWeaviate(DateTime dateTime) {
+    final utcDateTime = dateTime.toUtc();
+    final isoString = utcDateTime.toIso8601String();
+    // Ensure it ends with 'Z' for UTC timezone
+    return isoString.endsWith('Z') ? isoString : '${isoString}Z';
+  }
+
   /// Initialize the Weaviate schema
   Future<void> initializeSchema() async {
     try {
@@ -109,8 +117,8 @@ class WeaviateService {
           'contentType': memory.contentType,
           'source': memory.source ?? '',
           'metadata': jsonEncode(memory.metadata),
-          'createdAt': memory.createdAt.toIso8601String(),
-          'updatedAt': memory.updatedAt.toIso8601String(),
+          'createdAt': _formatDateTimeForWeaviate(memory.createdAt),
+          'updatedAt': _formatDateTimeForWeaviate(memory.updatedAt),
         },
         'vector': memory.embedding,
       };
@@ -471,8 +479,8 @@ class WeaviateService {
           'campaignLength': campaignLength,
           'callToAdventureText': callToAdventureText,
           'isClosed': isClosed,
-          'createdAt': createdAt.toIso8601String(),
-          'updatedAt': updatedAt.toIso8601String(),
+          'createdAt': _formatDateTimeForWeaviate(createdAt),
+          'updatedAt': _formatDateTimeForWeaviate(updatedAt),
         },
         'vector': embedding,
       };

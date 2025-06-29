@@ -67,8 +67,11 @@ class LfgRepositoryImpl implements LfgRepository {
         return [];
       }
       
-      // Filter out current user's posts
-      final othersPosts = posts.where((post) => post.userId != currentUserId).toList();
+      // Filter out current user's posts (temporarily disabled for testing)
+      // final othersPosts = posts.where((post) => post.userId != currentUserId).toList();
+      final othersPosts = posts; // TEMP: Show all posts including own for testing
+      
+      debugPrint('🔍 Repository filtering: ${posts.length} total posts, ${othersPosts.length} after filtering (showing own posts for testing)');
       
       // If user has any posts, get their latest post for matching
       final userPosts = posts.where((post) => post.userId == currentUserId).toList();
@@ -85,6 +88,7 @@ class LfgRepositoryImpl implements LfgRepository {
       }
       
       // If user has no posts, return all posts without match scoring
+      // Note: othersPosts now includes own posts for testing
       return othersPosts;
     } catch (e) {
       debugPrint('❌ Failed to get active LFG posts: $e');

@@ -28,26 +28,42 @@ class LfgFirestoreDataSourceImpl implements LfgFirestoreDataSource {
   @override
   Future<List<LfgPostModel>> getActiveLfgPosts() async {
     try {
+      debugPrint('🔍 Querying active LFG posts from collection: $_collection');
       final querySnapshot = await _firestore
           .collection(_collection)
           .where('isClosed', isEqualTo: false)
           .orderBy('createdAt', descending: true)
           .get();
 
-      return querySnapshot.docs
+      debugPrint('📊 Found ${querySnapshot.docs.length} documents in query result');
+      final posts = querySnapshot.docs
           .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
           .toList();
+      
+      debugPrint('📋 Parsed ${posts.length} LFG posts');
+      for (final post in posts) {
+        debugPrint('  - Post ${post.id}: ${post.gameSystem} by ${post.userName} (closed: ${post.isClosed})');
+      }
+      
+      return posts;
     } catch (e) {
       // If index is missing or other Firestore errors, try a simpler query
       try {
+        debugPrint('⚠️ Primary query failed: $e, trying fallback query');
         final querySnapshot = await _firestore
             .collection(_collection)
             .where('isClosed', isEqualTo: false)
             .get();
 
+        debugPrint('📊 Fallback query found ${querySnapshot.docs.length} documents');
         final posts = querySnapshot.docs
             .map((doc) => LfgPostModel.fromJson(doc.data(), doc.id))
             .toList();
+        
+        debugPrint('📋 Fallback parsed ${posts.length} LFG posts');
+        for (final post in posts) {
+          debugPrint('  - Post ${post.id}: ${post.gameSystem} by ${post.userName} (closed: ${post.isClosed})');
+        }
         
         // Sort in memory if we can't sort in Firestore
         posts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -80,16 +96,38 @@ class LfgFirestoreDataSourceImpl implements LfgFirestoreDataSource {
   @override
   Future<LfgPostModel> createLfgPost(LfgPostModel post) async {
     try {
+      debugPrint('📝 Creating LFG post in collection: $_collection');
+      final jsonData = post.toJson();
+      debugPrint('📝 Post data: ${jsonData.toString()}');
+      
       final docRef = await _firestore
           .collection(_collection)
-          .add(post.toJson());
+          .add(jsonData);
+      
+      debugPrint('📝 Created document with ID: ${docRef.id}');
       final newPost = post.copyWith(id: docRef.id);
 
       // Update the document with the generated ID
       await docRef.update({'id': docRef.id});
+      debugPrint('📝 Updated document with ID field');
+
+      // Verification: Check if the post can be queried immediately
+      try {
+        debugPrint('🔍 Verifying post creation by querying document...');
+        final verifyDoc = await docRef.get();
+        if (verifyDoc.exists) {
+          final data = verifyDoc.data()!;
+          debugPrint('✅ Verification successful - Post data: isClosed=${data['isClosed']}, createdAt=${data['createdAt']}');
+        } else {
+          debugPrint('❌ Verification failed - Document does not exist');
+        }
+      } catch (verifyError) {
+        debugPrint('❌ Verification error: $verifyError');
+      }
 
       return newPost;
     } catch (e) {
+      debugPrint('❌ Failed to create LFG post: $e');
       throw Exception('Failed to create LFG post: $e');
     }
   }
