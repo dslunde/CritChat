@@ -25,6 +25,10 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
   String _schedulePreference = '';
   String _campaignLength = '';
   final TextEditingController _callToAdventureController = TextEditingController();
+  
+  // Schedule input fields
+  final TextEditingController _scheduleNumberController = TextEditingController();
+  String _scheduleUnit = 'week';
 
   // Pre-defined options
   final List<String> _gameSystems = [
@@ -56,11 +60,11 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
     'Hybrid',
   ];
 
-  final List<String> _scheduleOptions = [
-    '1/week',
-    '2/week',
-    '2/month',
-    '1/month',
+  final List<String> _scheduleUnits = [
+    'day',
+    'week', 
+    'month',
+    'year',
   ];
 
   final List<String> _campaignLengths = [
@@ -73,6 +77,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
   @override
   void dispose() {
     _callToAdventureController.dispose();
+    _scheduleNumberController.dispose();
     _pageController.dispose();
     super.dispose();
   }
@@ -84,6 +89,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
       appBar: AppBar(
         backgroundColor: AppColors.primaryColor,
         foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
         title: const Text('Call to Adventure'),
         centerTitle: true,
       ),
@@ -233,12 +239,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
           // Schedule
           _buildSection(
             'Schedule Preference',
-            _buildChipSelector(
-              _scheduleOptions,
-              _schedulePreference,
-              (value) => setState(() => _schedulePreference = value),
-              singleSelect: true,
-            ),
+            _buildScheduleInput(),
           ),
 
           // Campaign Length
@@ -357,6 +358,94 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
     );
   }
 
+  Widget _buildScheduleInput() {
+    return Row(
+      children: [
+        // Number input
+        Expanded(
+          flex: 2,
+          child: TextField(
+            controller: _scheduleNumberController,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'e.g. 1',
+              hintStyle: TextStyle(
+                color: AppColors.textSecondary.withOpacity(0.7),
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.textSecondary),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.primaryColor),
+              ),
+              filled: true,
+              fillColor: AppColors.cardBackground,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+            ),
+            style: const TextStyle(color: AppColors.textPrimary),
+            onChanged: (value) {
+              _updateSchedulePreference();
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        // Unit dropdown
+        Expanded(
+          flex: 3,
+          child: Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.textSecondary),
+              borderRadius: BorderRadius.circular(8),
+              color: AppColors.cardBackground,
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: _scheduleUnit,
+                isExpanded: true,
+                dropdownColor: AppColors.cardBackground,
+                style: const TextStyle(color: AppColors.textPrimary),
+                icon: const Icon(Icons.arrow_drop_down, color: AppColors.textSecondary),
+                items: _scheduleUnits.map((String unit) {
+                  return DropdownMenuItem<String>(
+                    value: unit,
+                    child: Text(
+                      unit,
+                      style: const TextStyle(color: AppColors.textPrimary),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      _scheduleUnit = newValue;
+                      _updateSchedulePreference();
+                    });
+                  }
+                },
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _updateSchedulePreference() {
+    final number = _scheduleNumberController.text.trim();
+    if (number.isNotEmpty) {
+      setState(() {
+        _schedulePreference = '$number/$_scheduleUnit';
+      });
+    } else {
+      setState(() {
+        _schedulePreference = '';
+      });
+    }
+  }
+
   void _nextPage() {
     if (_isCurrentPageValid()) {
       _pageController.nextPage(
@@ -380,7 +469,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
       return _gameSystem.isNotEmpty &&
              _playStyles.isNotEmpty &&
              _sessionFormat.isNotEmpty &&
-             _schedulePreference.isNotEmpty &&
+             _scheduleNumberController.text.trim().isNotEmpty &&
              _campaignLength.isNotEmpty;
     } else if (_currentPage == 1) {
       return _callToAdventureController.text.trim().isNotEmpty;
@@ -391,7 +480,7 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
   void _showValidationError() {
     String message = '';
     if (_currentPage == 0) {
-      message = 'Please fill in all game details before continuing.';
+      message = 'Please fill in all game details including schedule frequency before continuing.';
     } else if (_currentPage == 1) {
       message = 'Please write your Call to Adventure before creating the post.';
     }
@@ -409,6 +498,9 @@ class _CreateLfgPostPageState extends State<CreateLfgPostPage> {
       _showValidationError();
       return;
     }
+
+    // Ensure schedule preference is set from current input
+    _updateSchedulePreference();
 
     final authState = context.read<AuthBloc>().state;
     if (authState is AuthAuthenticated) {
