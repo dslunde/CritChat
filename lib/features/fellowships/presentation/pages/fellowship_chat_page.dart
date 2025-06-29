@@ -358,6 +358,7 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
   Widget _buildMessageBubble(Message message) {
     final currentUserId = _auth.currentUser?.uid;
     final isMe = message.senderId == currentUserId;
+    final isCharacterMessage = message.isCharacterMessage;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -367,13 +368,50 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
           if (!isMe)
             Padding(
               padding: const EdgeInsets.only(left: 40, bottom: 4),
-              child: Text(
-                message.senderName,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textSecondary,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    message.senderName,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                  if (isCharacterMessage) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: AppColors.primaryColor.withOpacity(0.5),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.auto_awesome,
+                            size: 10,
+                            color: AppColors.primaryColor,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            'as ${message.characterName}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           Row(
@@ -383,33 +421,44 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                 Container(
                   width: 32,
                   height: 32,
-                  decoration: const BoxDecoration(
-                    color: AppColors.primaryColor,
+                  decoration: BoxDecoration(
+                    color: isCharacterMessage 
+                        ? const Color(0xFF7B1FA2) // Purple for character messages
+                        : AppColors.primaryColor,
                     shape: BoxShape.circle,
+                    border: isCharacterMessage
+                        ? Border.all(color: const Color(0xFF9C27B0), width: 2)
+                        : null,
                   ),
-                  child: message.senderPhotoUrl.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            message.senderPhotoUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(
-                                  Icons.person,
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                          ),
+                  child: isCharacterMessage
+                      ? const Icon(
+                          Icons.auto_awesome,
+                          color: Colors.white,
+                          size: 16,
                         )
-                      : Text(
-                          message.senderName.isNotEmpty
-                              ? message.senderName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
+                      : message.senderPhotoUrl.isNotEmpty
+                          ? ClipOval(
+                              child: Image.network(
+                                message.senderPhotoUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    const Icon(
+                                      Icons.person,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                              ),
+                            )
+                          : Text(
+                              message.senderName.isNotEmpty
+                                  ? message.senderName[0].toUpperCase()
+                                  : '?',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
                 ),
                 const SizedBox(width: 8),
               ],
@@ -422,7 +471,9 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                   decoration: BoxDecoration(
                     color: isMe
                         ? AppColors.primaryColor
-                        : AppColors.surfaceColor,
+                        : isCharacterMessage
+                            ? const Color(0xFFF3E5F5) // Light purple for character messages
+                            : AppColors.surfaceColor,
                     borderRadius: BorderRadius.circular(16).copyWith(
                       bottomLeft: isMe
                           ? const Radius.circular(16)
@@ -432,18 +483,51 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                           : const Radius.circular(16),
                     ),
                     border: !isMe
-                        ? Border.all(color: AppColors.borderColor, width: 1)
+                        ? Border.all(
+                            color: isCharacterMessage 
+                                ? const Color(0xFF9C27B0).withOpacity(0.3)
+                                : AppColors.borderColor, 
+                            width: isCharacterMessage ? 2 : 1,
+                          )
+                        : null,
+                    gradient: isCharacterMessage && !isMe
+                        ? LinearGradient(
+                            colors: [
+                              const Color(0xFFF3E5F5),
+                              const Color(0xFFF3E5F5).withOpacity(0.8),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
                         : null,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        message.content,
-                        style: TextStyle(
-                          color: isMe ? Colors.white : AppColors.textPrimary,
-                          fontSize: 15,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              message.content,
+                              style: TextStyle(
+                                color: isMe ? Colors.white : AppColors.textPrimary,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          if (isCharacterMessage && !isMe) ...[
+                            const SizedBox(width: 8),
+                            Tooltip(
+                              message: 'AI-generated character response',
+                              child: Icon(
+                                Icons.psychology,
+                                size: 16,
+                                color: const Color(0xFF9C27B0).withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Row(
