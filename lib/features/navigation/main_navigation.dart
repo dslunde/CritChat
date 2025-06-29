@@ -83,7 +83,7 @@ class _MainNavigationState extends State<MainNavigation> {
       child: Builder(
         builder: (context) {
           final List<Widget> pages = [
-            const LfgPage(),
+            BlocProvider.value(value: authBloc, child: const LfgPage()),
             BlocProvider.value(value: authBloc, child: const FriendsPage()),
             BlocProvider.value(value: authBloc, child: const HomePage()),
             const FellowshipsPage(),
