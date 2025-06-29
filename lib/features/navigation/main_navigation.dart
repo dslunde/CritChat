@@ -22,20 +22,23 @@ import 'package:critchat/features/notifications/presentation/bloc/notifications_
 import 'package:critchat/features/lfg/presentation/bloc/lfg_bloc.dart';
 
 class MainNavigation extends StatefulWidget {
-  const MainNavigation({super.key});
+  final int initialIndex;
+  
+  const MainNavigation({super.key, this.initialIndex = 2});
 
   @override
   State<MainNavigation> createState() => _MainNavigationState();
 }
 
 class _MainNavigationState extends State<MainNavigation> {
-  int _currentIndex = 2; // Start with Camera (home) page
+  late int _currentIndex;
   Timer? _levelUpCheckTimer;
   late NotificationIndicatorService _notificationService;
 
   @override
   void initState() {
     super.initState();
+    _currentIndex = widget.initialIndex;
     _notificationService = sl<NotificationIndicatorService>();
     // Check for level-ups every 2 seconds
     _levelUpCheckTimer = Timer.periodic(
