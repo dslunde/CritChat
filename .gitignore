@@ -124,7 +124,6 @@ local_config_with_keys.dart
 **/*_keys.dart
 
 # API Keys and secrets (security protection)
-**/lib/config/local_config.dart
 **/lib/config/production_config.dart
 
 # Exceptions to above rules.

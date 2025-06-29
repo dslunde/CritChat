@@ -22,7 +22,7 @@ void main() async {
   
   // Set up local configuration for RAG testing
   // See config/local_config.dart for setup instructions
-  LocalConfig.setup();
+  await LocalConfig.setup();
   
   runApp(const CritChatApp());
 }

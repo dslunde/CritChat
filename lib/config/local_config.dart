@@ -1,67 +1,96 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:critchat/core/config/app_config.dart';
 
 /// Local configuration for testing RAG features
 /// 
-/// IMPORTANT: This file is for local testing only.
-/// Never commit actual API keys to version control!
+/// SAFE SETUP: This file reads API keys from .env.local (which is gitignored)
 /// 
 /// To test the RAG system with real AI:
-/// 1. Get an OpenAI API key from https://platform.openai.com/api-keys
-/// 2. Set up Weaviate (see options below)
-/// 3. Update the configuration in configureForTesting()
-/// 4. Call LocalConfig.setup() in your main.dart
+/// 1. Copy env.local.example to .env.local
+/// 2. Edit .env.local with your OpenAI API key
+/// 3. Run: ./scripts/setup-weaviate.sh
+/// 4. Run: flutter run
 
 class LocalConfig {
   /// Set up configuration for local testing
   /// Call this in main.dart before runApp() to enable production AI testing
-  static void setup() {
-    // Uncomment and configure one of the options below:
-    
-    // Option 1: Local Weaviate with Docker (recommended for testing)
-    // You'll need to run: docker run -p 8080:8080 semitechnologies/weaviate:latest
-    // configureForLocalTesting();
-    
-    // Option 2: Weaviate Cloud (if you have a cloud instance)
-    // configureForWeaviateCloud();
-    
-    // Option 3: Keep using mock services (default)
-    // No configuration needed - system will use mock services
+  static Future<void> setup() async {
+    await _loadEnvironmentConfiguration();
   }
 
-  /// Configure for local Weaviate testing
-  /// 
-  /// Requirements:
-  /// 1. OpenAI API key
-  /// 2. Local Weaviate running on http://localhost:8080
-  /// 
-  /// To start local Weaviate:
-  /// docker run -p 8080:8080 -p 50051:50051 \
-  ///   -e QUERY_DEFAULTS_LIMIT=25 \
-  ///   -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \
-  ///   -e PERSISTENCE_DATA_PATH='/var/lib/weaviate' \
-  ///   -e DEFAULT_VECTORIZER_MODULE='none' \
-  ///   -e CLUSTER_HOSTNAME='node1' \
-  ///   semitechnologies/weaviate:1.22.4
-  static void configureForLocalTesting() {
-    LocalTestingConfig.enableWithLocalWeaviate(
-      openAiApiKey: 'YOUR_OPENAI_API_KEY_HERE', // Replace with your actual API key
-      weaviateUrl: 'http://localhost:8080',
-    );
+  /// Try to load configuration from .env.local
+  static Future<void> _loadEnvironmentConfiguration() async {
+    try {
+      // Load .env.local file
+      await dotenv.load(fileName: '.env.local');
+      
+      // Check if production AI is enabled
+      final useProductionAI = dotenv.env['USE_PRODUCTION_AI']?.toLowerCase() == 'true';
+      
+      if (!useProductionAI) {
+        debugPrint('📝 Using mock RAG services (USE_PRODUCTION_AI=false)');
+        _printSetupInstructions();
+        return;
+      }
+
+      // Get API keys from environment
+      final openAiApiKey = dotenv.env['OPENAI_API_KEY'];
+      final weaviateUrl = dotenv.env['WEAVIATE_URL'] ?? 'http://localhost:8080';
+      final weaviateApiKey = dotenv.env['WEAVIATE_API_KEY'];
+
+      // Validate required fields
+      if (openAiApiKey == null || openAiApiKey.isEmpty || openAiApiKey == 'your_openai_api_key_here') {
+        debugPrint('⚠️ Missing or placeholder OpenAI API key in .env.local');
+        _printSetupInstructions();
+        return;
+      }
+
+      // Configure based on Weaviate setup
+      if (weaviateUrl.contains('localhost')) {
+        LocalTestingConfig.enableWithLocalWeaviate(
+          openAiApiKey: openAiApiKey,
+          weaviateUrl: weaviateUrl,
+        );
+        debugPrint('✅ Configured RAG with local Weaviate');
+      } else {
+        LocalTestingConfig.enableWithWeaviateCloud(
+          openAiApiKey: openAiApiKey,
+          weaviateUrl: weaviateUrl,
+          weaviateApiKey: weaviateApiKey,
+        );
+        debugPrint('✅ Configured RAG with Weaviate Cloud');
+      }
+      
+    } catch (e) {
+      // .env.local doesn't exist or has errors - use mock services
+      debugPrint('📝 Using mock RAG services (.env.local not found)');
+      debugPrint('   Error: ${e.toString()}');
+      _printSetupInstructions();
+    }
   }
 
-  /// Configure for Weaviate Cloud testing
-  /// 
-  /// Requirements:
-  /// 1. OpenAI API key
-  /// 2. Weaviate Cloud instance URL
-  /// 3. Weaviate API key (if required by your instance)
-  static void configureForWeaviateCloud() {
-    LocalTestingConfig.enableWithWeaviateCloud(
-      openAiApiKey: 'YOUR_OPENAI_API_KEY_HERE',        // Replace with your OpenAI API key
-      weaviateUrl: 'https://your-cluster.weaviate.network', // Replace with your Weaviate URL
-      weaviateApiKey: 'YOUR_WEAVIATE_API_KEY_HERE',     // Replace with your Weaviate API key (if needed)
-    );
+  /// Print setup instructions for RAG testing
+  static void _printSetupInstructions() {
+    if (kDebugMode) {
+      debugPrint('');
+      debugPrint('🤖 To enable AI-powered character responses:');
+      debugPrint('');
+      debugPrint('   Step 1: Copy the example file');
+      debugPrint('   cp env.local.example .env.local');
+      debugPrint('');
+      debugPrint('   Step 2: Edit .env.local with your OpenAI API key');
+      debugPrint('   (Get one from: https://platform.openai.com/api-keys)');
+      debugPrint('');
+      debugPrint('   Step 3: Set up local Weaviate');
+      debugPrint('   ./scripts/setup-weaviate.sh');
+      debugPrint('');
+      debugPrint('   Step 4: Restart the app');
+      debugPrint('   flutter run');
+      debugPrint('');
+      debugPrint('💡 Currently using mock responses for @as commands');
+      debugPrint('');
+    }
   }
 }
 
@@ -71,24 +100,16 @@ class SetupInstructions {
 🔑 OpenAI API Key Setup:
 1. Go to https://platform.openai.com/api-keys
 2. Create a new API key
-3. Copy the key and replace 'YOUR_OPENAI_API_KEY_HERE' in local_config.dart
-4. Make sure you have credits in your OpenAI account
+3. Copy env.local.example to .env.local
+4. Edit .env.local with your actual API key
+5. Make sure you have credits in your OpenAI account
 ''';
 
   static const String localWeaviateSetup = '''
 🐳 Local Weaviate Setup:
-1. Install Docker on your machine
-2. Run this command:
-   docker run -p 8080:8080 -p 50051:50051 \\
-     -e QUERY_DEFAULTS_LIMIT=25 \\
-     -e AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED=true \\
-     -e PERSISTENCE_DATA_PATH='/var/lib/weaviate' \\
-     -e DEFAULT_VECTORIZER_MODULE='none' \\
-     -e CLUSTER_HOSTNAME='node1' \\
-     semitechnologies/weaviate:1.22.4
-
-3. Wait for Weaviate to start (check http://localhost:8080/v1/meta)
-4. Uncomment configureForLocalTesting() in LocalConfig.setup()
+1. Run the setup script: ./scripts/setup-weaviate.sh
+2. Wait for Weaviate to start (check http://localhost:8080/v1/meta)
+3. Your .env.local should be configured for local testing
 ''';
 
   static const String cloudWeaviateSetup = '''
@@ -96,8 +117,8 @@ class SetupInstructions {
 1. Go to https://console.weaviate.cloud/
 2. Create a new cluster
 3. Get your cluster URL and API key
-4. Update configureForWeaviateCloud() with your details
-5. Uncomment the call in LocalConfig.setup()
+4. Edit .env.local with your Weaviate cloud details
+5. Update WEAVIATE_URL and WEAVIATE_API_KEY
 ''';
 
   static const String testing = '''

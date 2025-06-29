@@ -25,13 +25,14 @@ After setup, you'll have:
    - Create a new API key
    - Make sure you have credits in your account
 
-3. **Configure the app:**
-   - Edit `lib/config/local_config.dart`
-   - Replace `'YOUR_OPENAI_API_KEY_HERE'` with your actual API key
-   - Uncomment this line in `setup()`:
-     ```dart
-     configureForLocalTesting();
-     ```
+3. **Configure the app (SECURE - No git commits needed!):**
+   ```bash
+   # Copy the example environment file
+   cp env.local.example .env.local
+   
+   # Edit .env.local with your API key
+   # Replace 'your_openai_api_key_here' with your actual key
+   ```
 
 4. **Test it:**
    ```bash
@@ -71,9 +72,15 @@ After setup, you'll have:
    - Get your cluster URL and API key
 
 2. **Configure for cloud:**
-   - Edit `lib/config/local_config.dart`
-   - Update `configureForWeaviateCloud()` with your details
-   - Uncomment the cloud configuration call in `setup()`
+   ```bash
+   # Copy the example environment file
+   cp env.local.example .env.local
+   
+   # Edit .env.local:
+   # - Replace OpenAI API key
+   # - Update WEAVIATE_URL with your cloud instance URL
+   # - Add WEAVIATE_API_KEY with your cloud API key
+   ```
 
 ## 🧪 Testing the RAG System
 
@@ -109,12 +116,14 @@ export USE_PRODUCTION_AI=true
 ```
 
 ### Development Configuration
-```dart
-// In lib/config/local_config.dart
-LocalTestingConfig.enableWithLocalWeaviate(
-  openAiApiKey: 'your-openai-key',
-  weaviateUrl: 'http://localhost:8080',
-);
+```bash
+# Copy example and edit with your keys
+cp env.local.example .env.local
+
+# Example .env.local content:
+# OPENAI_API_KEY=your-actual-openai-key
+# WEAVIATE_URL=http://localhost:8080
+# USE_PRODUCTION_AI=true
 ```
 
 ## 🐛 Troubleshooting
@@ -160,9 +169,10 @@ docker restart weaviate-critchat
 ## 🔒 Security Notes
 
 ### For Development
-- Never commit API keys to version control
-- Use `lib/config/local_config.dart` for local testing only
-- Keep the `YOUR_OPENAI_API_KEY_HERE` placeholder in commits
+- ✅ **SECURE BY DESIGN:** API keys are stored in `.env.local` which is automatically gitignored
+- ✅ **NO GIT RISK:** Your actual API keys are never committed to version control
+- ✅ **SIMPLE SETUP:** Just copy `env.local.example` and edit with your keys
+- Use `.env.local` for your actual keys (never commit this file)
 
 ### For Production
 - Use environment variables or secure key management
