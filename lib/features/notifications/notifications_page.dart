@@ -200,31 +200,35 @@ class NotificationsPage extends StatelessWidget {
         'createdAt': DateTime.now().millisecondsSinceEpoch,
       };
 
-      print('🧪 Creating test notification:');
-      print('   ID: $notificationId');
-      print('   Path: notifications/${currentUser.uid}/$notificationId');
-      print('   Data: $testNotification');
+      debugPrint('🧪 Creating test notification:');
+      debugPrint('   ID: $notificationId');
+      debugPrint('   Path: notifications/${currentUser.uid}/$notificationId');
+      debugPrint('   Data: $testNotification');
 
       await database
           .ref('notifications/${currentUser.uid}/$notificationId')
           .set(testNotification);
 
-      print('✅ Test notification created successfully');
+      debugPrint('✅ Test notification created successfully');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Test notification created!'),
-          backgroundColor: AppColors.successColor,
-        ),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Test notification created!'),
+            backgroundColor: AppColors.successColor,
+          ),
+        );
+      }
     } catch (e) {
-      print('❌ Failed to create test notification: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to create test notification: $e'),
-          backgroundColor: AppColors.errorColor,
-        ),
-      );
+      debugPrint('❌ Failed to create test notification: $e');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create test notification: $e'),
+            backgroundColor: AppColors.errorColor,
+          ),
+        );
+      }
     }
   }
 }

@@ -197,9 +197,9 @@ class _ForMePageState extends State<ForMePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.errorColor.withOpacity(0.1),
+        color: AppColors.errorColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.errorColor.withOpacity(0.3)),
+        border: Border.all(color: AppColors.errorColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -241,7 +241,7 @@ class _ForMePageState extends State<ForMePage> {
             decoration: BoxDecoration(
               color: AppColors.surfaceColor,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
+              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -358,7 +358,7 @@ class _ForMePageState extends State<ForMePage> {
           decoration: BoxDecoration(
             color: AppColors.surfaceColor,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
+            border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
           ),
           child: Column(
             children: [
@@ -405,9 +405,9 @@ class _ForMePageState extends State<ForMePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withOpacity(0.1),
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -435,7 +435,7 @@ class _ForMePageState extends State<ForMePage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(6),
             ),
             child: const Column(
@@ -569,7 +569,7 @@ class _ForMePageState extends State<ForMePage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: AppColors.primaryColor.withOpacity(0.2)),
+          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.2)),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(

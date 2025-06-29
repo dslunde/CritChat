@@ -389,10 +389,10 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withOpacity(0.2),
+                        color: AppColors.primaryColor.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: AppColors.primaryColor.withOpacity(0.5),
+                          color: AppColors.primaryColor.withValues(alpha: 0.5),
                           width: 1,
                         ),
                       ),
@@ -422,10 +422,10 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.5),
+                        color: Colors.white.withValues(alpha: 0.5),
                         width: 1,
                       ),
                     ),
@@ -534,7 +534,7 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                     ),
                     border: isCharacterMessage
                         ? Border.all(
-                            color: const Color(0xFF9C27B0).withOpacity(0.3),
+                            color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
                             width: 2,
                           )
                         : (!isMe
@@ -547,7 +547,7 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                         ? LinearGradient(
                             colors: [
                               const Color(0xFFF3E5F5),
-                              const Color(0xFFF3E5F5).withOpacity(0.8),
+                              const Color(0xFFF3E5F5).withValues(alpha: 0.8),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -579,8 +579,8 @@ class _FellowshipChatPageState extends State<FellowshipChatPage>
                                 isMe ? Icons.auto_awesome : Icons.psychology,
                                 size: 16,
                                 color: isMe 
-                                    ? Colors.white.withOpacity(0.7)
-                                    : const Color(0xFF9C27B0).withOpacity(0.7),
+                                    ? Colors.white.withValues(alpha: 0.7)
+                                    : const Color(0xFF9C27B0).withValues(alpha: 0.7),
                               ),
                             ),
                           ],

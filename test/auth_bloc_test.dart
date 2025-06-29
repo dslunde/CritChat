@@ -99,7 +99,7 @@ void main() {
     when(
       () => mockGamificationService.initializeUserXp(any()),
     ).thenAnswer((_) async => null);
-    when(() => mockGamificationService.awardXp(any())).thenAnswer((_) async {});
+    when(() => mockGamificationService.awardXp(any())).thenAnswer((_) async => null);
   });
 
   tearDown(() {
@@ -370,7 +370,7 @@ void main() {
           // Mock the gamification service calls
           when(
             () => mockGamificationService.awardXp(any()),
-          ).thenAnswer((_) async {});
+          ).thenAnswer((_) async => null);
 
           return createAuthBloc();
         },
