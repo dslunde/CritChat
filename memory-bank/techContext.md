@@ -57,11 +57,15 @@ Complete Firebase integration across all features:
 ### Vector Database: Weaviate (Production-Ready)
 -   **Production Integration**: Complete Weaviate service with schema management and health monitoring
 -   **Character Memory Storage**: Optimized vector storage for character memories with metadata
+-   **LFG Post Storage**: Dedicated `LfgPost` collection completely separate from character memories
+-   **Collection Separation Pattern**: Multi-collection architecture for different data types
 -   **Similarity Search**: Configurable threshold and limit-based memory retrieval (up to 10 memories)
 -   **Docker Deployment**: Automated local deployment with setup scripts
--   **Schema Management**: Automatic character memory schema creation and maintenance
+-   **Schema Management**: Automatic schema creation for both CharacterMemory and LfgPost collections
+-   **RFC3339 Date Formatting**: Proper UTC timezone handling with 'Z' suffix for Weaviate compatibility
 -   **Batch Operations**: Efficient bulk memory storage and vector operations
 -   **Health Checking**: Service availability monitoring with graceful degradation
+-   **LFG-Specific Methods**: `initializeLfgSchema()`, `storeLfgPost()`, `searchSimilarLfgPosts()`, `deleteLfgPost()`
 
 ### Large Language Model: OpenAI GPT-4o-mini
 -   **Character Response Generation**: Personality-driven AI responses using character profiles

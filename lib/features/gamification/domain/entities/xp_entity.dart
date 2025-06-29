@@ -123,6 +123,10 @@ enum XpRewardType {
   commentOnPost(3, 'Comment Added'),
   shareContent(5, 'Content Shared'),
 
+  // LFG Actions
+  lfgPostCreated(5, 'LFG Post Created'),
+  expressInterest(3, 'Interest Expressed'),
+
   // Special Achievements
   firstMessage(25, 'First Message'),
   firstFellowship(50, 'First Fellowship'),

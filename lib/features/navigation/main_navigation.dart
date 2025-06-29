@@ -19,6 +19,7 @@ import 'package:critchat/features/gamification/presentation/widgets/level_up_dia
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_bloc.dart';
 import 'package:critchat/features/notifications/presentation/bloc/notifications_event.dart';
+import 'package:critchat/features/lfg/presentation/bloc/lfg_bloc.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -73,6 +74,7 @@ class _MainNavigationState extends State<MainNavigation> {
       providers: [
         BlocProvider(create: (context) => sl<GamificationBloc>()),
         BlocProvider(create: (context) => sl<FellowshipBloc>()),
+        BlocProvider(create: (context) => sl<LfgBloc>()),
         BlocProvider(
           create: (context) =>
               sl<NotificationsBloc>()..add(const WatchNotifications()),

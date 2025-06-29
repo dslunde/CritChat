@@ -69,6 +69,21 @@ import 'package:critchat/features/gamification/domain/usecases/initialize_user_x
 import 'package:critchat/features/gamification/presentation/bloc/gamification_bloc.dart';
 import 'package:critchat/core/gamification/gamification_service.dart';
 
+// LFG
+import 'package:critchat/features/lfg/data/datasources/lfg_firestore_datasource.dart';
+import 'package:critchat/features/lfg/data/datasources/lfg_rag_datasource.dart';
+import 'package:critchat/features/lfg/data/repositories/lfg_repository_impl.dart';
+import 'package:critchat/features/lfg/domain/repositories/lfg_repository.dart';
+import 'package:critchat/features/lfg/domain/usecases/create_lfg_post_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/get_active_lfg_posts_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/get_user_lfg_posts_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/express_interest_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/close_lfg_post_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/refresh_lfg_post_usecase.dart';
+import 'package:critchat/features/lfg/domain/usecases/create_fellowship_from_post_usecase.dart';
+import 'package:critchat/features/lfg/data/services/lfg_matching_service.dart';
+import 'package:critchat/features/lfg/presentation/bloc/lfg_bloc.dart';
+
 // Characters
 import 'package:critchat/features/characters/data/datasources/character_firestore_datasource.dart';
 import 'package:critchat/features/characters/data/repositories/character_repository_impl.dart';
@@ -113,9 +128,13 @@ Future<void> init() async {
   _initChat();
   _initPolls();
   _initGamification();
+  _initLfg();
 
   // Initialize Weaviate schema if available
   await _initializeWeaviateSchema();
+
+  // Initialize LFG repository if available
+  await _initializeLfgRepository();
 
   // Initialize fellowship memberships for Realtime Database security rules
   await _initializeFellowshipMemberships();
@@ -133,6 +152,16 @@ Future<void> _initializeWeaviateSchema() async {
     // Log error but don't crash the app
     debugPrint('⚠️ Failed to initialize Weaviate schema: $e');
     debugPrint('   Vector database features may not work properly');
+  }
+}
+
+Future<void> _initializeLfgRepository() async {
+  try {
+    final lfgRepository = sl<LfgRepository>();
+    await lfgRepository.initialize();
+  } catch (e) {
+    // Log error but don't crash the app
+    debugPrint('Failed to initialize LFG repository: $e');
   }
 }
 
@@ -518,4 +547,68 @@ void _initGamification() {
 
   // Service
   sl.registerLazySingleton(() => GamificationService()..initialize());
+}
+
+void _initLfg() {
+  // Data sources
+  sl.registerLazySingleton<LfgFirestoreDataSource>(
+    () => LfgFirestoreDataSourceImpl(
+      firestore: sl(),
+    ),
+  );
+
+  // RAG data source (optional - fallback to mock if Weaviate unavailable)
+  final ragConfig = sl<RagConfig>();
+  if (ragConfig.enableRag && ragConfig.hasWeaviateConfig) {
+    sl.registerLazySingleton<LfgRagDataSource>(
+      () => LfgRagDataSourceImpl(
+        weaviateService: sl(),
+        embeddingService: sl(),
+      ),
+    );
+  } else {
+    sl.registerLazySingleton<LfgRagDataSource>(
+      () => LfgRagMockDataSource(),
+    );
+  }
+
+  // Services
+  sl.registerLazySingleton(
+    () => LfgMatchingService(ragDataSource: sl()),
+  );
+
+  // Repositories
+  sl.registerLazySingleton<LfgRepository>(
+    () => LfgRepositoryImpl(
+      ragConfig: ragConfig,
+      firestoreDataSource: sl(),
+      ragDataSource: sl(),
+      matchingService: sl(),
+    ),
+  );
+
+  // Use cases
+  sl.registerLazySingleton(() => CreateLfgPostUseCase(repository: sl()));
+  sl.registerLazySingleton(() => GetActiveLfgPostsUseCase(repository: sl()));
+  sl.registerLazySingleton(() => GetUserLfgPostsUseCase(repository: sl()));
+  sl.registerLazySingleton(() => ExpressInterestUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CloseLfgPostUseCase(repository: sl()));
+  sl.registerLazySingleton(() => RefreshLfgPostUseCase(repository: sl()));
+  sl.registerLazySingleton(() => CreateFellowshipFromPostUseCase(
+    lfgRepository: sl(),
+    fellowshipRepository: sl(),
+  ));
+
+  // BLoC
+  sl.registerFactory(
+    () => LfgBloc(
+      createLfgPostUseCase: sl(),
+      getActiveLfgPostsUseCase: sl(),
+      getUserLfgPostsUseCase: sl(),
+      expressInterestUseCase: sl(),
+      closeLfgPostUseCase: sl(),
+      refreshLfgPostUseCase: sl(),
+      createFellowshipFromPostUseCase: sl(),
+    ),
+  );
 }

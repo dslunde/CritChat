@@ -24,6 +24,14 @@ class WeaviateService {
     http.Client? httpClient,
   }) : httpClient = httpClient ?? http.Client();
 
+  /// Format DateTime to RFC3339 string that Weaviate expects
+  String _formatDateTimeForWeaviate(DateTime dateTime) {
+    final utcDateTime = dateTime.toUtc();
+    final isoString = utcDateTime.toIso8601String();
+    // Ensure it ends with 'Z' for UTC timezone
+    return isoString.endsWith('Z') ? isoString : '${isoString}Z';
+  }
+
   /// Initialize the Weaviate schema
   Future<void> initializeSchema() async {
     try {
@@ -109,8 +117,8 @@ class WeaviateService {
           'contentType': memory.contentType,
           'source': memory.source ?? '',
           'metadata': jsonEncode(memory.metadata),
-          'createdAt': memory.createdAt.toIso8601String(),
-          'updatedAt': memory.updatedAt.toIso8601String(),
+          'createdAt': _formatDateTimeForWeaviate(memory.createdAt),
+          'updatedAt': _formatDateTimeForWeaviate(memory.updatedAt),
         },
         'vector': memory.embedding,
       };
@@ -331,6 +339,303 @@ class WeaviateService {
     } catch (e) {
       debugPrint('🔍 Weaviate health check failed: $e');
       return false;
+    }
+  }
+
+  /// Initialize the LFG Posts schema in Weaviate
+  Future<void> initializeLfgSchema() async {
+    try {
+      debugPrint('🔧 Initializing Weaviate LFG schema...');
+      
+      final schema = {
+        'class': 'LfgPost',
+        'description': 'Looking for Group posts for semantic matching',
+        'vectorizer': 'none', // We provide our own vectors
+        'properties': [
+          {
+            'name': 'postId',
+            'dataType': ['text'],
+            'description': 'ID of the LFG post',
+          },
+          {
+            'name': 'userId',
+            'dataType': ['text'],
+            'description': 'ID of the user who created this post',
+          },
+          {
+            'name': 'userName',
+            'dataType': ['text'],
+            'description': 'Name of the user who created this post',
+          },
+          {
+            'name': 'userLevel',
+            'dataType': ['int'],
+            'description': 'Level of the user who created this post',
+          },
+          {
+            'name': 'content',
+            'dataType': ['text'],
+            'description': 'The searchable content of the LFG post',
+          },
+          {
+            'name': 'gameSystem',
+            'dataType': ['text'],
+            'description': 'Game system for this post',
+          },
+          {
+            'name': 'playStyles',
+            'dataType': ['text[]'],
+            'description': 'Play styles for this post',
+          },
+          {
+            'name': 'sessionFormat',
+            'dataType': ['text'],
+            'description': 'Session format preference',
+          },
+          {
+            'name': 'schedulePreference',
+            'dataType': ['text'],
+            'description': 'Schedule preference',
+          },
+          {
+            'name': 'campaignLength',
+            'dataType': ['text'],
+            'description': 'Campaign length preference',
+          },
+          {
+            'name': 'callToAdventureText',
+            'dataType': ['text'],
+            'description': 'The main call to adventure text',
+          },
+          {
+            'name': 'isClosed',
+            'dataType': ['boolean'],
+            'description': 'Whether this post is closed',
+          },
+          {
+            'name': 'createdAt',
+            'dataType': ['date'],
+            'description': 'When this post was created',
+          },
+          {
+            'name': 'updatedAt',
+            'dataType': ['date'],
+            'description': 'When this post was last updated',
+          },
+        ],
+      };
+
+      final response = await _makeRequest(
+        'POST',
+        '/v1/schema',
+        body: schema,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 422) {
+        // 422 means class already exists, which is fine
+        debugPrint('✅ Weaviate LFG schema initialized successfully');
+      } else {
+        throw Exception('Failed to initialize LFG schema: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to initialize Weaviate LFG schema: $e');
+      throw Exception('Failed to initialize Weaviate LFG schema: $e');
+    }
+  }
+
+  /// Store an LFG post in Weaviate
+  Future<String> storeLfgPost({
+    required String postId,
+    required String userId,
+    required String userName,
+    required int userLevel,
+    required String content,
+    required String gameSystem,
+    required List<String> playStyles,
+    required String sessionFormat,
+    required String schedulePreference,
+    required String campaignLength,
+    required String callToAdventureText,
+    required bool isClosed,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    required List<double> embedding,
+  }) async {
+    try {
+      debugPrint('📝 Storing LFG post in Weaviate: $postId');
+
+      final object = {
+        'class': 'LfgPost',
+        'properties': {
+          'postId': postId,
+          'userId': userId,
+          'userName': userName,
+          'userLevel': userLevel,
+          'content': content,
+          'gameSystem': gameSystem,
+          'playStyles': playStyles,
+          'sessionFormat': sessionFormat,
+          'schedulePreference': schedulePreference,
+          'campaignLength': campaignLength,
+          'callToAdventureText': callToAdventureText,
+          'isClosed': isClosed,
+          'createdAt': _formatDateTimeForWeaviate(createdAt),
+          'updatedAt': _formatDateTimeForWeaviate(updatedAt),
+        },
+        'vector': embedding,
+      };
+
+      final response = await _makeRequest(
+        'POST',
+        '/v1/objects',
+        body: object,
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final id = responseData['id'] as String;
+        debugPrint('✅ LFG post stored with ID: $id');
+        return id;
+      } else {
+        throw Exception('Failed to store LFG post: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to store LFG post in Weaviate: $e');
+      throw Exception('Failed to store LFG post in Weaviate: $e');
+    }
+  }
+
+  /// Search for similar LFG posts using vector similarity
+  Future<List<Map<String, dynamic>>> searchSimilarLfgPosts({
+    required List<double> queryVector,
+    int limit = 10,
+    double minSimilarity = 0.0,
+  }) async {
+    try {
+      debugPrint('🔍 Searching for similar LFG posts');
+
+      final query = {
+        'query': '''
+        {
+          Get {
+            LfgPost(
+              where: {
+                path: ["isClosed"]
+                operator: Equal
+                valueBoolean: false
+              }
+              nearVector: {
+                vector: ${jsonEncode(queryVector)}
+                certainty: ${(minSimilarity + 1) / 2} 
+              }
+              limit: $limit
+            ) {
+              _additional {
+                id
+                certainty
+                distance
+              }
+              postId
+              userId
+              userName
+              userLevel
+              content
+              gameSystem
+              playStyles
+              sessionFormat
+              schedulePreference
+              campaignLength
+              callToAdventureText
+              isClosed
+              createdAt
+              updatedAt
+            }
+          }
+        }
+        ''',
+      };
+
+      final response = await _makeRequest(
+        'POST',
+        '/v1/graphql',
+        body: query,
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final posts = responseData['data']['Get']['LfgPost'] as List;
+        
+        debugPrint('✅ Found ${posts.length} similar LFG posts');
+        return posts.cast<Map<String, dynamic>>();
+      } else {
+        throw Exception('Failed to search LFG posts: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to search LFG posts in Weaviate: $e');
+      throw Exception('Failed to search LFG posts in Weaviate: $e');
+    }
+  }
+
+  /// Delete an LFG post from Weaviate
+  Future<void> deleteLfgPost(String postId) async {
+    try {
+      debugPrint('🗑️ Deleting LFG post from Weaviate: $postId');
+
+      // First, find the Weaviate object ID for this post
+      final query = {
+        'query': '''
+        {
+          Get {
+            LfgPost(
+              where: {
+                path: ["postId"]
+                operator: Equal
+                valueText: "$postId"
+              }
+              limit: 1
+            ) {
+              _additional {
+                id
+              }
+            }
+          }
+        }
+        ''',
+      };
+
+      final searchResponse = await _makeRequest(
+        'POST',
+        '/v1/graphql',
+        body: query,
+      );
+
+      if (searchResponse.statusCode == 200) {
+        final responseData = jsonDecode(searchResponse.body);
+        final posts = responseData['data']['Get']['LfgPost'] as List;
+        
+        if (posts.isNotEmpty) {
+          final weaviateId = posts.first['_additional']['id'] as String;
+          
+          // Delete the object
+          final deleteResponse = await _makeRequest(
+            'DELETE',
+            '/v1/objects/$weaviateId',
+          );
+
+          if (deleteResponse.statusCode == 204) {
+            debugPrint('✅ LFG post deleted from Weaviate: $postId');
+          } else {
+            throw Exception('Failed to delete LFG post: ${deleteResponse.body}');
+          }
+        } else {
+          debugPrint('⚠️ LFG post not found in Weaviate: $postId');
+        }
+      } else {
+        throw Exception('Failed to find LFG post for deletion: ${searchResponse.body}');
+      }
+    } catch (e) {
+      debugPrint('❌ Failed to delete LFG post from Weaviate: $e');
+      throw Exception('Failed to delete LFG post from Weaviate: $e');
     }
   }
 

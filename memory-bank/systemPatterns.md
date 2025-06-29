@@ -191,6 +191,39 @@ Consistent use case patterns across all features:
 - **Clear Dependency Relationships**: Absolute imports make dependency relationships explicit
 - **IDE Support**: Better IDE support with absolute imports for refactoring and navigation 
 
+## LFG (Looking For Group) System Architecture
+
+### Domain Layer
+- **LfgPostEntity**: Core business entity with matching logic, interest tracking, lifecycle management
+- **LfgRepository**: Interface defining all LFG operations with user filtering and matching
+- **Use Cases**: CreateLfgPostUseCase, GetActiveLfgPostsUseCase, ExpressInterestUseCase, CreateFellowshipFromPostUseCase
+- **Matching Service**: Hybrid RAG + algorithmic matching with priority weighting system
+
+### Vector Database Integration Pattern
+- **Collection Separation**: Dedicated `LfgPost` collection in Weaviate, completely separate from `CharacterMemory`
+- **LFG-Specific Methods**: `initializeLfgSchema()`, `storeLfgPost()`, `searchSimilarLfgPosts()`, `deleteLfgPost()`
+- **RFC3339 Date Formatting**: Proper UTC timezone handling with 'Z' suffix for Weaviate compatibility
+- **Schema Initialization**: Automatic schema setup on app startup with error resilience
+- **Hybrid Matching**: Combines semantic RAG similarity (30%) with algorithmic compatibility (70%)
+
+### Matching Algorithm Pattern
+- **Priority Weighting**: Play style alignment (40%), game system (25%), campaign length (20%), schedule (10%), session format (5%)
+- **Semantic Similarity**: Vector-based play style matching using embeddings
+- **Algorithmic Compatibility**: Rule-based matching for structured data (game systems, schedules)
+- **User Filtering**: Smart exclusion of user's own posts (can't join your own adventures)
+
+### User Experience Patterns
+- **Thematic Consistency**: Adventure/communication theme throughout ("Call to Adventure", "Answer Call")
+- **Smart Button States**: Visual feedback with state transitions (Answer Call → Call Answered!)
+- **State Management**: BlocBuilder integration for proper auth state tracking
+- **Progressive Forms**: Multi-step creation with validation and chip selectors
+
+### Production Integration
+- **XP Rewards**: Integrated gamification (5 XP creation, 3 XP interest)
+- **Fellowship Conversion**: Seamless transition from LFG connection to active fellowship
+- **Firestore Indexing**: Composite indexes for optimal query performance
+- **Error Handling**: Graceful fallbacks for indexing issues and empty states
+
 ## Poll System Architecture
 
 ### Domain Layer
