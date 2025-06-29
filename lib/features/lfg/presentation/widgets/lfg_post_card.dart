@@ -5,11 +5,13 @@ import 'package:critchat/core/constants/app_colors.dart';
 class LfgPostCard extends StatelessWidget {
   final LfgPostEntity post;
   final VoidCallback onExpressInterest;
+  final String? currentUserId;
 
   const LfgPostCard({
     super.key,
     required this.post,
     required this.onExpressInterest,
+    this.currentUserId,
   });
 
   @override
@@ -194,29 +196,60 @@ class LfgPostCard extends StatelessWidget {
                 const SizedBox(width: 16),
                 
                 // Express interest button
-                ElevatedButton.icon(
-                  onPressed: onExpressInterest,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    minimumSize: Size.zero,
-                  ),
-                  icon: const Icon(Icons.favorite_border, size: 16),
-                  label: const Text(
-                    'Express Interest',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                ),
+                _buildInterestButton(),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildInterestButton() {
+    final hasExpressedInterest = currentUserId != null && 
+        post.hasUserExpressedInterest(currentUserId!);
+    
+    if (hasExpressedInterest) {
+      // User has already expressed interest - show "Call Answered!" and disable
+      return ElevatedButton.icon(
+        onPressed: null, // Disabled
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green.withOpacity(0.8),
+          disabledBackgroundColor: Colors.green.withOpacity(0.8),
+          foregroundColor: Colors.white,
+          disabledForegroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          minimumSize: Size.zero,
+        ),
+        icon: const Icon(Icons.check_circle, size: 16),
+        label: const Text(
+          'Call Answered!',
+          style: TextStyle(fontSize: 13),
+        ),
+      );
+    } else {
+      // User hasn't expressed interest - show "Answer Call" button
+      return ElevatedButton.icon(
+        onPressed: onExpressInterest,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primaryColor,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 8,
+          ),
+          minimumSize: Size.zero,
+        ),
+        icon: const Icon(Icons.campaign, size: 16),
+        label: const Text(
+          'Answer Call',
+          style: TextStyle(fontSize: 13),
+        ),
+      );
+    }
   }
 
   Widget _buildTag(String text, Color color) {

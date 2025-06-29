@@ -95,16 +95,25 @@ class _LfgPageState extends State<LfgPage> {
                         onRefresh: () async {
                           _loadLfgPosts();
                         },
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: posts.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16),
-                              child: LfgPostCard(
-                                post: posts[index],
-                                onExpressInterest: () => _expressInterest(posts[index].id),
-                              ),
+                        child: BlocBuilder<AuthBloc, AuthState>(
+                          builder: (context, authState) {
+                            final currentUserId = authState is AuthAuthenticated 
+                                ? authState.user.id 
+                                : null;
+
+                            return ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: posts.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: LfgPostCard(
+                                    post: posts[index],
+                                    currentUserId: currentUserId,
+                                    onExpressInterest: () => _expressInterest(posts[index].id),
+                                  ),
+                                );
+                              },
                             );
                           },
                         ),
