@@ -9,6 +9,9 @@ import 'package:critchat/features/auth/presentation/bloc/auth_state.dart';
 import 'package:critchat/features/friends/presentation/pages/search_friends_page.dart';
 import 'package:critchat/features/gamification/domain/entities/xp_entity.dart';
 import 'package:critchat/features/gamification/presentation/widgets/xp_progress_widget.dart';
+import 'package:critchat/features/fellowships/presentation/pages/join_fellowship_selection_page.dart';
+import 'package:critchat/features/lfg/lfg_page.dart';
+import 'package:critchat/features/gamification/presentation/pages/xp_explanation_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -210,18 +213,9 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Join a Campaign feature coming soon!',
-                                ),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
-                          icon: const Icon(Icons.castle),
-                          label: const Text('Join a Campaign'),
+                          onPressed: () => _navigateToJoinFellowship(context),
+                          icon: const Icon(Icons.diversity_3),
+                          label: const Text('Join Fellowship'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primaryColor,
                             foregroundColor: Colors.white,
@@ -233,16 +227,7 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Looking For Group feature coming soon!',
-                                ),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
+                          onPressed: () => _navigateToLfg(context),
                           icon: const Icon(Icons.group_add),
                           label: const Text('Looking For Group'),
                           style: ElevatedButton.styleFrom(
@@ -256,14 +241,7 @@ class ProfilePage extends StatelessWidget {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Earn XP feature coming soon!'),
-                                backgroundColor: AppColors.primaryColor,
-                              ),
-                            );
-                          },
+                          onPressed: () => _navigateToXpExplanation(context),
                           icon: const Icon(Icons.star),
                           label: const Text('Earn XP'),
                           style: ElevatedButton.styleFrom(
@@ -303,5 +281,32 @@ class ProfilePage extends StatelessWidget {
     Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (context) => const SearchFriendsPage()));
+  }
+
+  void _navigateToJoinFellowship(BuildContext context) {
+    final authState = context.read<AuthBloc>().state;
+    if (authState is AuthAuthenticated) {
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => JoinFellowshipSelectionPage(userId: authState.user.id),
+        ),
+      );
+    }
+  }
+
+  void _navigateToLfg(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const LfgPage(),
+      ),
+    );
+  }
+
+  void _navigateToXpExplanation(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const XpExplanationPage(),
+      ),
+    );
   }
 }

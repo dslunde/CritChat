@@ -45,14 +45,7 @@ class AppTopBar extends StatelessWidget {
     );
   }
 
-  void _onSearchTap(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Search functionality coming soon!'),
-        backgroundColor: AppColors.primaryColor,
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,45 +78,8 @@ class AppTopBar extends StatelessWidget {
           ),
           const SizedBox(width: 16),
 
-          // Search Bar
-          Expanded(
-            flex: 3,
-            child: GestureDetector(
-              onTap: () => _onSearchTap(context),
-              child: Container(
-                height: 40,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.search, color: Colors.white70, size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        MediaQuery.of(context).size.width > 350
-                            ? 'Search CritChat...'
-                            : 'Search...',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 16,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
+          // Spacer to push XP and notifications to the right
+          const Spacer(),
           // XP Progress Widget - constrained to avoid overflow
           BlocBuilder<AuthBloc, AuthState>(
             builder: (context, state) {
